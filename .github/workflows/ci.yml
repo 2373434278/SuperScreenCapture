@@ -32,10 +32,6 @@ jobs:
         run: dotnet build SuperScreenCapture.slnx -c Release --no-restore
       - name: Test
         run: dotnet test SuperScreenCapture.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx"
-      - name: Windows capture integration
-        if: runner.os == 'Windows'
-        continue-on-error: true
-        run: dotnet test tests/SSC.Platform.Windows.Tests/SSC.Platform.Windows.Tests.csproj -c Release
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -96,8 +92,13 @@ jobs:
         if: startsWith(matrix.rid, 'osx')
         shell: bash
         run: |
-          chmod +x build/mac/create-app-bundle.sh
+          chmod +x build/mac/*.sh
           ./build/mac/create-app-bundle.sh "artifacts/${{ matrix.rid }}" "artifacts/SuperScreenCapture-${{ matrix.rid }}.app"
+          ./build/mac/create-dmg.sh "artifacts/SuperScreenCapture-${{ matrix.rid }}.app" "artifacts/SuperScreenCapture-${{ matrix.rid }}.dmg"
+      - name: Package Windows portable zip
+        if: startsWith(matrix.rid, 'win')
+        shell: pwsh
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File build/windows/package-portable.ps1 -PublishDir "artifacts/${{ matrix.rid }}" -OutputDir "artifacts" -Rid "${{ matrix.rid }}" -Version "1.0.0"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -110,4 +111,11 @@ jobs:
         with:
           name: ssc-${{ matrix.rid }}-app
           path: artifacts/SuperScreenCapture-${{ matrix.rid }}.app
-          if-no-files-found: error
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssc-${{ matrix.rid }}-package
+          path: |
+            artifacts/SuperScreenCapture-${{ matrix.rid }}.dmg
+            artifacts/SuperScreenCapture-${{ matrix.rid }}-Portable-*.zip
+          if-no-files-found: ignore

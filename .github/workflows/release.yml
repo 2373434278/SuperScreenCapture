@@ -1,0 +1,250 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to build (without leading v)
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  mac:
+    name: mac (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    env:
+      MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+      MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+      MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve version
+        shell: bash
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${VERSION_INPUT:-}"
+          if [ -z "$version" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
+            echo "Invalid version: $version" >&2
+            exit 1
+          fi
+          echo "SSC_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Building $version for ${{ matrix.rid }}"
+
+      - name: Publish
+        run: >
+          dotnet publish src/SSC.App/SSC.App.csproj
+          -c Release
+          -f net10.0
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=false
+          -p:Version=$SSC_VERSION
+          -o artifacts/${{ matrix.rid }}
+
+      - name: Create app bundle
+        run: |
+          chmod +x build/mac/*.sh
+          ./build/mac/create-app-bundle.sh "artifacts/${{ matrix.rid }}" "artifacts/SuperScreenCapture.app"
+
+      - name: Sign and notarize app
+        run: ./build/mac/sign-and-notarize.sh "artifacts/SuperScreenCapture.app"
+
+      - name: Create DMG
+        run: ./build/mac/create-dmg.sh "artifacts/SuperScreenCapture.app" "artifacts/SuperScreenCapture.dmg"
+
+      - name: Sign and notarize DMG
+        run: ./build/mac/sign-and-notarize.sh "artifacts/SuperScreenCapture.app" "artifacts/SuperScreenCapture.dmg"
+
+      - name: Finalize artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="SuperScreenCapture-$SSC_VERSION-${{ matrix.rid }}.dmg"
+          mv artifacts/SuperScreenCapture.dmg "artifacts/${name}"
+          cd artifacts
+          shasum -a 256 "${name}" > "${name}.sha256"
+          ls -lh "${name}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-${{ matrix.rid }}
+          path: |
+            artifacts/SuperScreenCapture-*.dmg
+            artifacts/SuperScreenCapture-*.dmg.sha256
+          if-no-files-found: error
+
+  windows:
+    name: windows (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            rid: win-x64
+          - os: windows-11-arm
+            rid: win-arm64
+    runs-on: ${{ matrix.os }}
+    env:
+      WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+      WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve version
+        shell: pwsh
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          $version = $env:VERSION_INPUT
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            $version = $env:GITHUB_REF_NAME.TrimStart("v")
+          }
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$') {
+            throw "Invalid version: $version"
+          }
+          "SSC_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Building $version for ${{ matrix.rid }}"
+
+      - name: Publish
+        run: >
+          dotnet publish src/SSC.App/SSC.App.csproj
+          -c Release
+          -f net10.0-windows10.0.19041.0
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=false
+          -p:Version=$env:SSC_VERSION
+          -o artifacts/${{ matrix.rid }}
+
+      - name: Sign binaries
+        shell: pwsh
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File build/windows/sign.ps1 -Path "artifacts/${{ matrix.rid }}"
+
+      - name: Package portable zip
+        shell: pwsh
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File build/windows/package-portable.ps1 -PublishDir "artifacts/${{ matrix.rid }}" -OutputDir "artifacts/packages" -Rid "${{ matrix.rid }}" -Version "$env:SSC_VERSION"
+
+      - name: Package installer
+        shell: pwsh
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File build/windows/package-velopack.ps1 -PublishDir "artifacts/${{ matrix.rid }}" -OutputDir "artifacts/packages" -Version "$env:SSC_VERSION"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.rid }}
+          path: |
+            artifacts/packages/SuperScreenCapture-${{ matrix.rid }}-Portable-*.zip
+            artifacts/packages/SuperScreenCapture-${{ matrix.rid }}-Portable-*.zip.sha256
+            artifacts/packages/*Setup*.exe
+            artifacts/packages/*Setup*.exe.sha256
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.nupkg.sha256
+          if-no-files-found: error
+
+  release:
+    name: publish GitHub release
+    needs:
+      - mac
+      - windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Resolve version
+        shell: bash
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${VERSION_INPUT:-}"
+          if [ -z "$version" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
+            echo "Invalid version: $version" >&2
+            exit 1
+          fi
+          echo "SSC_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Collect notices
+        run: |
+          cp build/third-party-notices.txt dist/THIRD-PARTY-NOTICES.txt
+          cp LICENSE NOTICE dist/
+
+      - name: Checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          find . -maxdepth 1 -type f ! -name "SHA256SUMS" ! -name "*.sha256" -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v${SSC_VERSION}"
+          title="SuperScreenCapture ${SSC_VERSION}"
+          notes=$(cat <<'EOF'
+          Cross-platform screenshot, annotation, recording and OCR app built with .NET 10 and Avalonia.
+
+          macOS: open the DMG and drag SuperScreenCapture to Applications. Unsigned builds may require
+          System Settings -> Privacy & Security -> Open Anyway, and Screen Recording permission must be
+          granted before capture or recording.
+
+          Windows: run the Setup installer or extract the portable ZIP. Unsigned builds may show a
+          SmartScreen warning. Run as a normal user; screen capture does not require elevation.
+
+          Packages are Developer ID signed/notarized (macOS) or Authenticode signed (Windows) when the
+          corresponding signing secrets are configured.
+          EOF
+          )
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --clobber
+          else
+            gh release create "$tag" dist/* --title "$title" --notes "$notes"
+          fi

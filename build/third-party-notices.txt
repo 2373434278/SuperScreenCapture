@@ -1,0 +1,55 @@
+SuperScreenCapture THIRD-PARTY NOTICES
+=======================================
+
+SuperScreenCapture is licensed under the Apache License, Version 2.0.
+This file lists third-party components distributed with, or used to build,
+the application.
+
+Runtime and UI
+--------------
+- .NET 10 runtime - MIT License - https://github.com/dotnet/runtime
+- Avalonia (Avalonia, Avalonia.Desktop, Avalonia.Themes.Fluent,
+  Avalonia.Fonts.Inter, Avalonia.Skia, Avalonia.Headless) - MIT License
+  - https://github.com/AvaloniaUI/Avalonia
+- CommunityToolkit.Mvvm - MIT License
+  - https://github.com/CommunityToolkit/dotnet
+- Microsoft.Extensions.DependencyInjection - MIT License
+  - https://github.com/dotnet/runtime
+- SkiaSharp - MIT License - https://github.com/mono/SkiaSharp
+- Skia - BSD 3-Clause License - https://skia.org/
+
+Data and services
+-----------------
+- Microsoft.Data.Sqlite - MIT License
+  - https://github.com/dotnet/efcore
+- SQLitePCLRaw - Apache License 2.0
+  - https://github.com/ericsink/SQLitePCLRaw
+- SQLite - Public Domain - https://sqlite.org/
+- Serilog, Serilog.Sinks.Console, Serilog.Sinks.File - Apache License 2.0
+  - https://github.com/serilog/serilog
+- AWSSDK.S3 - Apache License 2.0
+  - https://github.com/aws/aws-sdk-net
+- Vortice.Direct3D11, Vortice.DXGI, Vortice.MediaFoundation - MIT License
+  - https://github.com/amerkoleci/Vortice.Windows
+
+Build and test tooling
+----------------------
+- Microsoft.NET.Test.Sdk - MIT License
+  - https://github.com/microsoft/vstest
+- xunit.v3, xunit.runner.visualstudio - Apache License 2.0
+  - https://github.com/xunit/xunit
+- Velopack CLI - MIT License - https://github.com/velopack/velopack
+
+Platform frameworks
+-------------------
+- Apple ScreenCaptureKit, AVFoundation, Vision (macOS system frameworks)
+- Windows Graphics Capture, Media Foundation, Windows.Media.Ocr
+  (Windows system APIs)
+
+No FFmpeg binary is bundled with this release. H.264/AAC encoding uses the
+operating system encoders (VideoToolbox on macOS, Media Foundation on
+Windows).
+
+Full license texts are available at the project links above and in the
+corresponding NuGet packages. If you redistribute this application, keep
+this file together with the LICENSE and NOTICE files.
