@@ -1,0 +1,341 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.Editing.AnnotationEditorWindow"
+        Title="SuperScreenCapture"
+        Width="1180"
+        Height="780"
+        MinWidth="960"
+        MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SscWindowBackground}"
+        Foreground="{DynamicResource SscText}">
+  <Window.Styles>
+    <Style Selector="Button.ghost">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+    </Style>
+    <Style Selector="Button.ghost Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.7" />
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style Selector="Button.primary">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="Button.primary Path">
+      <Setter Property="Stroke" Value="White" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style Selector="Button.editor-icon">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.editor-icon:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="Button.editor-icon Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.7" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.tool">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.tool:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="Button.tool.active">
+      <Setter Property="Background" Value="{DynamicResource SscAccentSoft}" />
+    </Style>
+    <Style Selector="Button.tool Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.7" />
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.tool.active Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscAccent}" />
+    </Style>
+
+    <Style Selector="Button.swatch">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.swatch.active">
+      <Setter Property="BorderBrush" Value="{DynamicResource SscText}" />
+    </Style>
+
+    <Style Selector="Button.seg-mini">
+      <Setter Property="Height" Value="26" />
+      <Setter Property="MinWidth" Value="28" />
+      <Setter Property="Padding" Value="6,0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="Button.seg-mini.active">
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="Button.bar">
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="9,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="Button.bar:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+    </Style>
+    <Style Selector="Button.bar Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.7" />
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style Selector="TextBlock.prop">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.val">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Width" Value="22" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="54,*,30">
+    <Border Grid.Row="0"
+            Background="{DynamicResource SscPanelBg}"
+            BorderBrush="{DynamicResource SscBorder}"
+            BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="14,0">
+        <Button x:Name="RetakeButton" Classes="ghost" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Path Data="M4 5h16v14H4z" />
+            <TextBlock x:Name="RetakeText" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource SscAccent}" />
+          <TextBlock x:Name="FileNameText"
+                     FontSize="12"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource SscText}"
+                     VerticalAlignment="Center" />
+          <TextBlock x:Name="DimensionsText"
+                     FontSize="11"
+                     Foreground="{DynamicResource SscTextMuted}"
+                     VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+          <Button x:Name="OcrButton" Classes="editor-icon">
+            <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
+          </Button>
+          <Button x:Name="UploadButton" Classes="editor-icon">
+            <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" />
+          </Button>
+          <Button x:Name="PinButton" Classes="editor-icon">
+            <Path Data="M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6ZM12 15v5" />
+          </Button>
+          <Button x:Name="DoneButton" Classes="primary" Margin="6,0,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Path Data="m4 12 5 5L20 6" />
+              <TextBlock x:Name="DoneText" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="62,*">
+      <Border Grid.Column="0"
+              Background="{DynamicResource SscPanelBg}"
+              BorderBrush="{DynamicResource SscBorder}"
+              BorderThickness="0,0,1,0">
+        <StackPanel x:Name="ToolRail" Spacing="3" Margin="10,10" />
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="48,*,46">
+        <Border Grid.Row="0"
+                Background="{DynamicResource SscPanelBg}"
+                BorderBrush="{DynamicResource SscBorder}"
+                BorderThickness="0,0,0,1">
+          <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0" VerticalAlignment="Center">
+              <TextBlock x:Name="ColorLabel" Classes="prop" />
+              <StackPanel x:Name="SwatchPanel" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" />
+              <Border Width="1" Height="18" Background="{DynamicResource SscBorder}" Margin="4,0" />
+              <TextBlock x:Name="WidthLabel" Classes="prop" />
+              <Slider x:Name="WidthSlider"
+                      Width="110"
+                      Minimum="1"
+                      Maximum="12"
+                      TickFrequency="1"
+                      IsSnapToTickEnabled="True" />
+              <TextBlock x:Name="WidthValue" Classes="val" />
+              <Border Width="1" Height="18" Background="{DynamicResource SscBorder}" Margin="4,0" />
+              <TextBlock x:Name="FontLabel" Classes="prop" />
+              <Slider x:Name="FontSlider"
+                      Width="110"
+                      Minimum="12"
+                      Maximum="56"
+                      TickFrequency="1"
+                      IsSnapToTickEnabled="True" />
+              <TextBlock x:Name="FontValue" Classes="val" />
+              <Border Width="1" Height="18" Background="{DynamicResource SscBorder}" Margin="4,0" />
+              <TextBlock x:Name="StrengthLabel" Classes="prop" />
+              <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <Button x:Name="StrengthSmall" Classes="seg-mini" Content="S" />
+                <Button x:Name="StrengthMedium" Classes="seg-mini" Content="M" />
+                <Button x:Name="StrengthLarge" Classes="seg-mini" Content="L" />
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="1" Background="{DynamicResource SscPanelAltBg}">
+          <Panel>
+            <Panel x:Name="CanvasHost" />
+            <Canvas x:Name="OverlayCanvas" IsHitTestVisible="False">
+              <TextBox x:Name="TextInputBox"
+                       Width="280"
+                       Height="34"
+                       IsVisible="False"
+                       FontSize="15"
+                       Padding="8,4"
+                       CornerRadius="6" />
+            </Canvas>
+          </Panel>
+        </Border>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource SscPanelBg}"
+                BorderBrush="{DynamicResource SscBorder}"
+                BorderThickness="0,1,0,0"
+                Padding="12,0">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto">
+            <Button x:Name="UndoButton" Classes="bar" Grid.Column="0">
+              <Path Data="M9 7 4 12l5 5M4 12h9a6 6 0 0 1 0 12" />
+            </Button>
+            <TextBlock x:Name="UndoCountText" Grid.Column="1" Classes="val" Width="20" />
+            <Button x:Name="RedoButton" Classes="bar" Grid.Column="2">
+              <Path Data="m15 7 5 5-5 5M20 12h-9a6 6 0 0 0 0 12" />
+            </Button>
+            <TextBlock x:Name="RedoCountText" Grid.Column="3" Classes="val" Width="20" />
+            <Border Grid.Column="4"
+                    Background="{DynamicResource SscPanelAltBg}"
+                    BorderBrush="{DynamicResource SscBorder}"
+                    BorderThickness="1"
+                    CornerRadius="999"
+                    Padding="9,3"
+                    Margin="8,0"
+                    VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Path x:Name="ToolChipIcon"
+                      Data="M4 5h16v14H4z"
+                      Stroke="{DynamicResource SscAccent}"
+                      StrokeThickness="1.7"
+                      Width="12"
+                      Height="12"
+                      Stretch="Uniform"
+                      VerticalAlignment="Center" />
+                <TextBlock x:Name="ToolChipText"
+                           FontSize="11"
+                           Foreground="{DynamicResource SscTextMuted}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+
+            <Button x:Name="CopyButton" Grid.Column="6" Classes="bar">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                <TextBlock x:Name="CopyText" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <ComboBox x:Name="FormatBox" Grid.Column="7" Width="78" Height="28" Margin="4,0" VerticalAlignment="Center" />
+            <Button x:Name="SaveButton" Grid.Column="8" Classes="bar">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Path Data="M5 4h11l3 3v13H5zM8 4v6h8V4M8 20v-6h8v6" />
+                <TextBlock x:Name="SaveText" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+
+    <Border Grid.Row="2"
+            Background="{DynamicResource SscPanelBg}"
+            BorderBrush="{DynamicResource SscBorder}"
+            BorderThickness="0,1,0,0"
+            Padding="16,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock x:Name="StatusText" FontSize="11" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" Text="M3" FontSize="10" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

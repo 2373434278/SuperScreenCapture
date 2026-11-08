@@ -190,6 +190,16 @@ private func shareableContentSync() throws -> SCShareableContent {
     return try result.get()
 }
 
+private func ownApplicationWindows(in content: SCShareableContent) -> [SCWindow] {
+    guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+        return []
+    }
+
+    return content.windows.filter { window in
+        window.owningApplication?.bundleIdentifier == bundleIdentifier
+    }
+}
+
 private func imageToNative(_ image: CGImage) throws -> ssc_image {
     let width = image.width
     let height = image.height
@@ -241,7 +251,7 @@ public func ssc_capture_display(_ displayId: UInt32, _ out: UnsafeMutablePointer
             return 0
         }
 
-        let filter = SCContentFilter(display: display, excludingWindows: [])
+        let filter = SCContentFilter(display: display, excludingWindows: ownApplicationWindows(in: content))
         let configuration = SCStreamConfiguration()
         configuration.width = display.width
         configuration.height = display.height

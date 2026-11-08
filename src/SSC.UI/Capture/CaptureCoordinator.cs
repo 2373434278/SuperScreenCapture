@@ -3,9 +3,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
+using SSC.Application.Editing;
 using SSC.Application.Settings;
 using SSC.Domain.Capture;
 using SSC.Domain.Geometry;
+using SSC.UI.Editing;
 
 namespace SSC.UI.Capture;
 
@@ -16,6 +18,7 @@ public sealed class CaptureCoordinator
     private readonly ScreenshotService _screenshots;
     private readonly IClipboardService _clipboard;
     private readonly ILocalizer _localizer;
+    private readonly IAnnotationRenderer _annotationRenderer;
     private bool _running;
 
     public CaptureCoordinator(
@@ -23,13 +26,15 @@ public sealed class CaptureCoordinator
         IPermissionService permissions,
         ScreenshotService screenshots,
         IClipboardService clipboard,
-        ILocalizer localizer)
+        ILocalizer localizer,
+        IAnnotationRenderer annotationRenderer)
     {
         _capture = capture ?? throw new ArgumentNullException(nameof(capture));
         _permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
         _screenshots = screenshots ?? throw new ArgumentNullException(nameof(screenshots));
         _clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
+        _annotationRenderer = annotationRenderer ?? throw new ArgumentNullException(nameof(annotationRenderer));
     }
 
     public Task<CaptureOutcome> CaptureRegionAsync(CancellationToken cancellationToken = default) =>
@@ -64,6 +69,7 @@ public sealed class CaptureCoordinator
                 await Task.Delay(180, cancellationToken).ConfigureAwait(true);
             }
 
+            AnnotationEditorWindow? editor = null;
             try
             {
                 var displays = await _capture.GetDisplaysAsync(cancellationToken).ConfigureAwait(true);
@@ -72,7 +78,15 @@ public sealed class CaptureCoordinator
 
                 var frame = await _capture.CaptureDisplayAsync(display.Id, null, cancellationToken).ConfigureAwait(true);
                 var result = await _screenshots.SaveAsync(frame, CaptureKind.Screenshot, cancellationToken).ConfigureAwait(true);
-                new CapturePreviewWindow(result, frame, _localizer, _clipboard).Show();
+                editor = new AnnotationEditorWindow(
+                    result,
+                    frame,
+                    _localizer,
+                    _annotationRenderer,
+                    _screenshots,
+                    _clipboard,
+                    retake: () => CaptureFullScreenAsync());
+                editor.Show();
                 return new CaptureOutcome(true, _localizer["captureSaved"], result);
             }
             finally
@@ -82,6 +96,8 @@ public sealed class CaptureCoordinator
                     mainWindow!.Show();
                     mainWindow.Activate();
                 }
+
+                editor?.Activate();
             }
         }
         catch (OperationCanceledException)
@@ -132,6 +148,7 @@ public sealed class CaptureCoordinator
                 await Task.Delay(180, cancellationToken).ConfigureAwait(true);
             }
 
+            AnnotationEditorWindow? editor = null;
             try
             {
                 var displays = await _capture.GetDisplaysAsync(cancellationToken).ConfigureAwait(true);
@@ -191,7 +208,18 @@ public sealed class CaptureCoordinator
 
                     var result = await _screenshots.SaveAsync(capturedFrame, CaptureKind.Screenshot, cancellationToken)
                         .ConfigureAwait(true);
-                    new CapturePreviewWindow(result, capturedFrame, _localizer, _clipboard).Show();
+                    Func<Task> retake = mode == CaptureOverlayMode.Window
+                        ? () => CaptureWindowSelectionAsync()
+                        : () => CaptureRegionAsync();
+                    editor = new AnnotationEditorWindow(
+                        result,
+                        capturedFrame,
+                        _localizer,
+                        _annotationRenderer,
+                        _screenshots,
+                        _clipboard,
+                        retake);
+                    editor.Show();
                     return new CaptureOutcome(true, _localizer["captureSaved"], result);
                 }
                 finally
@@ -209,6 +237,8 @@ public sealed class CaptureCoordinator
                     mainWindow!.Show();
                     mainWindow.Activate();
                 }
+
+                editor?.Activate();
             }
         }
         catch (OperationCanceledException)

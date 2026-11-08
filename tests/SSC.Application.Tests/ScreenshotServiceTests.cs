@@ -47,14 +47,49 @@ public sealed class ScreenshotServiceTests
         Assert.Equal(result.Entry.Id, published);
     }
 
+    [Fact]
+    public async Task SaveAsync_UsesExplicitFormat()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var encoder = new StubEncoder();
+        var service = new ScreenshotService(
+            encoder,
+            new RecordingClipboardService(),
+            new InMemoryHistoryRepository(),
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            new InMemoryAppEventBus());
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+
+        var result = await service.SaveAsync(
+            frame,
+            CaptureKind.Screenshot,
+            "webp",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("webp", encoder.LastFormat);
+        Assert.EndsWith(".webp", result.FilePath, StringComparison.OrdinalIgnoreCase);
+    }
+
     private sealed class StubEncoder : IImageEncoder
     {
+        public string? LastFormat { get; private set; }
+
         public Task<byte[]> EncodeAsync(
             CaptureFrame frame,
             string format,
             int quality,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(new byte[] { 1, 2, 3 });
+            CancellationToken cancellationToken = default)
+        {
+            LastFormat = format;
+            return Task.FromResult(new byte[] { 1, 2, 3 });
+        }
     }
 
     private sealed class RecordingClipboardService : IClipboardService

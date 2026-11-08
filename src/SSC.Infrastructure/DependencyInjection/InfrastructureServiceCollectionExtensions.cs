@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
+using SSC.Application.Editing;
 using SSC.Application.Events;
 using SSC.Application.Settings;
 using SSC.Infrastructure.Imaging;
@@ -34,6 +35,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IAppEventBus, InMemoryAppEventBus>();
         services.AddSingleton<SettingsService>();
         services.AddSingleton<IImageEncoder, SkiaImageEncoder>();
+        services.AddSingleton<IAnnotationRenderer, SkiaAnnotationRenderer>();
         services.AddSingleton<CaptureFileNamer>();
         services.AddSingleton<ScreenshotService>();
 

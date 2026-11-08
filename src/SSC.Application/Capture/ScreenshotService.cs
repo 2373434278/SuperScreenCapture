@@ -34,15 +34,22 @@ public sealed class ScreenshotService
         _events = events ?? throw new ArgumentNullException(nameof(events));
     }
 
+    public Task<ScreenshotResult> SaveAsync(
+        CaptureFrame frame,
+        CaptureKind kind,
+        CancellationToken cancellationToken = default) =>
+        SaveAsync(frame, kind, format: null, cancellationToken);
+
     public async Task<ScreenshotResult> SaveAsync(
         CaptureFrame frame,
         CaptureKind kind,
+        string? format,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(frame);
 
         var settings = _settings.Current;
-        var extension = settings.DefaultFormat is "jpg" or "webp" ? settings.DefaultFormat : "png";
+        var extension = NormalizeFormat(format ?? settings.DefaultFormat);
         var bytes = await _encoder.EncodeAsync(frame, extension, settings.JpegQuality, cancellationToken)
             .ConfigureAwait(false);
 
@@ -65,4 +72,11 @@ public sealed class ScreenshotService
 
         return new ScreenshotResult(entry, bytes, path);
     }
+
+    private static string NormalizeFormat(string format) => format?.Trim().TrimStart('.').ToLowerInvariant() switch
+    {
+        "jpg" or "jpeg" => "jpg",
+        "webp" => "webp",
+        _ => "png"
+    };
 }
