@@ -10,6 +10,9 @@ docs/
 *.mdx
 README
 README.*
+# The user-facing README is part of the published repository.
+!README.md
+!README.en.md
 CHANGELOG*
 CONTRIBUTING*
 CODE_OF_CONDUCT*
