@@ -1,0 +1,23 @@
+# Documentation and design artifacts are intentionally excluded from Git.
+# The repository should contain source, build, CI and license files only.
+
+# Prototype and documentation folders
+prototype/
+docs/
+
+# Markdown and office documents
+*.md
+*.mdx
+README
+README.*
+CHANGELOG*
+CONTRIBUTING*
+CODE_OF_CONDUCT*
+*.pdf
+*.docx
+*.pptx
+*.xlsx
+
+# OS metadata
+.DS_Store
+Thumbs.db

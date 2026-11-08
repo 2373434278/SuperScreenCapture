@@ -1,0 +1,33 @@
+SuperScreenCapture
+Copyright 2026 SuperScreenCapture contributors
+
+This product includes software developed by the SuperScreenCapture
+project.
+
+The SuperScreenCapture name, logo and application icons are project
+identifiers. No trademark rights are granted under the Apache License 2.0.
+
+Third-party components
+----------------------
+Distributed binaries may include the following third-party components.
+The authoritative list, including versions and complete license texts,
+is maintained in THIRD-PARTY-NOTICES.md and bundled with each release.
+
+  - .NET runtime and libraries                         MIT
+  - Avalonia UI                                        MIT
+  - SkiaSharp                                          MIT / BSD-3-Clause
+  - CommunityToolkit.Mvvm                              MIT
+  - Microsoft.Extensions.*                              MIT
+  - Microsoft.Data.Sqlite / SQLitePCLRaw               MIT / Apache-2.0
+  - Serilog and Serilog.Sinks.File                     Apache-2.0
+  - Vortice.Windows                                    MIT
+  - Velopack                                           MIT
+  - FFmpeg (optional, invoked as a separate process)   LGPL-2.1-or-later
+  - Tesseract OCR (optional fallback)                  Apache-2.0
+
+FFmpeg is distributed only as an optional, separately executable
+component built without GPL/non-free modules. Its license text and
+source-code availability information are included with the release.
+
+This NOTICE file must be preserved in redistributions of the Work or
+Derivative Works as required by Section 4(d) of the Apache License 2.0.
