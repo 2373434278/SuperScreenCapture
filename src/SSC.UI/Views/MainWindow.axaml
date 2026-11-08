@@ -216,7 +216,7 @@
                       HorizontalScrollBarVisibility="Hidden"
                       VerticalScrollBarVisibility="Disabled">
           <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
+            <Button Classes="topnav" Command="{Binding CaptureRegionCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Path Data="M4 5h16v14H4z" />
                 <TextBlock Text="{Binding L[navCapture]}" />

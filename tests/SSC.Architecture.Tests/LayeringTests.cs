@@ -36,8 +36,7 @@ public sealed class LayeringTests
         var references = GetReferences(typeof(SqliteConnectionFactory));
 
         Assert.DoesNotContain(references, name =>
-            name.StartsWith("Avalonia", StringComparison.Ordinal)
-            || name.StartsWith("SkiaSharp", StringComparison.Ordinal));
+            name.StartsWith("Avalonia", StringComparison.Ordinal));
     }
 
     [Fact]

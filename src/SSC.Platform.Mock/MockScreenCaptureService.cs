@@ -52,4 +52,17 @@ public sealed class MockScreenCaptureService : IScreenCaptureService
 
     public Task<CaptureFrame> CaptureWindowAsync(string windowId, CancellationToken cancellationToken = default) =>
         CaptureDisplayAsync(windowId, region: null, cancellationToken);
+
+    public Task<WindowDescriptor?> GetWindowAtPointAsync(
+        PixelPoint point,
+        CancellationToken cancellationToken = default)
+    {
+        WindowDescriptor? window = new WindowDescriptor(
+            "mock-window",
+            "Mock Window",
+            new PixelRect(point.X, point.Y, 640, 400),
+            "Mock");
+
+        return Task.FromResult<WindowDescriptor?>(window);
+    }
 }

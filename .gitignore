@@ -22,6 +22,10 @@ CODE_OF_CONDUCT*
 .zion-mcp/
 .qoder/
 
+# SwiftPM build outputs
+native/**/.build/
+native/**/.swiftpm/
+
 # Build outputs
 bin/
 obj/

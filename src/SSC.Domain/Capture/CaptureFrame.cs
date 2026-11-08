@@ -38,4 +38,23 @@ public sealed class CaptureFrame
     public byte[] Pixels { get; }
 
     public DateTimeOffset CapturedAt { get; }
+
+    public CaptureFrame Crop(Geometry.PixelRect rect)
+    {
+        var clipped = rect.Intersect(new Geometry.PixelRect(0, 0, Width, Height));
+        if (clipped.IsEmpty)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rect), "Crop rectangle is outside the frame.");
+        }
+
+        var cropped = new byte[checked(clipped.Width * clipped.Height * 4)];
+        for (var row = 0; row < clipped.Height; row++)
+        {
+            var sourceOffset = ((clipped.Y + row) * Stride) + (clipped.X * 4);
+            var targetOffset = row * clipped.Width * 4;
+            Buffer.BlockCopy(Pixels, sourceOffset, cropped, targetOffset, clipped.Width * 4);
+        }
+
+        return new CaptureFrame(clipped.Width, clipped.Height, cropped, CapturedAt);
+    }
 }

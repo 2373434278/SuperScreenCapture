@@ -24,8 +24,12 @@
   <string>public.app-category.utilities</string>
   <key>LSMinimumSystemVersion</key>
   <string>14.0</string>
+  <key>NSCameraUsageDescription</key>
+  <string>SuperScreenCapture overlays your camera during recording when enabled.</string>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>SuperScreenCapture records microphone audio when you start a recording.</string>
   <key>NSHumanReadableCopyright</key>
   <string>Copyright 2026 SuperScreenCapture contributors</string>
   <key>NSPrincipalClass</key>

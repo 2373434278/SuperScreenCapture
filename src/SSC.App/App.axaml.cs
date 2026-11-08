@@ -4,10 +4,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
+using SSC.UI.Capture;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
 using AppInfo = SSC.Application.AppInfo;
@@ -20,6 +22,7 @@ public partial class App : Avalonia.Application
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private MainWindow? _mainWindow;
     private TrayIcon? _trayIcon;
+    private TrayActions? _trayActions;
     private bool _isQuitting;
     private bool _allowClose;
 
@@ -78,13 +81,15 @@ public partial class App : Avalonia.Application
 
         try
         {
-            _trayIcon = TrayIconFactory.Create(
-                this,
-                LoadWindowIcon(),
-                localizer,
+            _trayActions = new TrayActions(
                 ShowMainWindow,
+                CaptureRegion,
+                CaptureFull,
+                CaptureDelayed,
+                CaptureWindow,
                 NotifyComingSoon,
                 Quit);
+            _trayIcon = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, _trayActions);
         }
         catch (Exception exception)
         {
@@ -94,10 +99,38 @@ public partial class App : Avalonia.Application
         localizer.LanguageChanged += OnLanguageChanged;
         desktop.Exit += (_, _) => Cleanup();
 
-        var startHidden = Environment.GetCommandLineArgs().Contains("--hidden", StringComparer.OrdinalIgnoreCase);
+        var arguments = Environment.GetCommandLineArgs();
+        var selfTest = arguments.Contains("--capture-self-test", StringComparer.OrdinalIgnoreCase);
+        var startHidden = selfTest
+            || arguments.Contains("--hidden", StringComparer.OrdinalIgnoreCase);
         if (!startHidden)
         {
             _mainWindow.Show();
+        }
+
+        if (selfTest)
+        {
+            Dispatcher.UIThread.Post(async () =>
+            {
+                try
+                {
+                    var coordinator = _services.GetRequiredService<CaptureCoordinator>();
+                    var outcome = await coordinator.CaptureFullScreenAsync();
+                    Log.Information(
+                        "Capture self-test success={Success} message={Message} path={Path}",
+                        outcome.Success,
+                        outcome.Message,
+                        outcome.Result?.FilePath);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(exception, "Capture self-test failed.");
+                }
+                finally
+                {
+                    Quit();
+                }
+            });
         }
 
         Log.Information("{Application} {Version} started.", AppInfo.Name, AppInfo.Version);
@@ -143,12 +176,13 @@ public partial class App : Avalonia.Application
             return;
         }
 
-        TrayIconFactory.Update(
-            _trayIcon,
-            _services.GetRequiredService<ILocalizer>(),
-            ShowMainWindow,
-            NotifyComingSoon,
-            Quit);
+        if (_trayActions is not null)
+        {
+            TrayIconFactory.Update(
+                _trayIcon,
+                _services.GetRequiredService<ILocalizer>(),
+                _trayActions);
+        }
     }
 
     private void ShowMainWindow()
@@ -171,6 +205,43 @@ public partial class App : Avalonia.Application
     {
         ShowMainWindow();
         _services?.GetRequiredService<MainWindowViewModel>().ShowComingSoon();
+    }
+
+    private async void CaptureRegion() =>
+        await RunCaptureAsync(coordinator => coordinator.CaptureRegionAsync());
+
+    private async void CaptureFull() =>
+        await RunCaptureAsync(coordinator => coordinator.CaptureFullScreenAsync());
+
+    private async void CaptureDelayed() =>
+        await RunCaptureAsync(coordinator => coordinator.CaptureDelayedAsync(TimeSpan.FromSeconds(3)));
+
+    private async void CaptureWindow() =>
+        await RunCaptureAsync(coordinator => coordinator.CaptureWindowSelectionAsync());
+
+    private async Task RunCaptureAsync(Func<CaptureCoordinator, Task<CaptureOutcome>> action)
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var viewModel = _services.GetRequiredService<MainWindowViewModel>();
+        try
+        {
+            var outcome = await action(_services.GetRequiredService<CaptureCoordinator>());
+            viewModel.ShowStatus(outcome.Message);
+            if (!outcome.Success)
+            {
+                ShowMainWindow();
+            }
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "Capture failed.");
+            viewModel.ShowStatus(exception.Message);
+            ShowMainWindow();
+        }
     }
 
     private void Quit()

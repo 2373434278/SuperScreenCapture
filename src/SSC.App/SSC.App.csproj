@@ -36,4 +36,23 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
   </ItemGroup>
+  <Target Name="BuildMacNative"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(TargetFramework)' != '' And $([MSBuild]::IsOSPlatform('OSX')) And !$(TargetFramework.Contains('-windows'))">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)../../build/mac/build-native.sh&quot;" />
+  </Target>
+  <Target Name="CopyMacNative"
+          AfterTargets="Build"
+          Condition="'$(TargetFramework)' != '' And $([MSBuild]::IsOSPlatform('OSX')) And !$(TargetFramework.Contains('-windows'))">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)../../artifacts/native/osx/libSSCMacKit.dylib"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyMacNativePublish"
+          AfterTargets="Publish"
+          Condition="'$(TargetFramework)' != '' And $([MSBuild]::IsOSPlatform('OSX')) And !$(TargetFramework.Contains('-windows'))">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)../../artifacts/native/osx/libSSCMacKit.dylib"
+          DestinationFolder="$(PublishDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>

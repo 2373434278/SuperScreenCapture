@@ -13,8 +13,8 @@ public static class MacServiceCollectionExtensions
             "macOS",
             Environment.OSVersion.VersionString));
         services.AddSingleton(new PlatformCapabilities(
-            ScreenCapture: false,
-            WindowCapture: false,
+            ScreenCapture: true,
+            WindowCapture: true,
             SystemAudio: false,
             Ocr: false,
             GlobalHotkeys: false));
@@ -22,6 +22,7 @@ public static class MacServiceCollectionExtensions
         services.AddSingleton<IPermissionService, MacPermissionService>();
         services.AddSingleton<IHotkeyService, MacHotkeyService>();
         services.AddSingleton<IAutoStartService, MacAutoStartService>();
+        services.AddSingleton<IClipboardService, MacClipboardService>();
         return services;
     }
 }

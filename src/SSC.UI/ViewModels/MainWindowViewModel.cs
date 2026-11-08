@@ -8,6 +8,7 @@ using SSC.Application;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Platform.Abstractions;
+using SSC.UI.Capture;
 
 namespace SSC.UI.ViewModels;
 
@@ -17,6 +18,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly ILocalizer _localizer;
     private readonly IAutoStartService _autoStart;
     private readonly PlatformDescriptor _platform;
+    private readonly CaptureCoordinator? _captureCoordinator;
     private AppSettings _draft;
     private string _activeTab = "general";
     private bool _disposed;
@@ -25,12 +27,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SettingsService settingsService,
         ILocalizer localizer,
         IAutoStartService autoStart,
-        PlatformDescriptor platform)
+        PlatformDescriptor platform,
+        CaptureCoordinator? captureCoordinator = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
         _autoStart = autoStart ?? throw new ArgumentNullException(nameof(autoStart));
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
+        _captureCoordinator = captureCoordinator;
 
         _draft = _settingsService.Current;
         _localizer.SetLanguage(_draft.Language);
@@ -184,6 +188,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void ToggleTheme() => SetTheme(_draft.Theme == "dark" ? "light" : "dark");
+
+    [RelayCommand]
+    private async Task CaptureRegionAsync()
+    {
+        if (_captureCoordinator is null)
+        {
+            ShowComingSoon();
+            return;
+        }
+
+        var outcome = await _captureCoordinator.CaptureRegionAsync();
+        StatusMessage = outcome.Message;
+    }
 
     [RelayCommand]
     private void RestoreHotkeys()

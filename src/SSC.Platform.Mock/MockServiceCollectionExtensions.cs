@@ -22,6 +22,7 @@ public static class MockServiceCollectionExtensions
         services.AddSingleton<IPermissionService, MockPermissionService>();
         services.AddSingleton<IHotkeyService, MockHotkeyService>();
         services.AddSingleton<IAutoStartService, MockAutoStartService>();
+        services.AddSingleton<IClipboardService, MockClipboardService>();
         return services;
     }
 }

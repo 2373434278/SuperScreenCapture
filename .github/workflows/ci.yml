@@ -32,6 +32,10 @@ jobs:
         run: dotnet build SuperScreenCapture.slnx -c Release --no-restore
       - name: Test
         run: dotnet test SuperScreenCapture.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+      - name: Windows capture integration
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: dotnet test tests/SSC.Platform.Windows.Tests/SSC.Platform.Windows.Tests.csproj -c Release
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -86,6 +90,7 @@ jobs:
             test -f artifacts/${{ matrix.rid }}/SSC.App.exe
           else
             test -x artifacts/${{ matrix.rid }}/SSC.App
+            test -f artifacts/${{ matrix.rid }}/libSSCMacKit.dylib
           fi
       - name: Package macOS app bundle
         if: startsWith(matrix.rid, 'osx')

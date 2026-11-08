@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using SSC.Application.Abstractions;
+using SSC.Application.Capture;
 using SSC.Application.Events;
 using SSC.Application.Settings;
+using SSC.Infrastructure.Imaging;
 using SSC.Infrastructure.Localization;
 using SSC.Infrastructure.Logging;
 using SSC.Infrastructure.Paths;
@@ -31,6 +33,9 @@ public static class InfrastructureServiceCollectionExtensions
             new FileLockSingleInstanceService(Path.Combine(paths.AppDataDirectory, "ssc.lock")));
         services.AddSingleton<IAppEventBus, InMemoryAppEventBus>();
         services.AddSingleton<SettingsService>();
+        services.AddSingleton<IImageEncoder, SkiaImageEncoder>();
+        services.AddSingleton<CaptureFileNamer>();
+        services.AddSingleton<ScreenshotService>();
 
         return services;
     }

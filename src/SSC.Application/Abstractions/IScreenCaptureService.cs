@@ -13,4 +13,6 @@ public interface IScreenCaptureService
         CancellationToken cancellationToken = default);
 
     Task<CaptureFrame> CaptureWindowAsync(string windowId, CancellationToken cancellationToken = default);
+
+    Task<WindowDescriptor?> GetWindowAtPointAsync(PixelPoint point, CancellationToken cancellationToken = default);
 }

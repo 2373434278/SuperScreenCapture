@@ -13,8 +13,8 @@ public static class WindowsServiceCollectionExtensions
             "Windows",
             Environment.OSVersion.VersionString));
         services.AddSingleton(new PlatformCapabilities(
-            ScreenCapture: false,
-            WindowCapture: false,
+            ScreenCapture: true,
+            WindowCapture: true,
             SystemAudio: false,
             Ocr: false,
             GlobalHotkeys: false));
@@ -22,6 +22,7 @@ public static class WindowsServiceCollectionExtensions
         services.AddSingleton<IPermissionService, WindowsPermissionService>();
         services.AddSingleton<IHotkeyService, WindowsHotkeyService>();
         services.AddSingleton<IAutoStartService, WindowsAutoStartService>();
+        services.AddSingleton<IClipboardService, WindowsClipboardService>();
         return services;
     }
 }

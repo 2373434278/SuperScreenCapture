@@ -5,6 +5,7 @@ using SSC.Infrastructure.DependencyInjection;
 using SSC.Infrastructure.Logging;
 using SSC.Infrastructure.Paths;
 using SSC.Infrastructure.Persistence;
+using SSC.UI.Capture;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
 #if SSC_WINDOWS
@@ -30,6 +31,7 @@ internal static class Bootstrap
 #else
         services.AddMacPlatform();
 #endif
+        services.AddSingleton<CaptureCoordinator>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 
