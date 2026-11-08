@@ -209,7 +209,7 @@ jobs:
       - name: Collect notices
         run: |
           cp build/third-party-notices.txt dist/THIRD-PARTY-NOTICES.txt
-          cp LICENSE NOTICE dist/
+          cp LICENSE NOTICE README.md README.en.md dist/
 
       - name: Checksums
         shell: bash
