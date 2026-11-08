@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.Recording.CameraPreviewWindow"
+        Title="SuperScreenCapture"
+        Width="220"
+        Height="220"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyBackgroundFallback="Transparent"
+        TransparencyLevelHint="Transparent"
+        Foreground="{DynamicResource SscText}">
+  <Border x:Name="FrameBorder"
+          Background="#111827"
+          BorderBrush="{DynamicResource SscBorder}"
+          BorderThickness="1"
+          CornerRadius="110"
+          ClipToBounds="True">
+    <Grid>
+      <Image x:Name="PreviewImage" Stretch="UniformToFill" />
+      <Border Background="#CC0B0E15" IsVisible="False" x:Name="ErrorPanel">
+        <TextBlock x:Name="ErrorText"
+                   FontSize="11"
+                   Foreground="{DynamicResource SscTextMuted}"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="18" />
+      </Border>
+    </Grid>
+  </Border>
+</Window>

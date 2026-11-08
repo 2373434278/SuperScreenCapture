@@ -8,9 +8,11 @@ public sealed class WindowsPermissionService : IPermissionService
     public Task<PermissionStatus> CheckAsync(
         PermissionKind kind,
         CancellationToken cancellationToken = default) =>
-        Task.FromResult(kind == PermissionKind.ScreenRecording
-            ? PermissionStatus.Granted
-            : PermissionStatus.NotDetermined);
+        Task.FromResult(kind is PermissionKind.ScreenRecording
+            or PermissionKind.Microphone
+            or PermissionKind.Camera
+                ? PermissionStatus.Granted
+                : PermissionStatus.NotDetermined);
 
     public Task<PermissionStatus> RequestAsync(
         PermissionKind kind,

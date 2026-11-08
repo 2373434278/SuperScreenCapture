@@ -40,5 +40,8 @@ public sealed class CompositionTests
 
         var recording = provider.GetRequiredService<IRecordingService>();
         Assert.IsType<MockRecordingService>(recording);
+
+        var camera = provider.GetRequiredService<ICameraPreviewService>();
+        Assert.IsType<MockCameraPreviewService>(camera);
     }
 }

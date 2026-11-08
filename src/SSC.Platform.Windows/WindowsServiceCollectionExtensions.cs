@@ -15,7 +15,8 @@ public static class WindowsServiceCollectionExtensions
         services.AddSingleton(new PlatformCapabilities(
             ScreenCapture: true,
             WindowCapture: true,
-            Recording: false,
+            Recording: true,
+            Camera: true,
             SystemAudio: false,
             Ocr: false,
             GlobalHotkeys: false));
@@ -25,6 +26,7 @@ public static class WindowsServiceCollectionExtensions
         services.AddSingleton<IAutoStartService, WindowsAutoStartService>();
         services.AddSingleton<IClipboardService, WindowsClipboardService>();
         services.AddSingleton<IRecordingService, WindowsRecordingService>();
+        services.AddSingleton<ICameraPreviewService, WindowsCameraPreviewService>();
         return services;
     }
 }

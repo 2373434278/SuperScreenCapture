@@ -16,6 +16,7 @@ public static class MockServiceCollectionExtensions
             ScreenCapture: true,
             WindowCapture: true,
             Recording: true,
+            Camera: true,
             SystemAudio: false,
             Ocr: true,
             GlobalHotkeys: true));
@@ -25,6 +26,7 @@ public static class MockServiceCollectionExtensions
         services.AddSingleton<IAutoStartService, MockAutoStartService>();
         services.AddSingleton<IClipboardService, MockClipboardService>();
         services.AddSingleton<IRecordingService, MockRecordingService>();
+        services.AddSingleton<ICameraPreviewService, MockCameraPreviewService>();
         return services;
     }
 }

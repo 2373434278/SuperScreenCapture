@@ -16,6 +16,7 @@ public static class MacServiceCollectionExtensions
             ScreenCapture: true,
             WindowCapture: true,
             Recording: true,
+            Camera: false,
             SystemAudio: false,
             Ocr: false,
             GlobalHotkeys: false));
@@ -25,6 +26,7 @@ public static class MacServiceCollectionExtensions
         services.AddSingleton<IAutoStartService, MacAutoStartService>();
         services.AddSingleton<IClipboardService, MacClipboardService>();
         services.AddSingleton<IRecordingService, MacRecordingService>();
+        services.AddSingleton<ICameraPreviewService, MacCameraPreviewService>();
         return services;
     }
 }

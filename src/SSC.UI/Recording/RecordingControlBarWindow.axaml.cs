@@ -15,15 +15,20 @@ public partial class RecordingControlBarWindow : Window
     private readonly ILocalizer _localizer;
     private readonly DispatcherTimer _timer;
     private readonly Border[] _levels;
+    private readonly bool _cameraAvailable;
     private ControlPhase _phase = ControlPhase.Countdown;
     private bool _microphoneEnabled;
     private bool _failureReported;
     private bool _allowClose;
 
-    public RecordingControlBarWindow(RecordingSessionManager session, ILocalizer localizer)
+    public RecordingControlBarWindow(
+        RecordingSessionManager session,
+        ILocalizer localizer,
+        bool cameraAvailable = false)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
+        _cameraAvailable = cameraAvailable;
         _microphoneEnabled = session.CurrentOptions?.IncludeMicrophone ?? false;
 
         InitializeComponent();
@@ -35,12 +40,20 @@ public partial class RecordingControlBarWindow : Window
         ApplyLocalization();
         BuildSettingsFlyout();
         UpdateMicrophoneButton();
+        CameraButton.IsEnabled = false;
         ShowCountdown(3);
     }
 
     public Func<Task>? StopRequested { get; set; }
 
     public Func<string?, Task>? FailureDetected { get; set; }
+
+    public Func<Task>? CameraToggleRequested { get; set; }
+
+    public void SetCameraActive(bool active)
+    {
+        SetClass(CameraButton, "active", active && _cameraAvailable);
+    }
 
     public void ShowCountdown(int seconds)
     {
@@ -50,6 +63,7 @@ public partial class RecordingControlBarWindow : Window
         PauseButton.IsEnabled = false;
         GearButton.IsEnabled = false;
         MicButton.IsEnabled = false;
+        CameraButton.IsEnabled = false;
         StopButton.IsEnabled = true;
         SetLevel(0);
     }
@@ -59,6 +73,7 @@ public partial class RecordingControlBarWindow : Window
         _phase = ControlPhase.Recording;
         PauseButton.IsEnabled = true;
         GearButton.IsEnabled = true;
+        CameraButton.IsEnabled = _cameraAvailable;
         UpdateMicrophoneButton();
         UpdatePauseButton();
         _timer.Start();
@@ -75,6 +90,7 @@ public partial class RecordingControlBarWindow : Window
     {
         base.OnOpened(e);
         PositionTopCenter();
+        SSC.UI.Editing.WindowCaptureExclusion.Apply(this);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)
@@ -109,6 +125,17 @@ public partial class RecordingControlBarWindow : Window
         StopButton.Click += (_, _) => _ = StopAsync();
         PauseButton.Click += (_, _) => _ = TogglePauseAsync();
         MicButton.Click += (_, _) => _ = ToggleMicrophoneAsync();
+        CameraButton.Click += (_, _) => _ = ToggleCameraAsync();
+    }
+
+    private async Task ToggleCameraAsync()
+    {
+        if (!_cameraAvailable || CameraToggleRequested is null)
+        {
+            return;
+        }
+
+        await CameraToggleRequested();
     }
 
     private async Task StopAsync()
@@ -123,6 +150,7 @@ public partial class RecordingControlBarWindow : Window
         StopButton.IsEnabled = false;
         PauseButton.IsEnabled = false;
         MicButton.IsEnabled = false;
+        CameraButton.IsEnabled = false;
         GearButton.IsEnabled = false;
 
         if (StopRequested is not null)
@@ -297,7 +325,9 @@ public partial class RecordingControlBarWindow : Window
         Title = _localizer["appTitle"];
         ToolTip.SetTip(StopButton, _localizer["recordingStop"]);
         ToolTip.SetTip(SystemAudioButton, _localizer["recordingSystemAudioTip"]);
-        ToolTip.SetTip(CameraButton, _localizer["recordingCamera"]);
+        ToolTip.SetTip(CameraButton, _cameraAvailable
+            ? _localizer["recordingCamera"]
+            : _localizer["recordingCameraUnavailable"]);
         ToolTip.SetTip(GearButton, _localizer["recordingSettings"]);
         ToolTip.SetTip(PauseButton, _localizer["recordingPause"]);
         ToolTip.SetTip(MicButton, _localizer["recordingMicOff"]);

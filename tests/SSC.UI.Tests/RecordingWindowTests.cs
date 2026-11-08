@@ -136,6 +136,31 @@ public sealed class RecordingWindowTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task CameraPreviewWindow_RendersMockFrames()
+    {
+        var localizer = new JsonLocalizer();
+        var window = new CameraPreviewWindow(new MockCameraPreviewService(), localizer);
+
+        try
+        {
+            window.Show();
+            await Task.Delay(400, TestContext.Current.CancellationToken);
+            var rendered = window.CaptureRenderedFrame();
+            Assert.NotNull(rendered);
+            using (var stream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-camera-pip.png")))
+            {
+                rendered!.Save(stream, new PngBitmapEncoderOptions());
+            }
+
+            Assert.True(rendered.PixelSize.Width >= 200);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private static RecordingSessionManager CreateManager(JsonLocalizer localizer)
     {
         var platform = new PlatformDescriptor(PlatformKind.Mock, "Mock", "test");

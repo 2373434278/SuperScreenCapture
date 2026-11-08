@@ -148,6 +148,7 @@
   "recordingSettings": "录制设置",
   "recordingSettingsLocked": "录制开始后设置不可更改",
   "recordingCamera": "摄像头画中画（M5）",
+  "recordingCameraUnavailable": "摄像头画中画（当前平台不可用）",
   "recordingSystemAudioTip": "系统声音将在后续版本提供",
   "recordingSavedTitle": "录制已保存",
   "recordingSavedSummary": "{0} · {1} · {2} fps",
@@ -164,5 +165,10 @@
   "recordingFailed": "录制失败",
   "recordingNotActive": "当前没有进行中的录制",
   "recordingUnavailable": "当前平台暂不支持录屏",
-  "recordingFailureTitle": "录制已中断"
+  "recordingFailureTitle": "录制已中断",
+  "cameraOverlayTitle": "摄像头画中画",
+  "cameraUnavailable": "摄像头不可用",
+  "cameraMirror": "镜像",
+  "cameraRounded": "圆形",
+  "cameraClose": "关闭"
 }

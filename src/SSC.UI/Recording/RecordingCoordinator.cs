@@ -27,6 +27,7 @@ public sealed class RecordingCoordinator
     private readonly SettingsService _settings;
     private readonly ILocalizer _localizer;
     private readonly PlatformCapabilities _capabilities;
+    private readonly ICameraPreviewService _camera;
     private bool _running;
 
     public RecordingCoordinator(
@@ -35,7 +36,8 @@ public sealed class RecordingCoordinator
         RecordingSessionManager session,
         SettingsService settings,
         ILocalizer localizer,
-        PlatformCapabilities capabilities)
+        PlatformCapabilities capabilities,
+        ICameraPreviewService camera)
     {
         _capture = capture ?? throw new ArgumentNullException(nameof(capture));
         _permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
@@ -43,6 +45,7 @@ public sealed class RecordingCoordinator
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
         _capabilities = capabilities ?? throw new ArgumentNullException(nameof(capabilities));
+        _camera = camera ?? throw new ArgumentNullException(nameof(camera));
     }
 
     public async Task<RecordingOutcome> StartRegionRecordingAsync(
@@ -198,23 +201,51 @@ public sealed class RecordingCoordinator
 
         var completion = new TaskCompletionSource<RecordingStopResult?>(
             TaskCreationOptions.RunContinuationsAsynchronously);
-        var bar = new RecordingControlBarWindow(_session, _localizer)
+        CameraPreviewWindow? cameraWindow = null;
+        var bar = new RecordingControlBarWindow(
+            _session,
+            _localizer,
+            _capabilities.Camera && _camera.IsSupported);
+        bar.StopRequested = async () =>
         {
-            StopRequested = async () =>
-            {
-                if (_session.State is RecordingState.Recording or RecordingState.Paused or RecordingState.Failed)
-                {
-                    completion.TrySetResult(await _session.StopAsync());
-                }
-                else
-                {
-                    completion.TrySetResult(null);
-                }
-            },
-            FailureDetected = async error =>
+            if (_session.State is RecordingState.Recording or RecordingState.Paused or RecordingState.Failed)
             {
                 completion.TrySetResult(await _session.StopAsync());
             }
+            else
+            {
+                completion.TrySetResult(null);
+            }
+        };
+        bar.FailureDetected = async error =>
+        {
+            completion.TrySetResult(await _session.StopAsync());
+        };
+        bar.CameraToggleRequested = async () =>
+        {
+            if (cameraWindow is null)
+            {
+                var window = new CameraPreviewWindow(
+                    _camera,
+                    _localizer,
+                    _session.CurrentOptions?.Region);
+                window.Closed += (_, _) =>
+                {
+                    cameraWindow = null;
+                    bar.SetCameraActive(false);
+                };
+                cameraWindow = window;
+                window.Show();
+                bar.SetCameraActive(true);
+            }
+            else
+            {
+                cameraWindow.Close();
+                cameraWindow = null;
+                bar.SetCameraActive(false);
+            }
+
+            await Task.CompletedTask;
         };
 
         bar.Show();
@@ -284,6 +315,7 @@ public sealed class RecordingCoordinator
         }
         finally
         {
+            cameraWindow?.Close();
             bar.CloseFromCoordinator();
         }
     }

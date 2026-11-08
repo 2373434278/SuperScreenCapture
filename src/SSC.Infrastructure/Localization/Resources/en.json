@@ -148,6 +148,7 @@
   "recordingSettings": "Recording settings",
   "recordingSettingsLocked": "Settings are locked once recording starts",
   "recordingCamera": "Camera overlay (M5)",
+  "recordingCameraUnavailable": "Camera overlay (unavailable on this platform)",
   "recordingSystemAudioTip": "System audio is planned for a later release",
   "recordingSavedTitle": "Recording saved",
   "recordingSavedSummary": "{0} · {1} · {2} fps",
@@ -164,5 +165,10 @@
   "recordingFailed": "Recording failed",
   "recordingNotActive": "No recording is currently active",
   "recordingUnavailable": "Recording is not available on this platform yet",
-  "recordingFailureTitle": "Recording interrupted"
+  "recordingFailureTitle": "Recording interrupted",
+  "cameraOverlayTitle": "Camera overlay",
+  "cameraUnavailable": "Camera unavailable",
+  "cameraMirror": "Mirror",
+  "cameraRounded": "Rounded",
+  "cameraClose": "Close"
 }

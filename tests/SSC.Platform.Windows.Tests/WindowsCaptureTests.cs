@@ -1,3 +1,4 @@
+using SSC.Application.Abstractions;
 using SSC.Platform.Windows;
 using Xunit;
 
@@ -5,6 +6,39 @@ namespace SSC.Platform.Windows.Tests;
 
 public sealed class WindowsCaptureTests
 {
+    [Fact]
+    public void RecordingService_IsIdleBeforeStart()
+    {
+        var service = new WindowsRecordingService();
+
+        var status = service.GetStatus();
+
+        Assert.Equal(RecordingEngineState.Idle, status.State);
+        Assert.Equal(0, status.ElapsedSeconds);
+    }
+
+    [Fact]
+    public void CameraPreview_IsSupported()
+    {
+        Assert.True(new WindowsCameraPreviewService().IsSupported);
+    }
+
+    [Fact]
+    public async Task RecordingPermissions_AreGranted()
+    {
+        var permissions = new WindowsPermissionService();
+
+        Assert.Equal(
+            PermissionStatus.Granted,
+            await permissions.CheckAsync(
+                PermissionKind.Microphone,
+                TestContext.Current.CancellationToken));
+        Assert.Equal(
+            PermissionStatus.Granted,
+            await permissions.CheckAsync(
+                PermissionKind.Camera,
+                TestContext.Current.CancellationToken));
+    }
     [Fact]
     public async Task EnumerateDisplays_ReturnsAtLeastOne()
     {
