@@ -1,0 +1,236 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.History.HistoryWindow"
+        Title="SuperScreenCapture"
+        Width="1120"
+        Height="760"
+        MinWidth="900"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SscWindowBackground}"
+        Foreground="{DynamicResource SscText}">
+  <Window.Styles>
+    <Style Selector="Button.icon">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.icon:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="Button.icon.active">
+      <Setter Property="Background" Value="{DynamicResource SscAccentSoft}" />
+    </Style>
+    <Style Selector="Button.icon Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.7" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.icon.active Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscAccent}" />
+    </Style>
+    <Style Selector="Button.chip">
+      <Setter Property="Height" Value="28" />
+      <Setter Property="Padding" Value="11,0" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="Button.chip.active">
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.card-action">
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.card-action:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="Button.card-action Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.6" />
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="ListBox.history">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="58,44,*,30">
+    <Border Grid.Row="0" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
+        <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+          <TextBlock x:Name="TitleText" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
+          <Border Background="{DynamicResource SscAccentSoft}" CornerRadius="999" Padding="8,2">
+            <TextBlock x:Name="CountText" FontSize="10.5" Foreground="{DynamicResource SscAccent}" />
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+          <Border Width="240" Height="32" CornerRadius="8" Background="{DynamicResource SscPanelAltBg}"
+                  BorderBrush="{DynamicResource SscBorder}" BorderThickness="1" Padding="8,0">
+            <Grid ColumnDefinitions="Auto,*">
+              <Path Data="M10 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0M20 20l4 4"
+                    Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+              <TextBox x:Name="SearchBox" Grid.Column="1" Background="Transparent" BorderThickness="0" FontSize="12"
+                       VerticalContentAlignment="Center" Margin="6,0,0,0" />
+            </Grid>
+          </Border>
+          <Button x:Name="GridViewButton" Classes="icon active">
+            <Path Data="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
+          </Button>
+          <Button x:Name="ListViewButton" Classes="icon">
+            <Path Data="M4 6h16M4 12h16M4 18h16" />
+          </Button>
+          <Button x:Name="CloseButton" Classes="icon">
+            <Path Data="m5 5 14 14M19 5 5 19" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1" Padding="16,0">
+      <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Button x:Name="AllFilter" Classes="chip active" />
+          <Button x:Name="ScreenshotFilter" Classes="chip" />
+          <Button x:Name="RecordingFilter" Classes="chip" />
+          <Button x:Name="GifFilter" Classes="chip" />
+        </StackPanel>
+        <ComboBox x:Name="TimeFilter" Grid.Column="2" Width="130" Height="28" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,330" Margin="16">
+      <Panel Grid.Column="0">
+        <ListBox x:Name="ListResults" Classes="history" SelectionMode="Single" IsVisible="False">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Padding="10" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="126,*,Auto">
+                  <Border Width="126" Height="78" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource SscPanelAltBg}">
+                    <Panel>
+                      <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" IsVisible="{Binding HasThumbnail}" />
+                      <StackPanel IsVisible="{Binding ShowPlaceholder}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="3">
+                        <Path Data="M4 6h16v12H4zM8 10l3 3 2-2 3 4H8z" Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.5" Width="26" Height="26" Stretch="Uniform" />
+                        <TextBlock Text="{Binding KindLabel}" FontSize="10" Foreground="{DynamicResource SscTextMuted}" HorizontalAlignment="Center" />
+                      </StackPanel>
+                    </Panel>
+                  </Border>
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource SscText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Meta}" Classes="muted" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button Classes="card-action" Tag="{Binding}" CommandParameter="Copy" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                      <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                    </Button>
+                    <Button Classes="card-action" Tag="{Binding}" CommandParameter="Edit" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                      <Path Data="m4 20 4.2-1 9.8-9.8-3-3L5.2 16 4 20Z" />
+                    </Button>
+                    <Button Classes="card-action" Tag="{Binding}" CommandParameter="Pin" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                      <Path Data="M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6ZM12 15v5" />
+                    </Button>
+                    <Button Classes="card-action" Tag="{Binding}" CommandParameter="Ocr" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                      <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
+                    </Button>
+                    <Button Classes="card-action" Tag="{Binding}" CommandParameter="Delete" Click="OnCardAction">
+                      <Path Data="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13" />
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ListBox x:Name="GridResults" Classes="history" SelectionMode="Single">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Width="226" Margin="0,0,12,12" Padding="8" CornerRadius="12"
+                      Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="1">
+                <StackPanel Spacing="7">
+                  <Border Height="136" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource SscPanelAltBg}">
+                    <Panel>
+                      <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" IsVisible="{Binding HasThumbnail}" />
+                      <StackPanel IsVisible="{Binding ShowPlaceholder}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                        <Path Data="M4 6h16v12H4zM8 10l3 3 2-2 3 4H8z" Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.5" Width="30" Height="30" Stretch="Uniform" />
+                        <TextBlock Text="{Binding KindLabel}" FontSize="10" Foreground="{DynamicResource SscTextMuted}" HorizontalAlignment="Center" />
+                      </StackPanel>
+                    </Panel>
+                  </Border>
+                  <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SscText}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Meta}" Classes="muted" FontSize="10.5" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="False">
+          <Path Data="M4 6h16v12H4zM8 10l3 3 2-2 3 4H8z" Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.5" Width="46" Height="46" Stretch="Uniform" />
+          <TextBlock x:Name="EmptyText" Classes="muted" HorizontalAlignment="Center" />
+        </StackPanel>
+      </Panel>
+
+      <Border x:Name="DetailBorder" Grid.Column="1" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="1"
+              CornerRadius="14" Margin="12,0,0,0" Padding="16" IsVisible="False">
+        <Grid x:Name="DetailPanel" RowDefinitions="Auto,Auto,*,Auto">
+          <TextBlock x:Name="DetailTitle" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource SscText}" TextWrapping="Wrap" />
+          <TextBlock x:Name="DetailMeta" Grid.Row="1" Classes="muted" Margin="0,8,0,0" TextWrapping="Wrap" />
+          <Border Grid.Row="2" Background="{DynamicResource SscPanelAltBg}" CornerRadius="8" Margin="0,12,0,12" ClipToBounds="True">
+            <Image x:Name="DetailImage" Stretch="Uniform" />
+          </Border>
+          <StackPanel Grid.Row="3" Spacing="6">
+            <Button x:Name="DetailOpen" Content="Open" HorizontalAlignment="Stretch" Height="32" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+              <Button x:Name="DetailCopy" Content="Copy" />
+              <Button x:Name="DetailEdit" Grid.Column="1" Content="Edit" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+              <Button x:Name="DetailPin" Content="Pin" />
+              <Button x:Name="DetailOcr" Grid.Column="1" Content="OCR" />
+            </Grid>
+            <Button x:Name="DetailUpload" Content="Upload" HorizontalAlignment="Stretch" Height="32" />
+            <Button x:Name="DetailDelete" Content="Delete" HorizontalAlignment="Stretch" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="3" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,1,0,0" Padding="16,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock x:Name="StatusText" Classes="muted" FontSize="11" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" Text="M6" FontSize="10" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

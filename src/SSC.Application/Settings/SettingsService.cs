@@ -112,6 +112,16 @@ public sealed class SettingsService
             ? settings.RecordingMaxHeight
             : 1080;
         settings.OcrEngine = settings.OcrEngine is "tesseract" ? "tesseract" : "native";
+        settings.Upload ??= new UploadSettings();
+        settings.Upload.Provider = string.IsNullOrWhiteSpace(settings.Upload.Provider)
+            ? "imgur"
+            : settings.Upload.Provider.Trim().ToLowerInvariant();
+        settings.Upload.Prefix = string.IsNullOrWhiteSpace(settings.Upload.Prefix)
+            ? "screenshots"
+            : settings.Upload.Prefix.Trim();
+        settings.Upload.FieldName = string.IsNullOrWhiteSpace(settings.Upload.FieldName)
+            ? "file"
+            : settings.Upload.FieldName.Trim();
 
         var hotkeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var action in HotkeyCatalog.Actions)

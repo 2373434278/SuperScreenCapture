@@ -22,6 +22,8 @@ public sealed record HistoryEntry
 
     public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
 
+    public string OcrText { get; init; } = string.Empty;
+
     public static HistoryEntry Create(
         Guid id,
         CaptureKind kind,
@@ -31,7 +33,8 @@ public sealed record HistoryEntry
         int width,
         int height,
         TimeSpan? duration = null,
-        IEnumerable<string>? tags = null)
+        IEnumerable<string>? tags = null,
+        string? ocrText = null)
     {
         if (id == Guid.Empty)
         {
@@ -79,7 +82,8 @@ public sealed record HistoryEntry
             Width = width,
             Height = height,
             Duration = duration,
-            Tags = normalizedTags
+            Tags = normalizedTags,
+            OcrText = ocrText?.Trim() ?? string.Empty
         };
     }
 }

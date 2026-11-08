@@ -27,6 +27,7 @@ public static class MockServiceCollectionExtensions
         services.AddSingleton<IClipboardService, MockClipboardService>();
         services.AddSingleton<IRecordingService, MockRecordingService>();
         services.AddSingleton<ICameraPreviewService, MockCameraPreviewService>();
+        services.AddSingleton<IOcrEngine, MockOcrEngine>();
         return services;
     }
 }

@@ -32,6 +32,8 @@ public sealed class AppSettings
 
     public bool UploadEnabled { get; set; }
 
+    public UploadSettings Upload { get; set; } = new();
+
     public Dictionary<string, string> Hotkeys { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -39,6 +41,7 @@ public sealed class AppSettings
     {
         var clone = (AppSettings)MemberwiseClone();
         clone.Hotkeys = new Dictionary<string, string>(Hotkeys, StringComparer.OrdinalIgnoreCase);
+        clone.Upload = Upload.Clone();
         return clone;
     }
 }

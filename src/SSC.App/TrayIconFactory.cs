@@ -10,8 +10,10 @@ internal sealed record TrayActions(
     Action CaptureFull,
     Action CaptureDelayed,
     Action CaptureWindow,
+    Action CaptureScroll,
     Action StartRecording,
     Action StartFullScreenRecording,
+    Action ShowHistory,
     Action ComingSoon,
     Action Quit);
 
@@ -53,10 +55,11 @@ internal static class TrayIconFactory
         menu.Items.Add(Item(localizer["trayCaptureFull"], actions.CaptureFull));
         menu.Items.Add(Item(localizer["trayCaptureDelay"], actions.CaptureDelayed));
         menu.Items.Add(Item(localizer["trayCaptureWindow"], actions.CaptureWindow));
+        menu.Items.Add(Item(localizer["trayScroll"], actions.CaptureScroll));
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(Item(localizer["trayRecord"], actions.StartRecording));
         menu.Items.Add(Item(localizer["trayRecordFull"], actions.StartFullScreenRecording));
-        menu.Items.Add(Item(localizer["trayHistory"], actions.ComingSoon));
+        menu.Items.Add(Item(localizer["trayHistory"], actions.ShowHistory));
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(Item(localizer["traySettings"], actions.ShowWindow));
         menu.Items.Add(new NativeMenuItemSeparator());

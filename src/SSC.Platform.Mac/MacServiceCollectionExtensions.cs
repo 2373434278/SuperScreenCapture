@@ -27,6 +27,7 @@ public static class MacServiceCollectionExtensions
         services.AddSingleton<IClipboardService, MacClipboardService>();
         services.AddSingleton<IRecordingService, MacRecordingService>();
         services.AddSingleton<ICameraPreviewService, MacCameraPreviewService>();
+        services.AddSingleton<IOcrEngine, MacOcrEngine>();
         return services;
     }
 }

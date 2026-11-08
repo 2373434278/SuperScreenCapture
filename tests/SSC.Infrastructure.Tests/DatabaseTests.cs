@@ -108,6 +108,50 @@ public sealed class DatabaseTests
         Assert.Equal(TimeSpan.FromSeconds(42), repository.Get(entry.Id)!.Duration);
     }
 
+    [Fact]
+    public void HistoryRepository_SearchesTitleTagsAndOcrText()
+    {
+        using var temp = new TestDirectory();
+        var repository = new SqliteHistoryRepository(CreateMigratedFactory(temp));
+        var design = HistoryEntry.Create(
+            Guid.NewGuid(),
+            CaptureKind.Screenshot,
+            "Design review",
+            "/tmp/design.png",
+            DateTimeOffset.UtcNow,
+            2560,
+            1600,
+            tags: new[] { "design", "tokens" },
+            ocrText: "quarterly revenue 中文");
+        var demo = HistoryEntry.Create(
+            Guid.NewGuid(),
+            CaptureKind.Recording,
+            "Sprint demo",
+            "/tmp/demo.mp4",
+            DateTimeOffset.UtcNow.AddMinutes(-5),
+            1920,
+            1080,
+            TimeSpan.FromSeconds(42),
+            tags: new[] { "meeting" });
+
+        repository.Add(design);
+        repository.Add(demo);
+
+        Assert.Single(repository.Query(new HistoryQuery(Search: "Design")));
+        Assert.Single(repository.Query(new HistoryQuery(Search: "中文")));
+        Assert.Single(repository.Query(new HistoryQuery(Search: "meeting")));
+        Assert.Single(repository.Query(new HistoryQuery(Kind: CaptureKind.Recording)));
+        Assert.Equal(2, repository.Count(new HistoryQuery()));
+        Assert.Equal(1, repository.Count(new HistoryQuery(Search: "design")));
+
+        repository.Update(design with { OcrText = "updated keyword" });
+        Assert.Single(repository.Query(new HistoryQuery(Search: "updated")));
+        Assert.Empty(repository.Query(new HistoryQuery(Search: "quarterly")));
+
+        repository.Delete(design.Id);
+        Assert.Empty(repository.Query(new HistoryQuery(Search: "updated")));
+    }
+
     private static SqliteConnectionFactory CreateMigratedFactory(TestDirectory temp)
     {
         var paths = new DefaultAppPaths(temp.Path);

@@ -12,6 +12,7 @@ using SSC.Application.Recording;
 using SSC.Application.Settings;
 using SSC.Domain.Recording;
 using SSC.UI.Capture;
+using SSC.UI.History;
 using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
@@ -90,8 +91,10 @@ public partial class App : Avalonia.Application
                 CaptureFull,
                 CaptureDelayed,
                 CaptureWindow,
+                CaptureScroll,
                 StartRecording,
                 StartFullScreenRecording,
+                ShowHistory,
                 NotifyComingSoon,
                 Quit);
             _trayIcon = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, _trayActions);
@@ -276,6 +279,18 @@ public partial class App : Avalonia.Application
         _mainWindow.Activate();
     }
 
+    private void ShowHistory()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var window = _services.GetRequiredService<HistoryWindow>();
+        window.Show();
+        window.Activate();
+    }
+
     private void NotifyComingSoon()
     {
         ShowMainWindow();
@@ -293,6 +308,9 @@ public partial class App : Avalonia.Application
 
     private async void CaptureWindow() =>
         await RunCaptureAsync(coordinator => coordinator.CaptureWindowSelectionAsync());
+
+    private async void CaptureScroll() =>
+        await RunCaptureAsync(coordinator => coordinator.CaptureScrollAsync());
 
     private async void StartRecording() =>
         await RunRecordingAsync(coordinator => coordinator.StartRegionRecordingAsync());

@@ -7,6 +7,7 @@ using SSC.Infrastructure.Logging;
 using SSC.Infrastructure.Paths;
 using SSC.Infrastructure.Persistence;
 using SSC.UI.Capture;
+using SSC.UI.History;
 using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
@@ -36,6 +37,7 @@ internal static class Bootstrap
         services.AddSingleton<CaptureCoordinator>();
         services.AddSingleton<RecordingSessionManager>();
         services.AddSingleton<RecordingCoordinator>();
+        services.AddSingleton<HistoryWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 

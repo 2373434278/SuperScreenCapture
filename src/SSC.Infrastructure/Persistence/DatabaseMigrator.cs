@@ -7,7 +7,8 @@ public sealed class DatabaseMigrator
 {
     private static readonly Migration[] Migrations =
     {
-        new Migration(1, "initial-schema", ApplyInitialSchema)
+        new Migration(1, "initial-schema", ApplyInitialSchema),
+        new Migration(2, "history-fts", ApplyHistoryFts)
     };
 
     private readonly SqliteConnectionFactory _factory;
@@ -116,4 +117,42 @@ public sealed class DatabaseMigrator
     }
 
     private sealed record Migration(int Version, string Name, Action<SqliteConnection, SqliteTransaction> Apply);
+
+    private static void ApplyHistoryFts(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            ALTER TABLE history_entries ADD COLUMN ocr_text TEXT NOT NULL DEFAULT '';
+
+            CREATE VIRTUAL TABLE history_fts USING fts5(
+                id UNINDEXED,
+                title,
+                tags,
+                ocr_text,
+                tokenize = 'unicode61 remove_diacritics 2',
+                prefix = '2 3'
+            );
+
+            INSERT INTO history_fts(id, title, tags, ocr_text)
+                SELECT id, title, tags_json, ocr_text FROM history_entries;
+
+            CREATE TRIGGER history_entries_ai AFTER INSERT ON history_entries BEGIN
+                INSERT INTO history_fts(id, title, tags, ocr_text)
+                VALUES (new.id, new.title, new.tags_json, new.ocr_text);
+            END;
+
+            CREATE TRIGGER history_entries_ad AFTER DELETE ON history_entries BEGIN
+                DELETE FROM history_fts WHERE id = old.id;
+            END;
+
+            CREATE TRIGGER history_entries_au AFTER UPDATE ON history_entries BEGIN
+                DELETE FROM history_fts WHERE id = old.id;
+                INSERT INTO history_fts(id, title, tags, ocr_text)
+                VALUES (new.id, new.title, new.tags_json, new.ocr_text);
+            END;
+            """;
+        command.ExecuteNonQuery();
+    }
 }

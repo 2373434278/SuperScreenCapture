@@ -5,9 +5,13 @@ using Avalonia.Media;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
+using SSC.Application.Settings;
+using SSC.Application.Upload;
 using SSC.Domain.Annotations;
 using SSC.Domain.Capture;
 using SSC.UI.Capture;
+using SSC.UI.Ocr;
+using SSC.UI.Upload;
 using DomainPixelPoint = SSC.Domain.Geometry.PixelPoint;
 
 namespace SSC.UI.Editing;
@@ -47,6 +51,10 @@ public partial class AnnotationEditorWindow : Window
     private readonly IAnnotationRenderer _renderer;
     private readonly ScreenshotService _screenshots;
     private readonly IClipboardService _clipboard;
+    private readonly IOcrService? _ocr;
+    private readonly UploadPipeline? _uploads;
+    private readonly SettingsService? _settings;
+    private readonly IImageEncoder? _encoder;
     private readonly Func<Task>? _retake;
     private readonly AnnotationEditorSession _session;
     private readonly AnnotationEditorCanvas _canvas;
@@ -66,6 +74,10 @@ public partial class AnnotationEditorWindow : Window
         IAnnotationRenderer renderer,
         ScreenshotService screenshots,
         IClipboardService clipboard,
+        IOcrService? ocr = null,
+        UploadPipeline? uploads = null,
+        SettingsService? settings = null,
+        IImageEncoder? encoder = null,
         Func<Task>? retake = null)
     {
         _result = result ?? throw new ArgumentNullException(nameof(result));
@@ -74,6 +86,10 @@ public partial class AnnotationEditorWindow : Window
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _screenshots = screenshots ?? throw new ArgumentNullException(nameof(screenshots));
         _clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
+        _ocr = ocr;
+        _uploads = uploads;
+        _settings = settings;
+        _encoder = encoder;
         _retake = retake;
 
         InitializeComponent();
@@ -234,8 +250,8 @@ public partial class AnnotationEditorWindow : Window
         CopyButton.Click += (_, _) => _ = CopyAsync();
         SaveButton.Click += (_, _) => _ = SaveAsync();
         PinButton.Click += (_, _) => Pin();
-        OcrButton.Click += (_, _) => ShowComingSoon();
-        UploadButton.Click += (_, _) => ShowComingSoon();
+        OcrButton.Click += (_, _) => _ = RecognizeAsync();
+        UploadButton.Click += (_, _) => _ = UploadAsync();
         DoneButton.Click += (_, _) => Close();
         RetakeButton.Click += (_, _) => Retake();
 
@@ -410,6 +426,49 @@ public partial class AnnotationEditorWindow : Window
         var frame = _renderer.Render(_frame, _session.Document);
         new PinWindow(frame, _localizer).Show();
         StatusText.Text = _localizer["editorPinned"];
+    }
+
+    private async Task RecognizeAsync()
+    {
+        if (_ocr is null)
+        {
+            ShowComingSoon();
+            return;
+        }
+
+        try
+        {
+            var frame = _renderer.Render(_frame, _session.Document);
+            StatusText.Text = _localizer["ocrRecognizing"];
+            var result = await _ocr.RecognizeAsync(frame);
+            new OcrResultWindow(frame, result, _ocr, _localizer).Show();
+            StatusText.Text = _localizer["editorStatusReady"];
+        }
+        catch (Exception exception)
+        {
+            StatusText.Text = $"{_localizer["ocrFailed"]}: {exception.Message}";
+        }
+    }
+
+    private async Task UploadAsync()
+    {
+        if (_uploads is null || _settings is null || _encoder is null)
+        {
+            ShowComingSoon();
+            return;
+        }
+
+        try
+        {
+            var frame = _renderer.Render(_frame, _session.Document);
+            var bytes = await _encoder.EncodeAsync(frame, "png", 95);
+            var fileName = $"{Path.GetFileNameWithoutExtension(_result.FilePath)}.png";
+            new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer).Show();
+        }
+        catch (Exception exception)
+        {
+            StatusText.Text = $"{_localizer["uploadFailed"]}: {exception.Message}";
+        }
     }
 
     private void ShowComingSoon() => StatusText.Text = _localizer["editorComingSoon"];

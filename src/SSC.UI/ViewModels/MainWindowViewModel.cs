@@ -9,6 +9,7 @@ using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
+using SSC.UI.History;
 using SSC.UI.Recording;
 
 namespace SSC.UI.ViewModels;
@@ -21,6 +22,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly PlatformDescriptor _platform;
     private readonly CaptureCoordinator? _captureCoordinator;
     private readonly RecordingCoordinator? _recordingCoordinator;
+    private readonly HistoryWindow? _historyWindow;
     private AppSettings _draft;
     private string _activeTab = "general";
     private bool _disposed;
@@ -31,7 +33,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IAutoStartService autoStart,
         PlatformDescriptor platform,
         CaptureCoordinator? captureCoordinator = null,
-        RecordingCoordinator? recordingCoordinator = null)
+        RecordingCoordinator? recordingCoordinator = null,
+        HistoryWindow? historyWindow = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
@@ -39,6 +42,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _captureCoordinator = captureCoordinator;
         _recordingCoordinator = recordingCoordinator;
+        _historyWindow = historyWindow;
 
         _draft = _settingsService.Current;
         _localizer.SetLanguage(_draft.Language);
@@ -217,6 +221,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         var outcome = await _recordingCoordinator.StartRegionRecordingAsync();
         StatusMessage = outcome.Message;
+    }
+
+    [RelayCommand]
+    private void OpenHistory()
+    {
+        if (_historyWindow is null)
+        {
+            ShowComingSoon();
+            return;
+        }
+
+        _historyWindow.Show();
+        _historyWindow.Activate();
     }
 
     [RelayCommand]

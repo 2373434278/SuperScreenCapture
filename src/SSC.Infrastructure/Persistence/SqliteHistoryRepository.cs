@@ -24,7 +24,7 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json
+            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text
             FROM history_entries
             ORDER BY created_at DESC
             LIMIT $limit OFFSET $offset;
@@ -42,13 +42,104 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         return entries;
     }
 
+    public IReadOnlyList<HistoryEntry> Query(HistoryQuery query)
+    {
+        var normalized = query.Normalize();
+        using var connection = _factory.Create();
+        using var command = connection.CreateCommand();
+        var useMatch = !string.IsNullOrWhiteSpace(normalized.Search);
+
+        command.CommandText = useMatch
+            ? """
+              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text
+              FROM history_fts f
+              JOIN history_entries e ON e.id = f.id
+              WHERE history_fts MATCH $match
+              """
+            : """
+              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text
+              FROM history_entries e
+              WHERE 1 = 1
+              """;
+
+        if (useMatch)
+        {
+            command.Parameters.AddWithValue("$match", BuildMatch(normalized.Search!));
+        }
+
+        if (normalized.Kind is not null)
+        {
+            command.CommandText += " AND e.kind = $kind";
+            command.Parameters.AddWithValue("$kind", (int)normalized.Kind.Value);
+        }
+
+        if (normalized.Since is not null)
+        {
+            command.CommandText += " AND e.created_at >= $since";
+            command.Parameters.AddWithValue(
+                "$since",
+                normalized.Since.Value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+        }
+
+        command.CommandText += " ORDER BY e.created_at DESC LIMIT $limit OFFSET $offset;";
+        command.Parameters.AddWithValue("$limit", normalized.Limit);
+        command.Parameters.AddWithValue("$offset", normalized.Offset);
+
+        var entries = new List<HistoryEntry>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            entries.Add(Map(reader));
+        }
+
+        return entries;
+    }
+
+    public int Count(HistoryQuery query)
+    {
+        var normalized = query.Normalize();
+        using var connection = _factory.Create();
+        using var command = connection.CreateCommand();
+        var useMatch = !string.IsNullOrWhiteSpace(normalized.Search);
+
+        command.CommandText = useMatch
+            ? """
+              SELECT COUNT(*)
+              FROM history_fts f
+              JOIN history_entries e ON e.id = f.id
+              WHERE history_fts MATCH $match
+              """
+            : "SELECT COUNT(*) FROM history_entries e WHERE 1 = 1";
+
+        if (useMatch)
+        {
+            command.Parameters.AddWithValue("$match", BuildMatch(normalized.Search!));
+        }
+
+        if (normalized.Kind is not null)
+        {
+            command.CommandText += " AND e.kind = $kind";
+            command.Parameters.AddWithValue("$kind", (int)normalized.Kind.Value);
+        }
+
+        if (normalized.Since is not null)
+        {
+            command.CommandText += " AND e.created_at >= $since";
+            command.Parameters.AddWithValue(
+                "$since",
+                normalized.Since.Value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+        }
+
+        return Convert.ToInt32(command.ExecuteScalar(), CultureInfo.InvariantCulture);
+    }
+
     public HistoryEntry? Get(Guid id)
     {
         using var connection = _factory.Create();
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json
+            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text
             FROM history_entries
             WHERE id = $id
             LIMIT 1;
@@ -68,9 +159,9 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         command.CommandText =
             """
             INSERT INTO history_entries
-                (id, kind, title, file_path, created_at, width, height, duration_ms, tags_json)
+                (id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text)
             VALUES
-                ($id, $kind, $title, $filePath, $createdAt, $width, $height, $durationMs, $tagsJson);
+                ($id, $kind, $title, $filePath, $createdAt, $width, $height, $durationMs, $tagsJson, $ocrText);
             """;
         Bind(command, entry);
         command.ExecuteNonQuery();
@@ -92,7 +183,8 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
                 width = $width,
                 height = $height,
                 duration_ms = $durationMs,
-                tags_json = $tagsJson
+                tags_json = $tagsJson,
+                ocr_text = $ocrText
             WHERE id = $id;
             """;
         Bind(command, entry);
@@ -129,6 +221,7 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
             "$durationMs",
             entry.Duration is null ? DBNull.Value : (long)entry.Duration.Value.TotalMilliseconds);
         command.Parameters.AddWithValue("$tagsJson", JsonSerializer.Serialize(entry.Tags));
+        command.Parameters.AddWithValue("$ocrText", entry.OcrText);
     }
 
     private static HistoryEntry Map(Microsoft.Data.Sqlite.SqliteDataReader reader) => new()
@@ -144,6 +237,16 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         Width = reader.GetInt32(5),
         Height = reader.GetInt32(6),
         Duration = reader.IsDBNull(7) ? null : TimeSpan.FromMilliseconds(reader.GetInt64(7)),
-        Tags = JsonSerializer.Deserialize<string[]>(reader.GetString(8)) ?? Array.Empty<string>()
+        Tags = JsonSerializer.Deserialize<string[]>(reader.GetString(8)) ?? Array.Empty<string>(),
+        OcrText = reader.GetString(9)
     };
+
+    private static string BuildMatch(string search)
+    {
+        var terms = search
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(term => "\"" + term.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"*")
+            .ToArray();
+        return terms.Length == 0 ? "\"\"" : string.Join(" AND ", terms);
+    }
 }

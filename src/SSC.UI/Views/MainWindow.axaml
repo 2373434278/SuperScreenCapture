@@ -234,7 +234,7 @@
                 <TextBlock Text="{Binding L[navRecord]}" />
               </StackPanel>
             </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
+            <Button Classes="topnav" Command="{Binding OpenHistoryCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2" />
                 <TextBlock Text="{Binding L[navLibrary]}" />

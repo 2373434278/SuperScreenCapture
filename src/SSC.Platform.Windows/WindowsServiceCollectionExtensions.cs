@@ -27,6 +27,7 @@ public static class WindowsServiceCollectionExtensions
         services.AddSingleton<IClipboardService, WindowsClipboardService>();
         services.AddSingleton<IRecordingService, WindowsRecordingService>();
         services.AddSingleton<ICameraPreviewService, WindowsCameraPreviewService>();
+        services.AddSingleton<IOcrEngine, WindowsOcrEngine>();
         return services;
     }
 }

@@ -70,6 +70,15 @@ double ssc_recording_mic_level(void);
 int32_t ssc_microphone_permission_status(void);
 int32_t ssc_request_microphone_permission(void);
 
+int32_t ssc_ocr_image(
+    const uint8_t *pixels,
+    uint32_t width,
+    uint32_t height,
+    uint32_t stride,
+    const char *languages,
+    char **out_json);
+void ssc_free_string(char *value);
+
 #ifdef __cplusplus
 }
 #endif

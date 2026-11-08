@@ -125,6 +125,18 @@ internal static class MacNativeMethods
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int ssc_request_microphone_permission();
 
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_ocr_image(
+        byte[] pixels,
+        uint width,
+        uint height,
+        uint stride,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? languages,
+        out IntPtr json);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void ssc_free_string(IntPtr value);
+
     internal static string GetLastError()
     {
         var pointer = ssc_last_error();

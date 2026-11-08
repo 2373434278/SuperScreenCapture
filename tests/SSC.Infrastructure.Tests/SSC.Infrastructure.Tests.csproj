@@ -11,6 +11,12 @@
     <ProjectReference Include="../../src/SSC.Application/SSC.Application.csproj" />
     <ProjectReference Include="../../src/SSC.Infrastructure/SSC.Infrastructure.csproj" />
     <ProjectReference Include="../../src/SSC.Platform.Mock/SSC.Platform.Mock.csproj" />
+    <ProjectReference Include="../../src/SSC.Platform.Mac/SSC.Platform.Mac.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('../../artifacts/native/osx/libSSCMacKit.dylib')">
+    <None Include="../../artifacts/native/osx/libSSCMacKit.dylib"
+          Link="libSSCMacKit.dylib"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />

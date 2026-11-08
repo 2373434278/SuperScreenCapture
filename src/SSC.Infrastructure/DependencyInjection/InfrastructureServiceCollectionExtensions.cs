@@ -3,7 +3,10 @@ using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
 using SSC.Application.Events;
+using SSC.Application.Ocr;
+using SSC.Application.Scroll;
 using SSC.Application.Settings;
+using SSC.Application.Upload;
 using SSC.Infrastructure.Imaging;
 using SSC.Infrastructure.Localization;
 using SSC.Infrastructure.Logging;
@@ -12,6 +15,7 @@ using SSC.Infrastructure.Persistence;
 using SSC.Infrastructure.SingleInstance;
 using SSC.Infrastructure.Storage;
 using SSC.Infrastructure.Time;
+using SSC.Infrastructure.Upload;
 
 namespace SSC.Infrastructure.DependencyInjection;
 
@@ -35,7 +39,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IAppEventBus, InMemoryAppEventBus>();
         services.AddSingleton<SettingsService>();
         services.AddSingleton<IImageEncoder, SkiaImageEncoder>();
+        services.AddSingleton<ICaptureFrameLoader, SkiaCaptureFrameLoader>();
         services.AddSingleton<IAnnotationRenderer, SkiaAnnotationRenderer>();
+        services.AddSingleton<IOcrService, OcrServiceChain>();
+        services.AddSingleton<IScrollStitcher, ScrollStitcher>();
+        services.AddSingleton<IUploadProvider, ImgurUploadProvider>();
+        services.AddSingleton<IUploadProvider, S3UploadProvider>();
+        services.AddSingleton<IUploadProvider, CustomHttpUploadProvider>();
+        services.AddSingleton<UploadPipeline>();
         services.AddSingleton<CaptureFileNamer>();
         services.AddSingleton<ScreenshotService>();
 

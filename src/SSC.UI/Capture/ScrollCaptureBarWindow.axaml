@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.Capture.ScrollCaptureBarWindow"
+        Title="SuperScreenCapture"
+        Width="470"
+        Height="76"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyBackgroundFallback="Transparent"
+        TransparencyLevelHint="Transparent"
+        Foreground="{DynamicResource SscText}">
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.ghost">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+    </Style>
+  </Window.Styles>
+
+  <Border Background="{DynamicResource SscPanelBg}"
+          BorderBrush="{DynamicResource SscBorder}"
+          BorderThickness="1"
+          CornerRadius="14"
+          Padding="12,9"
+          BoxShadow="0 12 34 0 #66000000">
+    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource SscAccent}" />
+        <TextBlock x:Name="TitleText" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
+        <TextBlock x:Name="CountText" FontSize="10.5" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock x:Name="StatusText" Grid.Column="1" Grid.RowSpan="2" Margin="12,0" FontSize="10.5"
+                 Foreground="{DynamicResource SscTextMuted}" TextWrapping="Wrap" VerticalAlignment="Center" />
+
+      <StackPanel Grid.Column="2" Grid.RowSpan="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+        <Button x:Name="NextButton" Classes="primary" />
+        <Button x:Name="FinishButton" Classes="ghost" />
+        <Button x:Name="CancelButton" Classes="ghost" />
+      </StackPanel>
+
+      <TextBlock x:Name="HintText" Grid.Row="1" Grid.Column="0" Margin="16,4,0,0" FontSize="10"
+                 Foreground="{DynamicResource SscTextMuted}" />
+    </Grid>
+  </Border>
+</Window>
