@@ -1,141 +1,196 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ocr="using:SSC.UI.Ocr"
         x:Class="SSC.UI.Ocr.OcrResultWindow"
         Title="SuperScreenCapture"
         Width="1000"
         Height="660"
-        MinWidth="760"
+        MinWidth="780"
         MinHeight="520"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource SscWindowBackground}"
+        Background="{DynamicResource SscBackdropBg}"
         Foreground="{DynamicResource SscText}">
   <Window.Styles>
-    <Style Selector="Button.ghost">
-      <Setter Property="Height" Value="32" />
-      <Setter Property="Padding" Value="12,0" />
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="FontSize" Value="11.5" />
-    </Style>
-    <Style Selector="Button.primary">
-      <Setter Property="Height" Value="32" />
-      <Setter Property="Padding" Value="14,0" />
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="FontSize" Value="11.5" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="TextBlock.muted">
-      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="FontSize" Value="11.5" />
-    </Style>
     <Style Selector="ListBox.ocr-lines">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="9" />
+    </Style>
+    <Style Selector="ListBox.ocr-lines ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,2" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="ListBox.ocr-lines ListBoxItem:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="ListBox.ocr-lines ListBoxItem:selected">
+      <Setter Property="Background" Value="{DynamicResource SscAccentSoft}" />
+    </Style>
+    <Style Selector="Button.line-copy">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover Button.line-copy">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="ListBoxItem:selected Button.line-copy">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.line-copy:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanel3Bg}" />
+    </Style>
+    <Style Selector="Button.line-copy Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1.6" />
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.sk">
+      <Setter Property="Height" Value="14" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="54,*,30">
-    <Border Grid.Row="0"
-            Background="{DynamicResource SscPanelBg}"
-            BorderBrush="{DynamicResource SscBorder}"
-            BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
-        <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-          <Border Width="26" Height="26" CornerRadius="8" Background="{DynamicResource SscAccentSoft}">
-            <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5"
-                  Stroke="{DynamicResource SscAccent}"
-                  StrokeThickness="1.7"
-                  Width="14"
-                  Height="14"
-                  Stretch="Uniform"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center" />
-          </Border>
-          <TextBlock x:Name="TitleText" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource SscText}" VerticalAlignment="Center" />
-        </StackPanel>
-
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock x:Name="LanguageLabel" Classes="muted" VerticalAlignment="Center" />
-          <ComboBox x:Name="LanguageBox" Width="150" Height="28" />
-        </StackPanel>
-
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button x:Name="RecognizeButton" Classes="ghost" />
-          <Button x:Name="CopyAllButton" Classes="primary" />
-          <Button x:Name="CloseButton" Classes="ghost" />
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <Grid Grid.Row="1" ColumnDefinitions="*,370" Margin="16">
-      <Border Grid.Column="0"
-              Background="{DynamicResource SscPanelAltBg}"
-              BorderBrush="{DynamicResource SscBorder}"
-              BorderThickness="1"
-              CornerRadius="14"
-              ClipToBounds="True">
-        <Panel>
-          <Panel x:Name="CanvasHost" />
-          <Border x:Name="LoadingOverlay"
-                  IsVisible="False"
-                  Background="#AA0B0E15">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-              <ProgressBar IsIndeterminate="True" Width="180" Height="4" />
-              <TextBlock x:Name="LoadingText" Foreground="{DynamicResource SscTextMuted}" FontSize="12" HorizontalAlignment="Center" />
+  <Border Classes="frame" CornerRadius="16">
+    <Grid RowDefinitions="52,*,30">
+      <!-- 头部：返回、标题、引擎、语言、重新识别、关闭 -->
+      <Border Grid.Row="0" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1" Padding="14,0">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" VerticalAlignment="Center">
+          <Button x:Name="BackButton" Classes="btn btn-ghost btn-sm" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Path Data="m9 6 6 6-6 6">
+                <Path.RenderTransform>
+                  <RotateTransform Angle="180" />
+                </Path.RenderTransform>
+              </Path>
+              <TextBlock x:Name="BackText" VerticalAlignment="Center" />
             </StackPanel>
+          </Button>
+
+          <TextBlock x:Name="TitleText" Grid.Column="1" Margin="12,0,0,0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource SscText}" VerticalAlignment="Center" />
+
+          <Border Grid.Column="2" Classes="chip primary" Margin="8,0,0,0">
+            <TextBlock x:Name="EngineText" />
           </Border>
-        </Panel>
+
+          <Border Grid.Column="4" Classes="seg" VerticalAlignment="Center">
+            <StackPanel x:Name="LanguageSeg" Orientation="Horizontal" Spacing="2" />
+          </Border>
+
+          <Button x:Name="RecognizeButton" Grid.Column="5" Classes="btn btn-ghost btn-sm" Margin="8,0,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
+              <TextBlock x:Name="RecognizeText" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Button x:Name="CloseButton" Grid.Column="6" Classes="icon-btn" Margin="6,0,0,0">
+            <Path Data="m5 5 14 14M19 5 5 19" />
+          </Button>
+        </Grid>
       </Border>
 
-      <Border Grid.Column="1"
-              Classes="card"
-              Background="{DynamicResource SscPanelBg}"
-              BorderBrush="{DynamicResource SscBorder}"
-              BorderThickness="1"
-              CornerRadius="14"
-              Margin="12,0,0,0"
-              ClipToBounds="True">
-        <Grid RowDefinitions="Auto,*">
-          <Border Padding="14,10" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock x:Name="LinesTitle" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SscText}" VerticalAlignment="Center" />
-              <Button x:Name="CopySelectedButton" Grid.Column="1" Classes="ghost" Height="28" Padding="10,0" />
-            </Grid>
+      <Grid Grid.Row="1" ColumnDefinitions="1.05*,0.95*">
+        <!-- 左侧图像与识别框 -->
+        <Border Grid.Column="0" Background="{DynamicResource SscPanelAltBg}" Padding="22">
+          <Border Background="White" CornerRadius="10" ClipToBounds="True" BoxShadow="0 24 70 0 #55000000"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Viewbox Stretch="Uniform" MaxWidth="560" MaxHeight="480">
+              <Panel x:Name="CanvasHost" />
+            </Viewbox>
           </Border>
+        </Border>
 
-          <Panel Grid.Row="1">
-            <ListBox x:Name="LineList" Classes="ocr-lines" SelectionMode="Single">
-              <ListBox.ItemTemplate>
-                <DataTemplate>
-                  <Border Padding="10,7" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
-                    <StackPanel Spacing="3">
-                      <TextBlock Text="{Binding Text}" FontSize="12" Foreground="{DynamicResource SscText}" TextWrapping="Wrap" />
-                      <TextBlock Text="{Binding Confidence, StringFormat={}{0:P0}}" FontSize="10" Foreground="{DynamicResource SscTextMuted}" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-            <TextBlock x:Name="EmptyText" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
-          </Panel>
+        <!-- 右侧文本 -->
+        <Border Grid.Column="1" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="1,0,0,0">
+          <Grid RowDefinitions="46,*,34">
+            <Border Grid.Row="0" Padding="12,0" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalAlignment="Center">
+                <Button x:Name="CopyAllButton" Classes="btn btn-ghost btn-sm">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                    <TextBlock x:Name="CopyAllText" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="CopySelectedButton" Grid.Column="1" Classes="btn btn-ghost btn-sm" Margin="7,0,0,0">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                    <TextBlock x:Name="CopySelectedText" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </Border>
+
+            <Panel Grid.Row="1">
+              <ListBox x:Name="LineList" Classes="ocr-lines" SelectionMode="Single">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="ocr:OcrLineRow">
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="9,8,9,8">
+                      <TextBlock Text="{Binding IndexText}"
+                                 FontSize="9.5"
+                                 FontFamily="SF Mono, Menlo, Consolas, monospace"
+                                 Foreground="{DynamicResource SscTextSubtle}"
+                                 VerticalAlignment="Top"
+                                 Margin="0,2,8,0"
+                                 MinWidth="14" />
+                      <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12.5" LineHeight="19" Foreground="{DynamicResource SscText}" TextWrapping="Wrap" />
+                      <Button Grid.Column="2" Classes="line-copy" Tag="{Binding}" Click="OnCopyLine" VerticalAlignment="Top">
+                        <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                      </Button>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <StackPanel x:Name="EmptyState" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="26" Background="{DynamicResource SscPanelBg}">
+                <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5"
+                      Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="34" Height="34" Stretch="Uniform" Opacity="0.5" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyTitle" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource SscTextMuted}" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyText" FontSize="11.5" Foreground="{DynamicResource SscTextSubtle}" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="260" />
+              </StackPanel>
+
+              <Border x:Name="LoadingOverlay" IsVisible="False" Background="{DynamicResource SscPanelBg}" Padding="18">
+                <StackPanel Spacing="12">
+                  <Border Classes="sk" Width="320" />
+                  <Border Classes="sk" Width="240" />
+                  <Border Classes="sk" Width="360" />
+                  <Border Classes="sk" Width="280" />
+                  <Border Classes="sk" Width="340" />
+                  <Border Classes="sk" Width="220" />
+                  <TextBlock x:Name="LoadingText" FontSize="11" Foreground="{DynamicResource SscTextSubtle}" Margin="0,4,0,0" />
+                </StackPanel>
+              </Border>
+            </Panel>
+
+            <Border Grid.Row="2" Padding="12,0" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,1,0,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="StatsText" FontSize="10.5" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
+                <TextBlock x:Name="LocalText" Grid.Column="1" FontSize="10.5" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="2" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,1,0,0" Padding="14,0">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock x:Name="StatusText" FontSize="11" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
+          <TextBlock x:Name="VersionText" Grid.Column="1" FontSize="10" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
-
-    <Border Grid.Row="2"
-            Background="{DynamicResource SscPanelBg}"
-            BorderBrush="{DynamicResource SscBorder}"
-            BorderThickness="0,1,0,0"
-            Padding="16,0">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock x:Name="StatusText" Classes="muted" FontSize="11" VerticalAlignment="Center" />
-        <TextBlock Grid.Column="1" Text="M6" FontSize="10" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
-      </Grid>
-    </Border>
-  </Grid>
+  </Border>
 </Window>

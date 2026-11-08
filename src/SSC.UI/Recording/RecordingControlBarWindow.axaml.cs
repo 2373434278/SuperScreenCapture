@@ -9,6 +9,10 @@ using SSC.Domain.Recording;
 
 namespace SSC.UI.Recording;
 
+/// <summary>
+/// 录制悬浮控制条（原型 P3 的 rec-control-bar）。控制条始终使用深色玻璃材质，
+/// 并通过窗口捕获排除确保自身不会出现在录制画面中。
+/// </summary>
 public partial class RecordingControlBarWindow : Window
 {
     private readonly RecordingSessionManager _session;
@@ -233,10 +237,10 @@ public partial class RecordingControlBarWindow : Window
 
         RecordDot.Background = state switch
         {
-            RecordingState.Paused => FindBrush("SscTextMuted", Color.Parse("#A7B1C2")),
-            RecordingState.Failed => FindBrush("SscDanger", Color.Parse("#FF6B78")),
+            RecordingState.Paused => FindBrush("SscWarning", Color.Parse("#F5A524")),
+            RecordingState.Failed => FindBrush("SscDanger", Color.Parse("#FF4757")),
             RecordingState.Finalizing => FindBrush("SscAccent", Color.Parse("#7B7FFF")),
-            _ => FindBrush("SscDanger", Color.Parse("#FF6B78"))
+            _ => FindBrush("SscDanger", Color.Parse("#FF4757"))
         };
 
         SetLevel(level);

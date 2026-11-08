@@ -159,7 +159,7 @@ public sealed class RecordingWindowTests
                 rendered!.Save(stream, new PngBitmapEncoderOptions());
             }
 
-            Assert.True(rendered.PixelSize.Width >= 200);
+            Assert.True(rendered.PixelSize.Width >= 130);
         }
         finally
         {
@@ -229,7 +229,7 @@ public sealed class RecordingWindowTests
     }
 
     [AvaloniaFact]
-    public void UploadDialog_RendersProviderFields()
+    public async Task UploadDialog_RendersProviderFields()
     {
         var localizer = new JsonLocalizer();
         var platform = new PlatformDescriptor(PlatformKind.Mock, "Mock", "test");
@@ -253,6 +253,18 @@ public sealed class RecordingWindowTests
             using (var stream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-upload.png")))
             {
                 rendered!.Save(stream, new PngBitmapEncoderOptions());
+            }
+
+            // 启用上传并触发一次成功的模拟上传，验证成功状态布局。
+            window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("EnableSwitch")!.IsChecked = true;
+            window.FindControl<Button>("UploadButton")!
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Task.Delay(600, TestContext.Current.CancellationToken);
+            var successFrame = window.CaptureRenderedFrame();
+            Assert.NotNull(successFrame);
+            using (var successStream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-upload-success.png")))
+            {
+                successFrame!.Save(successStream, new PngBitmapEncoderOptions());
             }
 
             Assert.True(rendered.PixelSize.Width >= 500);

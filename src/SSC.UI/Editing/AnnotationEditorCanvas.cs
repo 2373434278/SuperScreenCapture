@@ -12,11 +12,16 @@ using DomainPixelRect = SSC.Domain.Geometry.PixelRect;
 
 namespace SSC.UI.Editing;
 
+/// <summary>文本工具请求：文档坐标与当前显示坐标。</summary>
 public sealed record TextInputRequest(DomainPixelPoint DocumentPoint, Point DisplayPoint);
 
 /// <summary>
 /// Displays the rendered document and hosts the pointer gestures. Committed annotations are
 /// rendered by the Skia renderer; the in-progress draft is drawn with Avalonia primitives.
+/// </summary>
+/// <summary>
+/// 标注画布：负责渲染截图与标注、命中测试、拖拽创建/移动/缩放，
+/// 并把文本工具的位置请求交给窗口弹出输入框。
 /// </summary>
 public sealed class AnnotationEditorCanvas : Control
 {

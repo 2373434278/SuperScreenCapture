@@ -11,6 +11,10 @@ using DomainPixelRect = SSC.Domain.Geometry.PixelRect;
 
 namespace SSC.UI.Recording;
 
+/// <summary>
+/// 摄像头画中画窗口（原型 P3 的 .pip）。默认呈圆形，可拖拽移动、滚轮缩放，
+/// 右键菜单可切换镜像、圆角与关闭。
+/// </summary>
 public partial class CameraPreviewWindow : Window
 {
     private readonly ICameraPreviewService _camera;
@@ -31,6 +35,7 @@ public partial class CameraPreviewWindow : Window
         _region = region;
 
         InitializeComponent();
+        HintText.Text = _localizer["cameraPipHint"];
         BuildContextMenu();
         ApplyShape();
     }

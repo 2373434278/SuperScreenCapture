@@ -12,11 +12,15 @@ using SSC.UI.Capture;
 
 namespace SSC.UI.Recording;
 
+/// <summary>录制启动结果，包含成功标记、提示文案与可选会话。</summary>
 public sealed record RecordingOutcome(
     bool Success,
     string Message,
     RecordingStopResult? StopResult);
 
+/// <summary>
+/// 录制流程协调器：准备录制卡片、区域选择、控制条、摄像头画中画与摘要窗口。
+/// </summary>
 public sealed class RecordingCoordinator
 {
     private const int CountdownSeconds = 3;

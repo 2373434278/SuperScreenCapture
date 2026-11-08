@@ -9,6 +9,10 @@ using SSC.UI.Capture;
 
 namespace SSC.UI.Ocr;
 
+/// <summary>
+/// OCR 图像与识别框叠加控件：负责等比绘制截图、命中测试识别行，
+/// 并把点击结果反馈给文本列表。
+/// </summary>
 public sealed class OcrOverlayControl : Control
 {
     private readonly CaptureFrame _frame;
@@ -26,10 +30,12 @@ public sealed class OcrOverlayControl : Control
         Cursor = new Cursor(StandardCursorType.Arrow);
     }
 
+    /// <summary>用户点击某个识别框时触发，参数为行索引。</summary>
     public event EventHandler<int>? LineSelected;
 
     public void Dispose() => _bitmap.Dispose();
 
+    /// <summary>当前识别结果中的文本行。</summary>
     public IReadOnlyList<OcrLine> Lines
     {
         get => _lines;
@@ -40,6 +46,7 @@ public sealed class OcrOverlayControl : Control
         }
     }
 
+    /// <summary>与文本列表联动的高亮行索引，-1 表示未选中。</summary>
     public int SelectedIndex
     {
         get => _selectedIndex;
@@ -58,8 +65,9 @@ public sealed class OcrOverlayControl : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        var availableWidth = Math.Max(1, Bounds.Width - 36);
-        var availableHeight = Math.Max(1, Bounds.Height - 36);
+        // 由外层 Viewbox 负责等比缩放，这里直接铺满可用空间。
+        var availableWidth = Math.Max(1, Bounds.Width);
+        var availableHeight = Math.Max(1, Bounds.Height);
         _scale = Math.Min(availableWidth / _frame.Width, availableHeight / _frame.Height);
         var width = _frame.Width * _scale;
         var height = _frame.Height * _scale;
@@ -83,11 +91,12 @@ public sealed class OcrOverlayControl : Control
                 line.Bounds.Width * _scale,
                 line.Bounds.Height * _scale);
             var selected = index == _selectedIndex;
-            var fill = new SolidColorBrush(selected ? Color.Parse("#335B5FF0") : Color.Parse("#2200D4FF"));
+            // 原型 P6 使用主色描边：普通行 50% 透明度，选中行不透明并加粗。
+            var fill = new SolidColorBrush(selected ? Color.Parse("#335B5FF0") : Color.Parse("#125B5FF0"));
             var pen = new Pen(
-                new SolidColorBrush(selected ? Color.Parse("#7B7FFF") : Color.Parse("#22D3EE")),
-                selected ? 2 : 1);
-            context.DrawRectangle(fill, pen, rect);
+                new SolidColorBrush(selected ? Color.Parse("#5B5FF0") : Color.Parse("#805B5FF0")),
+                selected ? 2 : 1.5);
+            context.DrawRectangle(fill, pen, rect, 4, 4);
         }
     }
 

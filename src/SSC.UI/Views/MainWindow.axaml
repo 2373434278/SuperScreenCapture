@@ -8,16 +8,18 @@
         MinWidth="1120"
         MinHeight="700"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource SscWindowBackground}"
+        Background="{DynamicResource SscBackdropBg}"
         Foreground="{DynamicResource SscText}">
   <Window.Styles>
+    <!-- 顶栏导航（原型 .nav-tab） -->
     <Style Selector="Button.topnav">
       <Setter Property="Height" Value="32" />
-      <Setter Property="Padding" Value="9,0" />
+      <Setter Property="Padding" Value="10,0" />
       <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="FontSize" Value="12.5" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
     </Style>
@@ -32,8 +34,8 @@
     <Style Selector="Button.topnav Path">
       <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
       <Setter Property="StrokeThickness" Value="1.7" />
-      <Setter Property="Width" Value="15" />
-      <Setter Property="Height" Value="15" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
       <Setter Property="Stretch" Value="Uniform" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -41,12 +43,14 @@
       <Setter Property="Stroke" Value="{DynamicResource SscAccent}" />
     </Style>
 
+    <!-- 左侧设置导航（原型 .snav） -->
     <Style Selector="Button.snav">
       <Setter Property="Height" Value="36" />
       <Setter Property="Padding" Value="10,0" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
       <Setter Property="CornerRadius" Value="9" />
       <Setter Property="FontSize" Value="12.5" />
@@ -67,487 +71,927 @@
       <Setter Property="Height" Value="16" />
       <Setter Property="Stretch" Value="Uniform" />
       <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0.75" />
     </Style>
     <Style Selector="Button.snav.active Path">
       <Setter Property="Stroke" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="Button.seg">
-      <Setter Property="Height" Value="30" />
-      <Setter Property="Padding" Value="12,0" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="7" />
-      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="FontSize" Value="12" />
-    </Style>
-    <Style Selector="Button.seg.active">
-      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
-      <Setter Property="Foreground" Value="White" />
-    </Style>
-
-    <Style Selector="Border.card">
-      <Setter Property="Background" Value="{DynamicResource SscPanelBg}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="16" />
-    </Style>
-    <Style Selector="Border.nav-card">
-      <Setter Property="Padding" Value="7" />
-    </Style>
-    <Style Selector="Border.panel-card">
-      <Setter Property="Padding" Value="0" />
-    </Style>
-    <Style Selector="Border.set-row">
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
-      <Setter Property="BorderThickness" Value="0,0,0,1" />
-    </Style>
-
-    <Style Selector="Border.os-chip">
-      <Setter Property="Height" Value="30" />
-      <Setter Property="Padding" Value="3" />
-      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="10" />
-    </Style>
+    <!-- 静态展示的 OS 分段控件 -->
     <Style Selector="Border.os-item">
-      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="Padding" Value="10,0" />
       <Setter Property="CornerRadius" Value="7" />
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.os-item TextBlock">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
     </Style>
     <Style Selector="Border.os-item.active">
       <Setter Property="Background" Value="{DynamicResource SscPanelBg}" />
-    </Style>
-    <Style Selector="Border.os-item TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="FontSize" Value="11" />
     </Style>
     <Style Selector="Border.os-item.active TextBlock">
       <Setter Property="Foreground" Value="{DynamicResource SscText}" />
     </Style>
 
-    <Style Selector="Button.icon-btn">
-      <Setter Property="Width" Value="34" />
-      <Setter Property="Height" Value="34" />
-      <Setter Property="CornerRadius" Value="9" />
-      <Setter Property="Background" Value="Transparent" />
+    <!-- 设置行排版（原型 .set-label / .set-row） -->
+    <Style Selector="TextBlock.set-label">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
     </Style>
-    <Style Selector="Button.icon-btn:pointerover">
-      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
-    </Style>
-    <Style Selector="Button.icon-btn Path">
-      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
-      <Setter Property="StrokeThickness" Value="1.7" />
-      <Setter Property="Width" Value="17" />
-      <Setter Property="Height" Value="17" />
-      <Setter Property="Stretch" Value="Uniform" />
+    <Style Selector="TextBlock.set-desc">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextSubtle}" />
+      <Setter Property="Margin" Value="0,2,0,0" />
+      <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <!-- 快捷键输入框（原型 .hotkey-chip） -->
     <Style Selector="TextBox.hotkey-box">
+      <Setter Property="Width" Value="132" />
       <Setter Property="Height" Value="30" />
-      <Setter Property="Width" Value="160" />
       <Setter Property="Padding" Value="8,0" />
       <Setter Property="FontSize" Value="11" />
-      <Setter Property="FontFamily" Value="Menlo, Consolas" />
+      <Setter Property="FontFamily" Value="SF Mono, Menlo, Consolas, monospace" />
       <Setter Property="CornerRadius" Value="7" />
       <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorderStrong}" />
+      <Setter Property="BorderThickness" Value="1" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    <Style Selector="TextBox.hotkey-box:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+    </Style>
 
-    <Style Selector="TextBlock.h1">
-      <Setter Property="FontSize" Value="20" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+    <!-- 只读下拉外观（原型 select.input） -->
+    <Style Selector="Border.select">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="{DynamicResource SscPanelBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorderStrong}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector="TextBlock.section">
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
-    </Style>
-    <Style Selector="TextBlock.field">
+    <Style Selector="Border.select TextBlock">
       <Setter Property="FontSize" Value="12.5" />
       <Setter Property="Foreground" Value="{DynamicResource SscText}" />
     </Style>
-    <Style Selector="TextBlock.muted">
-      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+
+    <!-- 上传服务卡片（原型 .provider-card） -->
+    <Style Selector="Border.provider">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.provider-logo">
+      <Setter Property="Width" Value="34" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Background" Value="{DynamicResource SscPanelBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.provider-logo TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscAccent}" />
+    </Style>
+    <Style Selector="TextBlock.provider-name">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+    </Style>
+    <Style Selector="TextBlock.provider-desc">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextSubtle}" />
+      <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+    <Style Selector="TextBlock.provider-label">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextSubtle}" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+    <Style Selector="TextBox.field-input">
+      <Setter Property="Height" Value="31" />
+      <Setter Property="Padding" Value="8,0" />
       <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Background" Value="{DynamicResource SscPanelBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorderStrong}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- 关于页链接 -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource SscAccent}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="TextBlock.brand-name">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscText}" />
+    </Style>
+    <Style Selector="TextBlock.brand-tag">
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SscAccent}" />
+      <Setter Property="LetterSpacing" Value="0.7" />
     </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="54,*,30">
-    <Border Grid.Row="0"
-            Background="{DynamicResource SscPanelBg}"
-            BorderBrush="{DynamicResource SscBorder}"
-            BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-          <Border Width="28" Height="28" CornerRadius="9">
-            <Border.Background>
-              <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Color="#7B7FFF" Offset="0" />
-                <GradientStop Color="#B06CFF" Offset="0.55" />
-                <GradientStop Color="#22D3EE" Offset="1" />
-              </LinearGradientBrush>
-            </Border.Background>
-            <TextBlock Text="S"
-                       FontSize="15"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-          </Border>
-          <TextBlock Text="{Binding L[appTitle]}"
-                     FontSize="13"
-                     FontWeight="Bold"
-                     Foreground="{DynamicResource SscText}"
-                     VerticalAlignment="Center" />
-          <Border Background="{DynamicResource SscAccentSoft}" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
-            <TextBlock Text="M1" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SscAccent}" />
-          </Border>
-        </StackPanel>
-
-        <ScrollViewer Grid.Column="1"
-                      Margin="18,0"
-                      HorizontalScrollBarVisibility="Hidden"
-                      VerticalScrollBarVisibility="Disabled">
-          <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-            <Button Classes="topnav" Command="{Binding CaptureRegionCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M4 5h16v14H4z" />
-                <TextBlock Text="{Binding L[navCapture]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M4 20l4-1 10-10-3-3L5 16zM14 6l3 3" />
-                <TextBlock Text="{Binding L[navAnnotate]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding StartRecordingCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
-                <TextBlock Text="{Binding L[navRecord]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding OpenHistoryCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2" />
-                <TextBlock Text="{Binding L[navLibrary]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav active">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M4 7h16M4 12h16M4 17h10" />
-                <TextBlock Text="{Binding L[navSettings]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
-                <TextBlock Text="{Binding L[navOcr]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" />
-                <TextBlock Text="{Binding L[navUpload]}" />
-              </StackPanel>
-            </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path Data="M4 13h4l2 3h4l2-3h4M5 5h14l2 8v4H3v-4z" />
-                <TextBlock Text="{Binding L[navTray]}" />
-              </StackPanel>
-            </Button>
+  <!-- 外层 14px 边距 + 16px 圆角的浮层，对应原型 #app。 -->
+  <Border Classes="frame" BoxShadow="0 24 70 0 #55000000">
+    <Grid RowDefinitions="54,*,30">
+      <!-- 顶栏 -->
+      <Border Grid.Row="0"
+              Background="{DynamicResource SscPanelBg}"
+              BorderBrush="{DynamicResource SscBorder}"
+              BorderThickness="0,0,0,1"
+              Padding="14,0">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+            <Border Width="28" Height="28" CornerRadius="9" Background="{DynamicResource SscBrandGradient}">
+              <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16 M12 4v6l5 3 M20 12l-5.5 3.2 M16 19l-3-5.5 M8 19l3-5.5 M4 12l5.5 3.2 M8 4l3 5.5"
+                    Stroke="White"
+                    StrokeThickness="1.6"
+                    StrokeLineCap="Round"
+                    Width="19"
+                    Height="19"
+                    Stretch="Uniform"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+            </Border>
+            <TextBlock Text="{Binding L[appTitle]}" Classes="brand-name" VerticalAlignment="Center" />
+            <Border Background="{DynamicResource SscAccentSoft}" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+              <TextBlock Text="{Binding AppVersionLabel}" Classes="brand-tag" />
+            </Border>
           </StackPanel>
-        </ScrollViewer>
 
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Border Classes="os-chip" IsHitTestVisible="False">
+          <ScrollViewer Grid.Column="1"
+                        Margin="6,0,0,0"
+                        HorizontalScrollBarVisibility="Hidden"
+                        VerticalScrollBarVisibility="Disabled"
+                        VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="2">
-              <Border Classes="os-item" Classes.active="{Binding IsMacOS}">
-                <TextBlock Text="macOS" />
-              </Border>
-              <Border Classes="os-item" Classes.active="{Binding IsWindows}">
-                <TextBlock Text="Windows" />
-              </Border>
-            </StackPanel>
-          </Border>
-
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <Button Classes="seg" Classes.active="{Binding IsChinese}" Content="{Binding L[languageZh]}" Command="{Binding SetLanguageCommand}" CommandParameter="zh" />
-            <Button Classes="seg" Classes.active="{Binding IsEnglish}" Content="{Binding L[languageEn]}" Command="{Binding SetLanguageCommand}" CommandParameter="en" />
-          </StackPanel>
-
-          <Button Classes="icon-btn" Command="{Binding ToggleThemeCommand}">
-            <Panel>
-              <Path Data="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" IsVisible="{Binding IsDarkTheme}" />
-              <Path Data="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" IsVisible="{Binding IsLightTheme}" />
-            </Panel>
-          </Button>
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <Grid Grid.Row="1" ColumnDefinitions="188,14,*" Margin="16">
-      <Border Grid.Column="0" Classes="card nav-card" VerticalAlignment="Top">
-        <StackPanel Spacing="2">
-          <Button Classes="snav" Classes.active="{Binding IsGeneralTab}" Command="{Binding SelectTabCommand}" CommandParameter="general">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M4 7h16M4 12h16M4 17h10" />
-              <TextBlock Text="{Binding L[navGeneral]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsHotkeysTab}" Command="{Binding SelectTabCommand}" CommandParameter="hotkeys">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M3 6h18v12H3zM6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10" />
-              <TextBlock Text="{Binding L[navHotkeys]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsOutputTab}" Command="{Binding SelectTabCommand}" CommandParameter="output">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M5 4h11l3 3v13H5zM8 4v6h8V4M8 20v-6h8v6" />
-              <TextBlock Text="{Binding L[navOutput]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsRecordingTab}" Command="{Binding SelectTabCommand}" CommandParameter="recording">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
-              <TextBlock Text="{Binding L[navRecording]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsOcrTab}" Command="{Binding SelectTabCommand}" CommandParameter="ocr">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
-              <TextBlock Text="{Binding L[navOcr]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsUploadTab}" Command="{Binding SelectTabCommand}" CommandParameter="upload">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" />
-              <TextBlock Text="{Binding L[navUpload]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="snav" Classes.active="{Binding IsAboutTab}" Command="{Binding SelectTabCommand}" CommandParameter="about">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v6M12 8h.01" />
-              <TextBlock Text="{Binding L[navAbout]}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
-      </Border>
-
-      <Border Grid.Column="2" Classes="card panel-card" ClipToBounds="True">
-        <Grid RowDefinitions="Auto,*">
-          <Border Grid.Row="0" Padding="20,16" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel Spacing="3">
-                <TextBlock Text="{Binding HeaderTitle}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
-                <TextBlock Text="{Binding HeaderSubtitle}" Classes="muted" />
-              </StackPanel>
-              <Button Grid.Column="1"
-                      Content="{Binding L[saveSettings]}"
-                      Command="{Binding SaveSettingsCommand}"
-                      Background="{DynamicResource SscAccent}"
-                      Foreground="White"
-                      CornerRadius="9"
-                      Height="34"
-                      Padding="14,0"
-                      VerticalAlignment="Center" />
-            </Grid>
-          </Border>
-
-          <ScrollViewer Grid.Row="1" Padding="20,16,20,24">
-            <StackPanel Spacing="22">
-              <StackPanel IsVisible="{Binding IsGeneralTab}" Spacing="10">
-                <StackPanel Spacing="3">
-                  <TextBlock Text="{Binding L[appearanceTitle]}" Classes="section" />
-                  <TextBlock Text="{Binding L[appearanceDesc]}" Classes="muted" />
+              <Button Classes="topnav" Command="{Binding CaptureRegionCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M6 5h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navCapture]}" />
                 </StackPanel>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="50">
-                    <TextBlock Text="{Binding L[languageLabel]}" Classes="field" VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                      <Button Classes="seg" Classes.active="{Binding IsChinese}" Content="{Binding L[languageZh]}" Command="{Binding SetLanguageCommand}" CommandParameter="zh" />
-                      <Button Classes="seg" Classes.active="{Binding IsEnglish}" Content="{Binding L[languageEn]}" Command="{Binding SetLanguageCommand}" CommandParameter="en" />
-                    </StackPanel>
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="50">
-                    <TextBlock Text="{Binding L[themeLabel]}" Classes="field" VerticalAlignment="Center" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                      <Button Classes="seg" Classes.active="{Binding IsDarkTheme}" Content="{Binding L[themeDark]}" Command="{Binding SetThemeCommand}" CommandParameter="dark" />
-                      <Button Classes="seg" Classes.active="{Binding IsLightTheme}" Content="{Binding L[themeLight]}" Command="{Binding SetThemeCommand}" CommandParameter="light" />
-                    </StackPanel>
-                  </Grid>
-                </Border>
-
-                <StackPanel Spacing="3" Margin="0,10,0,0">
-                  <TextBlock Text="{Binding L[behaviorTitle]}" Classes="section" />
-                  <TextBlock Text="{Binding L[behaviorDesc]}" Classes="muted" />
+              </Button>
+              <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[editorTitle]}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M4 20l4-1 10-10-3-3L5 16zM14 6l3 3" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navAnnotate]}" />
                 </StackPanel>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="54">
-                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding L[launchAtLogin]}" Classes="field" />
-                      <TextBlock Text="{Binding L[launchAtLoginDesc]}" Classes="muted" />
-                    </StackPanel>
-                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding LaunchAtLogin, Mode=TwoWay}" OnContent="{Binding L[on]}" OffContent="{Binding L[off]}" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="50">
-                    <TextBlock Text="{Binding L[startAction]}" Classes="field" VerticalAlignment="Center" />
-                    <Border Grid.Column="1" Width="190" Height="32" CornerRadius="7"
-                            Background="{DynamicResource SscPanelAltBg}"
-                            BorderBrush="{DynamicResource SscBorder}"
-                            BorderThickness="1"
-                            Padding="10,0"
-                            Opacity="0.7"
-                            VerticalAlignment="Center">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding L[startTray]}" FontSize="11.5" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
-                        <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                      </Grid>
-                    </Border>
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="54">
-                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding L[closeToTray]}" Classes="field" />
-                      <TextBlock Text="{Binding L[closeToTrayDesc]}" Classes="muted" />
-                    </StackPanel>
-                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray, Mode=TwoWay}" OnContent="{Binding L[on]}" OffContent="{Binding L[off]}" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-
-                <StackPanel Spacing="3" Margin="0,10,0,0">
-                  <TextBlock Text="{Binding L[updates]}" Classes="section" />
-                  <TextBlock Text="{Binding L[updatesDesc]}" Classes="muted" />
+              </Button>
+              <Button Classes="topnav" Command="{Binding StartRecordingCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navRecord]}" />
                 </StackPanel>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="*,Auto" Height="50">
-                    <TextBlock Text="{Binding L[updateChannel]}" Classes="field" VerticalAlignment="Center" />
-                    <Border Grid.Column="1" Width="160" Height="32" CornerRadius="7"
-                            Background="{DynamicResource SscPanelAltBg}"
-                            BorderBrush="{DynamicResource SscBorder}"
-                            BorderThickness="1"
-                            Padding="10,0"
-                            Opacity="0.7"
-                            VerticalAlignment="Center">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding L[stable]}" FontSize="11.5" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
-                        <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextMuted}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                      </Grid>
-                    </Border>
-                  </Grid>
-                </Border>
-              </StackPanel>
-
-              <StackPanel IsVisible="{Binding IsHotkeysTab}" Spacing="10">
-                <Grid ColumnDefinitions="*,Auto">
-                  <StackPanel Spacing="3">
-                    <TextBlock Text="{Binding L[hotkeysTitle]}" Classes="section" />
-                    <TextBlock Text="{Binding L[hotkeysDescription]}" Classes="muted" />
-                  </StackPanel>
-                  <Button Grid.Column="1"
-                          Classes="seg"
-                          Content="{Binding L[restoreDefaults]}"
-                          Command="{Binding RestoreHotkeysCommand}"
-                          VerticalAlignment="Center" />
-                </Grid>
-                <ItemsControl ItemsSource="{Binding Hotkeys}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:HotkeyRowViewModel">
-                      <Border Classes="set-row">
-                        <Grid ColumnDefinitions="*,170" Height="52">
-                          <StackPanel Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding ActionLabel}" Classes="field" />
-                            <TextBlock Text="{Binding ErrorMessage}"
-                                       Foreground="{DynamicResource SscDanger}"
-                                       FontSize="10.5"
-                                       IsVisible="{Binding HasError}" />
-                          </StackPanel>
-                          <TextBox Grid.Column="1"
-                                   Classes="hotkey-box"
-                                   Text="{Binding Gesture, Mode=TwoWay}"
-                                   PlaceholderText="⌘⇧2 / Ctrl+Shift+2"
-                                   VerticalAlignment="Center" />
-                        </Grid>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-
-              <StackPanel IsVisible="{Binding IsPlaceholderTab}" Spacing="10">
-                <TextBlock Text="{Binding PlaceholderTitle}" Classes="h1" />
-                <TextBlock Text="{Binding PlaceholderDescription}"
-                           Classes="muted"
-                           TextWrapping="Wrap"
-                           MaxWidth="620"
-                           HorizontalAlignment="Left" />
-                <Border Background="{DynamicResource SscAccentSoft}"
-                        CornerRadius="999"
-                        Padding="10,4"
-                        HorizontalAlignment="Left">
-                  <TextBlock Text="M2 – M7" FontSize="10.5" Foreground="{DynamicResource SscAccent}" />
-                </Border>
-              </StackPanel>
-
-              <StackPanel IsVisible="{Binding IsAboutTab}" Spacing="12">
-                <TextBlock Text="{Binding L[aboutTitle]}" Classes="h1" />
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="170,*" Height="44">
-                    <TextBlock Text="{Binding L[aboutVersion]}" Classes="muted" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding AppVersion}" Classes="field" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="170,*" Height="44">
-                    <TextBlock Text="{Binding L[aboutLicense]}" Classes="muted" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding AppLicense}" Classes="field" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="170,*" Height="52">
-                    <TextBlock Text="{Binding L[aboutThirdParty]}" Classes="muted" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding L[aboutThirdPartyValue]}" Classes="field" TextWrapping="Wrap" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <Border Classes="set-row">
-                  <Grid ColumnDefinitions="170,*" Height="44">
-                    <TextBlock Text="{Binding L[aboutRuntime]}" Classes="muted" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding L[aboutRuntimeValue]}" Classes="field" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <TextBlock Text="{Binding L[appSubtitle]}" Classes="muted" Margin="0,6,0,0" />
-              </StackPanel>
+              </Button>
+              <Button Classes="topnav" Command="{Binding OpenHistoryCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navLibrary]}" />
+                </StackPanel>
+              </Button>
+              <Button Classes="topnav active">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 9a3 3 0 1 1 0 6 3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navSettings]}" />
+                </StackPanel>
+              </Button>
+              <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[ocrTitle]}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navOcr]}" />
+                </StackPanel>
+              </Button>
+              <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[uploadTitle]}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navUpload]}" />
+                </StackPanel>
+              </Button>
+              <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[navTray]}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M4 13h4l2 3h4l2-3h4M5 5h14l2 8v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4z" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                  <TextBlock Text="{Binding L[navTray]}" />
+                </StackPanel>
+              </Button>
             </StackPanel>
           </ScrollViewer>
+
+          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <Border Classes="seg" IsHitTestVisible="False">
+              <StackPanel Orientation="Horizontal" Spacing="2">
+                <Button Classes="seg" Classes.active="{Binding IsMacOS}" Content="macOS" />
+                <Button Classes="seg" Classes.active="{Binding IsWindows}" Content="Windows" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="seg">
+              <StackPanel Orientation="Horizontal" Spacing="2">
+                <Button Classes="seg" Classes.active="{Binding IsChinese}" Content="{Binding L[languageZh]}" Command="{Binding SetLanguageCommand}" CommandParameter="zh" />
+                <Button Classes="seg" Classes.active="{Binding IsEnglish}" Content="{Binding L[languageEn]}" Command="{Binding SetLanguageCommand}" CommandParameter="en" />
+              </StackPanel>
+            </Border>
+
+            <Button Classes="icon-btn" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="{Binding L[themeLabel]}">
+              <Panel>
+                <Path Data="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" IsVisible="{Binding IsDarkTheme}" />
+                <Path Data="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" IsVisible="{Binding IsLightTheme}" />
+              </Panel>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- 设置主体 -->
+      <Grid Grid.Row="1" ColumnDefinitions="188,14,*" Margin="16">
+        <Border Grid.Column="0" Classes="card" Padding="7" VerticalAlignment="Top">
+          <StackPanel Spacing="2">
+            <Button Classes="snav" Classes.active="{Binding IsGeneralTab}" Command="{Binding SelectTabCommand}" CommandParameter="general">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 9a3 3 0 1 1 0 6 3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navGeneral]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsHotkeysTab}" Command="{Binding SelectTabCommand}" CommandParameter="hotkeys">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M3 6h18v12H3zM6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navHotkeys]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsOutputTab}" Command="{Binding SelectTabCommand}" CommandParameter="output">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M5 4h11l3 3v13H5zM8 4v6h8V4M8 20v-6h8v6" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navOutput]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsRecordingTab}" Command="{Binding SelectTabCommand}" CommandParameter="recording">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navRecording]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsOcrTab}" Command="{Binding SelectTabCommand}" CommandParameter="ocr">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navOcr]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsUploadTab}" Command="{Binding SelectTabCommand}" CommandParameter="upload">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navUpload]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="snav" Classes.active="{Binding IsAboutTab}" Command="{Binding SelectTabCommand}" CommandParameter="about">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v6M12 8h.01" Width="24" Height="24" Stretch="None" />
+                  </Canvas>
+                </Viewbox>
+                <TextBlock Text="{Binding L[navAbout]}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Classes="card" ClipToBounds="True">
+          <Grid RowDefinitions="Auto,*">
+            <!-- 面板头：标题 + 副标题 + 保存设置 -->
+            <Border Grid.Row="0" Padding="20,16" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="3">
+                  <TextBlock Text="{Binding HeaderTitle}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource SscText}" LetterSpacing="-0.2" />
+                  <TextBlock Text="{Binding HeaderSubtitle}" Classes="muted" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Classes="btn btn-primary btn-sm"
+                        Command="{Binding SaveSettingsCommand}"
+                        VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Path Data="m4 12 5 5L20 6" />
+                    <TextBlock Text="{Binding L[saveSettings]}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" Padding="20,16,20,30">
+              <Panel>
+                <!-- 通用页 -->
+                <StackPanel IsVisible="{Binding IsGeneralTab}" Spacing="24">
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[appearanceTitle]}" Classes="section" />
+                    <TextBlock Text="{Binding L[appearanceDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[languageLabel]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="seg" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg" Classes.active="{Binding IsChinese}" Content="{Binding L[languageZh]}" Command="{Binding SetLanguageCommand}" CommandParameter="zh" />
+                            <Button Classes="seg" Classes.active="{Binding IsEnglish}" Content="{Binding L[languageEn]}" Command="{Binding SetLanguageCommand}" CommandParameter="en" />
+                          </StackPanel>
+                        </Border>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[themeLabel]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="seg" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg" Classes.active="{Binding IsDarkTheme}" Content="{Binding L[themeDark]}" Command="{Binding SetThemeCommand}" CommandParameter="dark" />
+                            <Button Classes="seg" Classes.active="{Binding IsLightTheme}" Content="{Binding L[themeLight]}" Command="{Binding SetThemeCommand}" CommandParameter="light" />
+                          </StackPanel>
+                        </Border>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[behaviorTitle]}" Classes="section" />
+                    <TextBlock Text="{Binding L[behaviorDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[launchAtLogin]}" Classes="set-label" />
+                          <TextBlock Text="{Binding L[launchAtLoginDesc]}" Classes="set-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding LaunchAtLogin, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[startAction]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="select" Width="190">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding L[startTray]}" VerticalAlignment="Center" />
+                            <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[closeToTray]}" Classes="set-label" />
+                          <TextBlock Text="{Binding L[closeToTrayDesc]}" Classes="set-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CloseToTray, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[updates]}" Classes="section" />
+                    <TextBlock Text="{Binding L[updatesDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[updateChannel]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="select" Width="160">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding L[stable]}" VerticalAlignment="Center" />
+                            <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- 快捷键页 -->
+                <StackPanel IsVisible="{Binding IsHotkeysTab}" Spacing="0">
+                  <TextBlock Text="{Binding L[hotkeysTitle]}" Classes="section" />
+                  <TextBlock Text="{Binding L[hotkeysDescription]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                  <ItemsControl ItemsSource="{Binding Hotkeys}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:HotkeyRowViewModel">
+                        <Border Classes="set-row" Padding="0">
+                          <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding ActionLabel}" Classes="set-label" />
+                              <TextBlock Text="{Binding ErrorMessage}"
+                                         IsVisible="{Binding HasError}"
+                                         Foreground="{DynamicResource SscDanger}"
+                                         FontSize="10.5"
+                                         HorizontalAlignment="Left" />
+                            </StackPanel>
+                            <TextBox Grid.Column="1"
+                                     Classes="hotkey-box"
+                                     Text="{Binding Gesture, Mode=TwoWay}"
+                                     PlaceholderText="⌘⇧2 / Ctrl+Shift+2"
+                                     VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                    <Button Classes="btn btn-ghost btn-sm" Content="{Binding L[restoreDefaults]}" Command="{Binding RestoreHotkeysCommand}" />
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- 输出页 -->
+                <StackPanel IsVisible="{Binding IsOutputTab}" Spacing="24">
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[outputSaveSection]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[saveDirectory]}" Classes="set-label" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <TextBox Width="250" Classes="input" Text="{Binding SaveDirectory, Mode=TwoWay}" />
+                          <Button Content="{Binding L[browse]}" Classes="btn btn-ghost btn-sm" Click="OnBrowseSaveDirectory" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[fileNamePattern]}" Classes="set-label" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Width="250" Classes="input" Text="{Binding FileNamePattern, Mode=TwoWay}" />
+                      </Grid>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,0">
+                      <TextBlock Text="{Binding L[preview]}" Classes="caption" />
+                      <TextBlock Text="{Binding FileNamePreview}" Classes="caption" FontFamily="SF Mono, Menlo, Consolas, monospace" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[defaultFormat]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[defaultFormat]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="seg" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg" Classes.active="{Binding IsPng}" Content="PNG" Command="{Binding SetFormatCommand}" CommandParameter="png" />
+                            <Button Classes="seg" Classes.active="{Binding IsJpg}" Content="JPG" Command="{Binding SetFormatCommand}" CommandParameter="jpg" />
+                            <Button Classes="seg" Classes.active="{Binding IsWebp}" Content="WebP" Command="{Binding SetFormatCommand}" CommandParameter="webp" />
+                          </StackPanel>
+                        </Border>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[jpegQuality]}" Classes="set-label" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Slider Width="110" Minimum="40" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding JpegQuality, Mode=TwoWay}" />
+                          <Border Classes="chip" MinWidth="40">
+                            <TextBlock Text="{Binding JpegQualityText}" HorizontalAlignment="Center" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[afterCapture]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[autoCopy]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding AutoCopy, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[autoSave]}" Classes="set-label" VerticalAlignment="Center" ToolTip.Tip="{Binding L[autoSaveLocked]}" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding AutoSave, Mode=OneWay}" IsEnabled="False" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[openEditor]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding OpenEditor, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- 录制页 -->
+                <StackPanel IsVisible="{Binding IsRecordingTab}" Spacing="24">
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[recordingVideo]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingDefaultFps]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="seg" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg" Classes.active="{Binding IsFps30}" Content="30" Command="{Binding SetRecordingFpsCommand}" CommandParameter="30" />
+                            <Button Classes="seg" Classes.active="{Binding IsFps60}" Content="60" Command="{Binding SetRecordingFpsCommand}" CommandParameter="60" />
+                          </StackPanel>
+                        </Border>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingDefaultResolution]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="{Binding RecordingMaxHeightIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="1080p" />
+                          <ComboBoxItem Content="1440p" />
+                          <ComboBoxItem Content="4K" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingBitrate]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="{Binding RecordingBitrateIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="8 Mbps" />
+                          <ComboBoxItem Content="12 Mbps" />
+                          <ComboBoxItem Content="20 Mbps" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingCodec]}" Classes="set-label" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Classes="chip ok">
+                          <TextBlock Text="{Binding RecordingCodec}" />
+                        </Border>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[recordingAudio]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingMicDevice]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="220" Classes="input" SelectedIndex="0">
+                          <ComboBoxItem Content="{Binding L[recordingDefaultDevice]}" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[recordingSystemAudio]}" Classes="set-label" />
+                          <TextBlock Text="{Binding L[recordingSystemAudioDesc]}" Classes="set-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1" Classes="switch" IsEnabled="False" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[recordingCameraSection]}" Classes="section" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingCameraDevice]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="220" Classes="input" SelectedIndex="0">
+                          <ComboBoxItem Content="{Binding L[recordingDefaultDevice]}" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[recordingPipPosition]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="0">
+                          <ComboBoxItem Content="{Binding L[pipBottomRight]}" />
+                          <ComboBoxItem Content="{Binding L[pipBottomLeft]}" />
+                          <ComboBoxItem Content="{Binding L[pipTopRight]}" />
+                          <ComboBoxItem Content="{Binding L[pipTopLeft]}" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- OCR 页 -->
+                <StackPanel IsVisible="{Binding IsOcrTab}" Spacing="24">
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[ocrEngineTitle]}" Classes="section" />
+                    <TextBlock Text="{Binding L[ocrEngineDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[ocrPreferredEngine]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="230" Classes="input" SelectedIndex="{Binding OcrEngineIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="{Binding L[ocrNativeEngine]}" />
+                          <ComboBoxItem Content="{Binding L[ocrTesseractEngine]}" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[ocrAvailableLanguages]}" Classes="set-label" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                          <Border Classes="chip ok">
+                            <TextBlock Text="{Binding L[ocrLanguageZhSimplified]}" />
+                          </Border>
+                          <Border Classes="chip ok">
+                            <TextBlock Text="English" />
+                          </Border>
+                          <Border Classes="chip">
+                            <TextBlock Text="{Binding L[ocrLanguageJapanese]}" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[ocrLanguagePack]}" Classes="section" />
+                    <TextBlock Text="{Binding L[ocrLanguagePackDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Background="{DynamicResource SscPanelAltBg}"
+                            BorderBrush="{DynamicResource SscBorder}"
+                            BorderThickness="1"
+                            CornerRadius="9"
+                            Padding="11,9">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text='Get-WindowsCapability -Online | ? Name -like "Language.OCR*"'
+                                   FontFamily="SF Mono, Menlo, Consolas, monospace"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SscTextMuted}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <Button Grid.Column="1" Classes="btn btn-ghost btn-sm" Content="{Binding L[commonCopy]}" Click="OnCopyOcrCommand" Margin="8,0,0,0" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- 上传页 -->
+                <StackPanel IsVisible="{Binding IsUploadTab}" Spacing="18">
+                  <Border Background="{DynamicResource SscWarningSoft}" CornerRadius="9" Padding="12,10">
+                    <Grid ColumnDefinitions="Auto,*">
+                      <Path Data="m12 3 7 3v5c0 4.4-2.8 8.2-7 10-4.2-1.8-7-5.6-7-10V6z"
+                            Stroke="{DynamicResource SscWarningText}"
+                            StrokeThickness="1.7"
+                            Width="15"
+                            Height="15"
+                            Stretch="Uniform"
+                            VerticalAlignment="Top"
+                            Margin="0,1,0,0" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding L[uploadPrivacy]}"
+                                 Margin="9,0,0,0"
+                                 FontSize="10.5"
+                                 Foreground="{DynamicResource SscWarningText}"
+                                 TextWrapping="Wrap" />
+                    </Grid>
+                  </Border>
+
+                  <TextBlock Text="{Binding L[uploadProviders]}" Classes="section" />
+
+                  <!-- S3 -->
+                  <Border Classes="provider">
+                    <StackPanel Spacing="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Border Classes="provider-logo">
+                          <TextBlock Text="S3" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0" Spacing="0" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[uploadS3Name]}" Classes="provider-name" />
+                          <TextBlock Text="{Binding L[uploadS3Desc]}" Classes="provider-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding IsUploadS3, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                      <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="8"
+                            Margin="0,11,0,0" IsEnabled="{Binding IsUploadS3}">
+                        <StackPanel Spacing="0">
+                          <TextBlock Text="{Binding L[uploadBucket]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadBucket, Mode=TwoWay}" PlaceholderText="my-bucket" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="0">
+                          <TextBlock Text="{Binding L[uploadRegion]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadRegion, Mode=TwoWay}" PlaceholderText="ap-southeast-1" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Spacing="0">
+                          <TextBlock Text="{Binding L[uploadAccessKey]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadAccessKey, Mode=TwoWay}" PlaceholderText="AKIA…" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="0">
+                          <TextBlock Text="{Binding L[uploadSecretKey]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadSecretKey, Mode=TwoWay}" PasswordChar="•" />
+                        </StackPanel>
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+
+                  <!-- Imgur -->
+                  <Border Classes="provider">
+                    <StackPanel Spacing="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Border Classes="provider-logo">
+                          <TextBlock Text="IMG" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0" Spacing="0" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[uploadImgurName]}" Classes="provider-name" />
+                          <TextBlock Text="{Binding L[uploadImgurDesc]}" Classes="provider-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding IsUploadImgur, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                      <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,11,0,0" IsEnabled="{Binding IsUploadImgur}">
+                        <StackPanel Spacing="0">
+                          <TextBlock Text="{Binding L[uploadClientId]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadClientId, Mode=TwoWay}" PlaceholderText="e4f1c…" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="0">
+                          <TextBlock Text="{Binding L[uploadExpiry]}" Classes="provider-label" />
+                          <Border Classes="select" Height="31">
+                            <Grid ColumnDefinitions="*,Auto">
+                              <TextBlock Text="{Binding L[uploadNever]}" FontSize="11.5" VerticalAlignment="Center" />
+                              <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                            </Grid>
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+
+                  <!-- 自定义 HTTP -->
+                  <Border Classes="provider">
+                    <StackPanel Spacing="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Border Classes="provider-logo">
+                          <TextBlock Text="API" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0" Spacing="0" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[uploadProviderCustom]}" Classes="provider-name" />
+                          <TextBlock Text="{Binding L[uploadCustomDesc]}" Classes="provider-desc" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding IsUploadCustom, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                      <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,11,0,0" IsEnabled="{Binding IsUploadCustom}">
+                        <StackPanel Spacing="0">
+                          <TextBlock Text="{Binding L[uploadEndpoint]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadEndpoint, Mode=TwoWay}" PlaceholderText="https://example.com/upload" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="0">
+                          <TextBlock Text="{Binding L[uploadToken]}" Classes="provider-label" />
+                          <TextBox Classes="field-input" Text="{Binding UploadToken, Mode=TwoWay}" PasswordChar="•" />
+                        </StackPanel>
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+
+                <!-- 关于页 -->
+                <StackPanel IsVisible="{Binding IsAboutTab}" Spacing="18">
+                  <Border Background="{DynamicResource SscHeroGradient}"
+                          BorderBrush="{DynamicResource SscBorder}"
+                          BorderThickness="1"
+                          CornerRadius="13"
+                          Padding="16">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <Border Width="52" Height="52" CornerRadius="15" Background="{DynamicResource SscBrandGradient}">
+                        <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16 M12 4v6l5 3 M20 12l-5.5 3.2 M16 19l-3-5.5 M8 19l3-5.5 M4 12l5.5 3.2 M8 4l3 5.5"
+                              Stroke="White"
+                              StrokeThickness="1.6"
+                              Width="30"
+                              Height="30"
+                              Stretch="Uniform"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                      </Border>
+                      <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3">
+                        <TextBlock Text="{Binding L[appTitle]}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
+                        <TextBlock Text="{Binding L[aboutTagline]}" FontSize="11" Foreground="{DynamicResource SscTextMuted}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <Border Grid.Column="2" Classes="chip primary">
+                        <TextBlock Text="{Binding AppVersionLabel}" />
+                      </Border>
+                    </Grid>
+                  </Border>
+
+                  <StackPanel Spacing="0">
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
+                        <Path Data="m12 3 7 3v5c0 4.4-2.8 8.2-7 10-4.2-1.8-7-5.6-7-10V6z"
+                              Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding L[aboutLicense]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding AppLicense}" Classes="caption" Foreground="{DynamicResource SscAccent}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
+                        <Path Data="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.3 1.3M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.3-1.3"
+                              Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding L[aboutReadme]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutView]}" Click="OnOpenReadme" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
+                        <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v6M12 8h.01"
+                              Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding L[aboutThirdParty]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutView]}" Click="OnOpenThirdParty" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
+                        <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2"
+                              Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding L[aboutCheckUpdate]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutCheck]}" Command="{Binding CheckUpdatesCommand}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <TextBlock Text="{Binding L[appSubtitle]}" Classes="muted" />
+                </StackPanel>
+              </Panel>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <!-- 底部提示栏 -->
+      <Border Grid.Row="2"
+              Background="{DynamicResource SscPanelBg}"
+              BorderBrush="{DynamicResource SscBorder}"
+              BorderThickness="0,1,0,0"
+              Padding="14,0">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h.01"
+                Stroke="{DynamicResource SscTextSubtle}"
+                StrokeThickness="1.6"
+                Width="13"
+                Height="13"
+                Stretch="Uniform"
+                VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Classes="muted" FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text="{Binding AppVersionLabel}" FontSize="10" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
-
-    <Border Grid.Row="2"
-            Background="{DynamicResource SscPanelBg}"
-            BorderBrush="{DynamicResource SscBorder}"
-            BorderThickness="0,1,0,0"
-            Padding="16,0">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="{Binding StatusMessage}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-          <TextBlock Text="{Binding L[versionPrefix]}" FontSize="10" Foreground="{DynamicResource SscTextMuted}" />
-          <TextBlock Text="{Binding AppVersion}" FontSize="10" Foreground="{DynamicResource SscTextMuted}" />
-        </StackPanel>
-      </Grid>
-    </Border>
-  </Grid>
+  </Border>
 </Window>

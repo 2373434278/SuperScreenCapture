@@ -6,6 +6,7 @@ using SSC.Domain.Capture;
 
 namespace SSC.UI.Capture;
 
+/// <summary>把 BGRA 抓帧复制为可渲染的 <see cref="WriteableBitmap"/>。</summary>
 public static class CaptureFrameBitmap
 {
     public static WriteableBitmap Create(CaptureFrame frame)

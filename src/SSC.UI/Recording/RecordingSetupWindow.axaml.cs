@@ -1,12 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.VisualTree;
 using SSC.Application.Abstractions;
 using SSC.Domain.Recording;
 
 namespace SSC.UI.Recording;
 
+/// <summary>
+/// 录制准备卡片（原型 P3 的 rec-card）。分辨率、帧率、码率和麦克风均以胶囊形式展示，
+/// 点击胶囊循环切换，保持与原型一致的极简视觉。
+/// </summary>
 public partial class RecordingSetupWindow : Window
 {
     private readonly ILocalizer _localizer;
@@ -65,30 +68,11 @@ public partial class RecordingSetupWindow : Window
 
     private void WireControls()
     {
-        Header.PointerPressed += (_, e) =>
-        {
-            if (IsButtonSource(e.Source))
-            {
-                return;
-            }
-
-            if (e.GetCurrentPoint(Header).Properties.IsLeftButtonPressed)
-            {
-                BeginMoveDrag(e);
-            }
-        };
-
         CloseButton.Click += (_, _) => CloseWithResult(null);
-        CancelButton.Click += (_, _) => CloseWithResult(null);
         StartButton.Click += (_, _) => StartRecording();
-        Resolution1080.Click += (_, _) => SetMaxHeight(1080);
-        Resolution1440.Click += (_, _) => SetMaxHeight(1440);
-        Resolution2160.Click += (_, _) => SetMaxHeight(2160);
-        Fps30.Click += (_, _) => SetFps(30);
-        Fps60.Click += (_, _) => SetFps(60);
-        Bitrate8.Click += (_, _) => SetBitrate(8);
-        Bitrate12.Click += (_, _) => SetBitrate(12);
-        Bitrate20.Click += (_, _) => SetBitrate(20);
+        Resolution1440.Click += (_, _) => CycleResolution();
+        Fps60.Click += (_, _) => CycleFps();
+        Bitrate12.Click += (_, _) => CycleBitrate();
         MicrophoneButton.Click += (_, _) =>
         {
             _microphone = !_microphone;
@@ -96,21 +80,34 @@ public partial class RecordingSetupWindow : Window
         };
     }
 
-    private void SetMaxHeight(int height)
+    /// <summary>1080p → 1440p → 4K → 1080p。</summary>
+    private void CycleResolution()
     {
-        _maxHeight = height;
+        _maxHeight = _maxHeight switch
+        {
+            1080 => 1440,
+            1440 => 2160,
+            _ => 1080
+        };
         UpdateChoices();
     }
 
-    private void SetFps(int fps)
+    /// <summary>30 与 60 帧之间切换。</summary>
+    private void CycleFps()
     {
-        _fps = fps;
+        _fps = _fps == 30 ? 60 : 30;
         UpdateChoices();
     }
 
-    private void SetBitrate(int bitrate)
+    /// <summary>8 / 12 / 20 Mbps 之间循环。</summary>
+    private void CycleBitrate()
     {
-        _bitrate = bitrate;
+        _bitrate = _bitrate switch
+        {
+            8 => 12,
+            12 => 20,
+            _ => 8
+        };
         UpdateChoices();
     }
 
@@ -143,15 +140,9 @@ public partial class RecordingSetupWindow : Window
 
     private void UpdateChoices()
     {
-        SetClass(Resolution1080, "active", _maxHeight == 1080);
-        SetClass(Resolution1440, "active", _maxHeight == 1440);
-        SetClass(Resolution2160, "active", _maxHeight == 2160);
-        SetClass(Fps30, "active", _fps == 30);
-        SetClass(Fps60, "active", _fps == 60);
-        SetClass(Bitrate8, "active", _bitrate == 8);
-        SetClass(Bitrate12, "active", _bitrate == 12);
-        SetClass(Bitrate20, "active", _bitrate == 20);
-        SetClass(MicrophoneButton, "active", _microphone);
+        Resolution1440.Content = _maxHeight == 2160 ? "4K" : $"{_maxHeight}p";
+        Fps60.Content = $"{_fps} fps";
+        Bitrate12.Content = $"{_bitrate} Mbps";
         MicrophoneButton.Content = _microphone
             ? _localizer["recordingMicOn"]
             : _localizer["recordingMicOff"];
@@ -166,33 +157,11 @@ public partial class RecordingSetupWindow : Window
             _localizer["recordingRegion"],
             _baseOptions.Region.Width,
             _baseOptions.Region.Height);
-        ResolutionLabel.Text = _localizer["recordingResolution"];
-        FpsLabel.Text = _localizer["recordingFps"];
-        BitrateLabel.Text = _localizer["recordingBitrate"];
-        MicrophoneLabel.Text = _localizer["recordingMicrophone"];
-        SystemAudioLabel.Text = _localizer["recordingSystemAudio"];
-        SystemAudioValue.Text = _localizer["recordingLater"];
-        CancelButton.Content = _localizer["recordingCancel"];
         StartText.Text = _localizer["recordingStart"];
         ToolTip.SetTip(CloseButton, _localizer["recordingCancel"]);
-        ToolTip.SetTip(SystemAudioValue, _localizer["recordingSystemAudioTip"]);
+        ToolTip.SetTip(Resolution1440, _localizer["recordingResolution"]);
+        ToolTip.SetTip(Fps60, _localizer["recordingFps"]);
+        ToolTip.SetTip(Bitrate12, _localizer["recordingBitrate"]);
+        ToolTip.SetTip(MicrophoneButton, _localizer["recordingMicrophone"]);
     }
-
-    private static void SetClass(Control control, string name, bool enabled)
-    {
-        if (enabled)
-        {
-            if (!control.Classes.Contains(name))
-            {
-                control.Classes.Add(name);
-            }
-        }
-        else
-        {
-            control.Classes.Remove(name);
-        }
-    }
-
-    private static bool IsButtonSource(object? source) =>
-        source is Visual visual && visual.FindAncestorOfType<Button>(includeSelf: true) is not null;
 }

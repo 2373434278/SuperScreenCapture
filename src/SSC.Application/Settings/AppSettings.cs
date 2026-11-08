@@ -20,6 +20,12 @@ public sealed class AppSettings
 
     public int JpegQuality { get; set; } = 92;
 
+    /// <summary>截图完成后是否自动写入剪贴板。</summary>
+    public bool AutoCopy { get; set; } = true;
+
+    /// <summary>截图完成后是否自动打开标注编辑器。</summary>
+    public bool OpenEditor { get; set; } = true;
+
     public int RecordingFps { get; set; } = 30;
 
     public int RecordingBitrateMbps { get; set; } = 12;

@@ -6,6 +6,10 @@ using SSC.Domain.Capture;
 
 namespace SSC.UI.Capture;
 
+/// <summary>
+/// 单块显示器上的截图覆盖层窗口（原型 P1）。覆盖层本身负责绘制冻结画面、
+/// 选框与提示；跨显示器切换由 <see cref="ActivateOverlay"/> 完成。
+/// </summary>
 public sealed class CaptureOverlayWindow : Window
 {
     private readonly CaptureOverlayControl _overlay;
@@ -18,7 +22,9 @@ public sealed class CaptureOverlayWindow : Window
         ILocalizer localizer,
         Action<CaptureSelection?> complete,
         CaptureOverlayMode mode = CaptureOverlayMode.Region,
-        Func<SSC.Domain.Geometry.PixelPoint, Task<WindowDescriptor?>>? windowResolver = null)
+        Func<SSC.Domain.Geometry.PixelPoint, Task<WindowDescriptor?>>? windowResolver = null,
+        IReadOnlyList<DisplayDescriptor>? displays = null,
+        Action<DisplayDescriptor>? activateDisplay = null)
     {
         Display = display ?? throw new ArgumentNullException(nameof(display));
         _complete = complete ?? throw new ArgumentNullException(nameof(complete));
@@ -35,7 +41,15 @@ public sealed class CaptureOverlayWindow : Window
         Width = Math.Max(1, display.Bounds.Width / display.ScaleFactor);
         Height = Math.Max(1, display.Bounds.Height / display.ScaleFactor);
 
-        _overlay = new CaptureOverlayControl(display, frame, localizer, HandleComplete, mode, windowResolver);
+        _overlay = new CaptureOverlayControl(
+            display,
+            frame,
+            localizer,
+            HandleComplete,
+            mode,
+            windowResolver,
+            displays,
+            activateDisplay);
         Content = _overlay;
         Opened += (_, _) => _overlay.FocusOverlay();
     }
@@ -43,6 +57,13 @@ public sealed class CaptureOverlayWindow : Window
     public DisplayDescriptor Display { get; }
 
     public void FocusOverlay() => _overlay.FocusOverlay();
+
+    /// <summary>把指定显示器的覆盖层带到前台并接管键盘。</summary>
+    public void ActivateOverlay()
+    {
+        Activate();
+        _overlay.FocusOverlay();
+    }
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {

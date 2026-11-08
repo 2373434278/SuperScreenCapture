@@ -2,8 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="SSC.UI.Recording.CameraPreviewWindow"
         Title="SuperScreenCapture"
-        Width="220"
-        Height="220"
+        Width="134"
+        Height="134"
         CanResize="False"
         ShowInTaskbar="False"
         Topmost="True"
@@ -11,26 +11,42 @@
         WindowDecorations="None"
         Background="Transparent"
         TransparencyBackgroundFallback="Transparent"
-        TransparencyLevelHint="Transparent"
-        Foreground="{DynamicResource SscText}">
+        TransparencyLevelHint="Transparent">
   <Border x:Name="FrameBorder"
           Background="#111827"
-          BorderBrush="{DynamicResource SscBorder}"
-          BorderThickness="1"
-          CornerRadius="110"
+          BorderBrush="#ADFFFFFF"
+          BorderThickness="2"
+          CornerRadius="67"
           ClipToBounds="True">
     <Grid>
       <Image x:Name="PreviewImage" Stretch="UniformToFill" />
+
       <Border Background="#CC0B0E15" IsVisible="False" x:Name="ErrorPanel">
         <TextBlock x:Name="ErrorText"
                    FontSize="11"
-                   Foreground="{DynamicResource SscTextMuted}"
+                   Foreground="#A7B1C2"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Margin="18" />
       </Border>
+
+      <!-- 原型 .pip-badge：左上角 LIVE 标记 -->
+      <Border Background="#B304080E" CornerRadius="999" Padding="6,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Border Width="5" Height="5" CornerRadius="3" Background="#FF4757" VerticalAlignment="Center" />
+          <TextBlock Text="LIVE" FontSize="8" FontWeight="Bold" Foreground="White" LetterSpacing="0.6" />
+        </StackPanel>
+      </Border>
+
+      <!-- 原型 .pip-hint -->
+      <TextBlock x:Name="HintText"
+                 FontSize="7.5"
+                 Foreground="#8CFFFFFF"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Bottom"
+                 Margin="0,0,0,10" />
     </Grid>
   </Border>
 </Window>

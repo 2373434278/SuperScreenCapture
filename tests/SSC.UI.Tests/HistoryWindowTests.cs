@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media.Imaging;
@@ -58,6 +59,26 @@ public sealed class HistoryWindowTests
             }
 
             Assert.True(rendered.PixelSize.Width >= 1000);
+
+            // 选中首张卡片以渲染右侧详情抽屉。
+            var grid = window.FindControl<ListBox>("GridResults")!;
+            grid.SelectedIndex = 0;
+            var drawerFrame = window.CaptureRenderedFrame();
+            Assert.NotNull(drawerFrame);
+            using (var drawerStream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-history-drawer.png")))
+            {
+                drawerFrame!.Save(drawerStream, new PngBitmapEncoderOptions());
+            }
+
+            // 打开删除确认弹层。
+            window.FindControl<Button>("DetailDelete")!
+                .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            var modalFrame = window.CaptureRenderedFrame();
+            Assert.NotNull(modalFrame);
+            using (var modalStream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-history-delete.png")))
+            {
+                modalFrame!.Save(modalStream, new PngBitmapEncoderOptions());
+            }
         }
         finally
         {

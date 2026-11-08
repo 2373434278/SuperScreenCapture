@@ -16,6 +16,10 @@ using DomainPixelPoint = SSC.Domain.Geometry.PixelPoint;
 
 namespace SSC.UI.Editing;
 
+/// <summary>
+/// 标注编辑器窗口（原型 P2）。工具轨、属性栏和底栏尺寸都按原型比例实现，
+/// 绘制逻辑委托给 <see cref="AnnotationEditorCanvas"/> 与 <see cref="AnnotationEditorSession"/>。
+/// </summary>
 public partial class AnnotationEditorWindow : Window
 {
     private static readonly (AnnotationToolKind Kind, string LabelKey, string IconPath)[] ToolDefinitions =
@@ -62,11 +66,13 @@ public partial class AnnotationEditorWindow : Window
     private readonly Dictionary<AnnotationToolKind, string> _toolLabelKeys = new();
     private readonly Dictionary<string, Button> _swatchButtons = new();
     private string _color = AnnotationStyle.DefaultColor;
+    private string _saveFormat = "png";
     private int _strength = 4;
     private bool _updatingStyle;
     private DomainPixelPoint? _textPoint;
     private bool _closed;
 
+    /// <summary>由依赖注入构造编辑器窗口。</summary>
     public AnnotationEditorWindow(
         ScreenshotResult result,
         CaptureFrame frame,
@@ -248,17 +254,31 @@ public partial class AnnotationEditorWindow : Window
         UndoButton.Click += (_, _) => Undo();
         RedoButton.Click += (_, _) => Redo();
         CopyButton.Click += (_, _) => _ = CopyAsync();
-        SaveButton.Click += (_, _) => _ = SaveAsync();
         PinButton.Click += (_, _) => Pin();
         OcrButton.Click += (_, _) => _ = RecognizeAsync();
         UploadButton.Click += (_, _) => _ = UploadAsync();
         DoneButton.Click += (_, _) => Close();
         RetakeButton.Click += (_, _) => Retake();
 
-        FormatBox.ItemsSource = new[] { "png", "jpg", "webp" };
-        FormatBox.SelectedIndex = 0;
-
         TextInputBox.KeyDown += OnTextInputKeyDown;
+    }
+
+    private void OnSavePng(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _saveFormat = "png";
+        _ = SaveAsync();
+    }
+
+    private void OnSaveJpg(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _saveFormat = "jpg";
+        _ = SaveAsync();
+    }
+
+    private void OnSaveWebp(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _saveFormat = "webp";
+        _ = SaveAsync();
     }
 
     private void SelectTool(AnnotationToolKind kind)
@@ -409,7 +429,7 @@ public partial class AnnotationEditorWindow : Window
     {
         try
         {
-            var format = FormatBox.SelectedItem as string ?? "png";
+            var format = _saveFormat;
             var frame = _renderer.Render(_frame, _session.Document);
             var saved = await _screenshots.SaveAsync(frame, CaptureKind.Screenshot, format);
             FileNameText.Text = Path.GetFileName(saved.FilePath);

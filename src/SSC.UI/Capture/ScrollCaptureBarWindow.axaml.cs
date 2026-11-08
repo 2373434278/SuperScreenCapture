@@ -4,6 +4,9 @@ using SSC.Application.Abstractions;
 
 namespace SSC.UI.Capture;
 
+/// <summary>
+/// 滚动长截图悬浮控制条：显示已拼接屏数，并提供“捕获下一屏 / 完成 / 取消”操作。
+/// </summary>
 public partial class ScrollCaptureBarWindow : Window
 {
     private readonly ILocalizer _localizer;
@@ -25,13 +28,16 @@ public partial class ScrollCaptureBarWindow : Window
 
     public Func<Task>? CancelRequested { get; set; }
 
+    /// <summary>更新屏数与拼接后的画布尺寸。</summary>
     public void SetCount(int frames, int width, int height)
     {
         CountText.Text = string.Format(_localizer["scrollCount"], frames, width, height);
     }
 
+    /// <summary>显示拼接过程中的提示或错误。</summary>
     public void SetStatus(string message) => StatusText.Text = message;
 
+    /// <summary>拼接进行中时禁用三个操作按钮，避免并发。</summary>
     public void SetBusy(bool busy)
     {
         NextButton.IsEnabled = !busy;

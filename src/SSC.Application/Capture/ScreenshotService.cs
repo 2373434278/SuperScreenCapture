@@ -55,7 +55,12 @@ public sealed class ScreenshotService
 
         var path = _fileNamer.CreatePath(settings, kind, extension);
         await File.WriteAllBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
-        await _clipboard.CopyImageAsync(frame, cancellationToken).ConfigureAwait(false);
+
+        // 自动复制属于用户可在“输出”设置中关闭的副作用。
+        if (settings.AutoCopy)
+        {
+            await _clipboard.CopyImageAsync(frame, cancellationToken).ConfigureAwait(false);
+        }
 
         var entry = HistoryEntry.Create(
             Guid.NewGuid(),

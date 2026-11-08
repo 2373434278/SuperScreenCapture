@@ -12,6 +12,10 @@ using DomainPixelRect = SSC.Domain.Geometry.PixelRect;
 
 namespace SSC.UI.Capture;
 
+/// <summary>
+/// 截图覆盖层绘制与交互控件（原型 P1）：冻结画面、选区句柄、HUD、放大镜、
+/// 键盘提示、显示器切换与取消/确认按钮都在这里完成。
+/// </summary>
 public sealed class CaptureOverlayControl : Control
 {
     private static readonly IBrush DimBrush = new SolidColorBrush(Color.FromArgb(148, 3, 6, 14));
@@ -21,12 +25,20 @@ public sealed class CaptureOverlayControl : Control
     private static readonly IPen GridPen = new Pen(new SolidColorBrush(Color.FromArgb(40, 255, 255, 255)), 1);
     private static readonly IPen CrosshairPen = new Pen(new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)), 1);
     private static readonly IBrush MutedBrush = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+    private static readonly IBrush SuccessBrush = new SolidColorBrush(Color.Parse("#17C964"));
+    private static readonly IBrush AccentBrush = new SolidColorBrush(Color.Parse("#7B7FFF"));
+    private static readonly IPen PanelBorderPen = new Pen(new SolidColorBrush(Color.FromArgb(56, 255, 255, 255)), 1);
 
     private readonly WriteableBitmap _bitmap;
     private readonly Action<CaptureSelection?> _complete;
     private readonly ILocalizer _localizer;
     private readonly CaptureOverlayMode _mode;
     private readonly Func<DomainPixelPoint, Task<WindowDescriptor?>>? _windowResolver;
+    private readonly IReadOnlyList<DisplayDescriptor>? _displays;
+    private readonly Action<DisplayDescriptor>? _activateDisplay;
+    private readonly List<(DisplayDescriptor Display, Rect Rect)> _displayTabRects = new();
+    private Rect _confirmRect;
+    private Rect _cancelRect;
 
     private WindowDescriptor? _hoveredWindow;
     private bool _hoverLookupRunning;
@@ -47,7 +59,9 @@ public sealed class CaptureOverlayControl : Control
         ILocalizer localizer,
         Action<CaptureSelection?> complete,
         CaptureOverlayMode mode = CaptureOverlayMode.Region,
-        Func<DomainPixelPoint, Task<WindowDescriptor?>>? windowResolver = null)
+        Func<DomainPixelPoint, Task<WindowDescriptor?>>? windowResolver = null,
+        IReadOnlyList<DisplayDescriptor>? displays = null,
+        Action<DisplayDescriptor>? activateDisplay = null)
     {
         Display = display ?? throw new ArgumentNullException(nameof(display));
         Frame = frame ?? throw new ArgumentNullException(nameof(frame));
@@ -55,6 +69,8 @@ public sealed class CaptureOverlayControl : Control
         _complete = complete ?? throw new ArgumentNullException(nameof(complete));
         _mode = mode;
         _windowResolver = windowResolver;
+        _displays = displays;
+        _activateDisplay = activateDisplay;
         _bitmap = CaptureFrameBitmap.Create(frame);
 
         Focusable = true;
@@ -69,8 +85,10 @@ public sealed class CaptureOverlayControl : Control
 
     private double ScaleY => Bounds.Height > 0 ? Frame.Height / Bounds.Height : 1;
 
+    /// <summary>覆盖层显示后接管键盘焦点。</summary>
     public void FocusOverlay() => Focus();
 
+    /// <summary>整帧绘制：截图 → 选区/提示 → HUD → 顶栏 → 放大镜。</summary>
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -81,11 +99,15 @@ public sealed class CaptureOverlayControl : Control
         }
 
         context.DrawImage(_bitmap, new Rect(Bounds.Size));
+        _confirmRect = default;
+        _cancelRect = default;
 
         if (_mode == CaptureOverlayMode.Window)
         {
             DrawWindowSelection(context);
-            DrawKeysHint(context, _localizer["captureOverlayWindowKeys"]);
+            DrawKeysHint(context, windowMode: true);
+            DrawFrozenChip(context);
+            DrawDisplayTabs(context);
             return;
         }
 
@@ -99,8 +121,15 @@ public sealed class CaptureOverlayControl : Control
             DrawCrosshair(context);
         }
 
-        DrawKeysHint(context, _localizer["captureOverlayKeys"]);
+        DrawKeysHint(context);
         DrawHud(context);
+        DrawFrozenChip(context);
+        DrawDisplayTabs(context);
+
+        if (_selection is { } currentSelection)
+        {
+            DrawSelectionActions(context, currentSelection);
+        }
 
         if (!_selection.HasValue && _pointerInside)
         {
@@ -121,6 +150,32 @@ public sealed class CaptureOverlayControl : Control
 
         Focus();
         var position = e.GetPosition(this);
+
+        // 顶栏与选区操作按钮优先命中，避免误开始新的框选。
+        if (_confirmRect.Contains(position))
+        {
+            Complete();
+            e.Handled = true;
+            return;
+        }
+
+        if (_cancelRect.Contains(position))
+        {
+            Cancel();
+            e.Handled = true;
+            return;
+        }
+
+        foreach (var (display, rect) in _displayTabRects)
+        {
+            if (rect.Contains(position))
+            {
+                _activateDisplay?.Invoke(display);
+                e.Handled = true;
+                return;
+            }
+        }
+
         var framePoint = ToFrame(position);
 
         if (_mode == CaptureOverlayMode.Window)
@@ -288,6 +343,7 @@ public sealed class CaptureOverlayControl : Control
         }
     }
 
+    /// <summary>根据当前拖拽模式更新选区；越界坐标统一夹取到显示器内。</summary>
     private void UpdateDrag(DomainPixelPoint framePoint)
     {
         switch (_dragMode)
@@ -343,6 +399,7 @@ public sealed class CaptureOverlayControl : Control
         return new DomainPixelRect(left, top, right - left, bottom - top);
     }
 
+    /// <summary>结束框选并回传选区；窗口模式回传命中的窗口。</summary>
     private void Complete()
     {
         if (_completed)
@@ -498,17 +555,140 @@ public sealed class CaptureOverlayControl : Control
         context.DrawText(text, new Point(rect.X + 14, rect.Y + 9));
     }
 
-    private void DrawKeysHint(DrawingContext context, string keys)
+    /// <summary>绘制底部键盘提示：每个键位使用独立 kbd 胶囊，对应原型 capture-hint。</summary>
+    private void DrawKeysHint(DrawingContext context, bool windowMode = false)
     {
-        var text = Format(keys, 11, MutedBrush);
-        var rect = new Rect(
-            (Bounds.Width - text.Width) / 2 - 12,
-            Bounds.Height - 50,
-            text.Width + 24,
-            text.Height + 12);
+        var items = windowMode
+            ? new (string Key, string Label)[]
+            {
+                ("Click", _localizer["captureHintClick"]),
+                ("Esc", _localizer["captureHintCancel"])
+            }
+            : new (string Key, string Label)[]
+            {
+                ("Enter", _localizer["captureHintConfirm"]),
+                ("Esc", _localizer["captureHintCancel"]),
+                ("Space", _localizer["captureHintMove"]),
+                ("↑↓←→", _localizer["captureHintNudge"])
+            };
 
-        context.DrawRectangle(PanelBrush, new Pen(new SolidColorBrush(Color.FromArgb(50, 255, 255, 255)), 1), rect, 8, 8);
-        context.DrawText(text, new Point(rect.X + 12, rect.Y + 6));
+        var measured = new List<(FormattedText Key, FormattedText Label)>(items.Length);
+        var contentWidth = 0d;
+        var maxHeight = 0d;
+        foreach (var (key, label) in items)
+        {
+            var keyText = Format(key, 9.5, Brushes.White, monospace: true);
+            var labelText = Format(label, 11, MutedBrush);
+            measured.Add((keyText, labelText));
+            contentWidth += keyText.Width + 8 + 4 + labelText.Width + 10;
+            maxHeight = Math.Max(maxHeight, Math.Max(keyText.Height + 4, labelText.Height));
+        }
+
+        var panelWidth = contentWidth + 24;
+        var panelHeight = maxHeight + 14;
+        var panelX = (Bounds.Width - panelWidth) / 2;
+        var panelY = Bounds.Height - 18 - panelHeight;
+        var panel = new Rect(panelX, panelY, panelWidth, panelHeight);
+        context.DrawRectangle(PanelBrush, PanelBorderPen, panel, 9, 9);
+
+        var x = panelX + 12;
+        var centerY = panelY + panelHeight / 2;
+        foreach (var (keyText, labelText) in measured)
+        {
+            var keyRect = new Rect(x, centerY - keyText.Height / 2 - 2, keyText.Width + 8, keyText.Height + 4);
+            context.DrawRectangle(new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)), null, keyRect, 4, 4);
+            context.DrawText(keyText, new Point(x + 4, centerY - keyText.Height / 2));
+            x = keyRect.Right + 4;
+            context.DrawText(labelText, new Point(x, centerY - labelText.Height / 2));
+            x += labelText.Width + 10;
+        }
+    }
+
+    /// <summary>左上角“画面已冻结”提示。</summary>
+    private void DrawFrozenChip(DrawingContext context)
+    {
+        var text = Format(_localizer["captureFrozen"], 11, Brushes.White);
+        var rect = new Rect(14, 46, text.Width + 32, 30);
+        context.DrawRectangle(PanelBrush, PanelBorderPen, rect, 9, 9);
+
+        var iconCenter = new Point(rect.X + 16, rect.Y + 15);
+        context.DrawEllipse(null, new Pen(SuccessBrush, 1.6), iconCenter, 6, 6);
+        context.DrawLine(new Pen(SuccessBrush, 1.6), new Point(iconCenter.X - 2.5, iconCenter.Y), new Point(iconCenter.X - 0.5, iconCenter.Y + 2));
+        context.DrawLine(new Pen(SuccessBrush, 1.6), new Point(iconCenter.X - 0.5, iconCenter.Y + 2), new Point(iconCenter.X + 3, iconCenter.Y - 2.5));
+
+        context.DrawText(text, new Point(rect.X + 26, rect.Y + (rect.Height - text.Height) / 2));
+    }
+
+    /// <summary>右上角显示器切换标签；点击标签可聚焦另一块显示器的覆盖层。</summary>
+    private void DrawDisplayTabs(DrawingContext context)
+    {
+        _displayTabRects.Clear();
+        if (_displays is null || _displays.Count == 0)
+        {
+            return;
+        }
+
+        var labels = new List<(DisplayDescriptor Display, FormattedText Text, bool Active)>(_displays.Count);
+        var contentWidth = 0d;
+        for (var index = 0; index < _displays.Count; index++)
+        {
+            var display = _displays[index];
+            var text = Format(string.Format(_localizer["captureDisplay"], index + 1), 11, Brushes.White, bold: true);
+            var active = display.Id == Display.Id;
+            labels.Add((display, text, active));
+            contentWidth += text.Width + 30;
+        }
+
+        var panelWidth = contentWidth + 8 + (labels.Count - 1) * 4;
+        var panelX = Bounds.Width - 14 - panelWidth;
+        const double panelY = 14;
+        var panel = new Rect(panelX, panelY, panelWidth, 34);
+        context.DrawRectangle(PanelBrush, PanelBorderPen, panel, 10, 10);
+
+        var x = panelX + 4;
+        foreach (var (display, text, active) in labels)
+        {
+            var tab = new Rect(x, panelY + 4, text.Width + 30, 26);
+            if (active)
+            {
+                context.DrawRectangle(new SolidColorBrush(Color.FromArgb(41, 255, 255, 255)), null, tab, 7, 7);
+            }
+
+            context.DrawEllipse(active ? SuccessBrush : new SolidColorBrush(Color.FromArgb(102, 255, 255, 255)), null,
+                new Point(tab.X + 10, tab.Y + 13), 2.5, 2.5);
+            context.DrawText(text, new Point(tab.X + 17, tab.Y + (tab.Height - text.Height) / 2));
+            _displayTabRects.Add((display, tab));
+            x = tab.Right + 4;
+        }
+    }
+
+    /// <summary>选区右上角的取消 / 确认按钮。</summary>
+    private void DrawSelectionActions(DrawingContext context, DomainPixelRect selection)
+    {
+        var rect = ToDip(selection);
+        var cancelText = Format(_localizer["captureCancel"], 11.5, Brushes.White, bold: true);
+        var confirmText = Format(_localizer["captureConfirm"], 11.5, Brushes.White, bold: true);
+        var cancelWidth = cancelText.Width + 20;
+        var confirmWidth = confirmText.Width + 24;
+        var totalWidth = cancelWidth + confirmWidth + 8 + 5;
+        const double height = 34;
+
+        var x = Math.Clamp(rect.Right - totalWidth - 7, 8, Math.Max(8, Bounds.Width - totalWidth - 8));
+        var y = Math.Clamp(rect.Top + 7, 8, Math.Max(8, Bounds.Height - height - 8));
+
+        var container = new Rect(x, y, totalWidth, height);
+        context.DrawRectangle(PanelBrush, PanelBorderPen, container, 9, 9);
+
+        var cancelRect = new Rect(x + 4, y + 4, cancelWidth, height - 8);
+        context.DrawRectangle(new SolidColorBrush(Color.FromArgb(24, 255, 255, 255)), null, cancelRect, 7, 7);
+        context.DrawText(cancelText, new Point(cancelRect.X + 10, cancelRect.Y + (cancelRect.Height - cancelText.Height) / 2));
+
+        var confirmRect = new Rect(cancelRect.Right + 5, y + 4, confirmWidth, height - 8);
+        context.DrawRectangle(AccentBrush, null, confirmRect, 7, 7);
+        context.DrawText(confirmText, new Point(confirmRect.X + 12, confirmRect.Y + (confirmRect.Height - confirmText.Height) / 2));
+
+        _cancelRect = cancelRect;
+        _confirmRect = confirmRect;
     }
 
     private void DrawHud(DrawingContext context)
@@ -686,12 +866,20 @@ public sealed class CaptureOverlayControl : Control
         yield return new Point(rect.Left, rect.Center.Y);
     }
 
-    private static FormattedText Format(string text, double size, IBrush brush) =>
+    private static FormattedText Format(
+        string text,
+        double size,
+        IBrush brush,
+        bool monospace = false,
+        bool bold = false) =>
         new(
             text,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
-            new Typeface("Inter"),
+            new Typeface(
+                monospace ? "SF Mono, Menlo, Consolas" : "SF Pro Text, PingFang SC, Segoe UI, Microsoft YaHei",
+                bold ? FontStyle.Normal : FontStyle.Normal,
+                bold ? FontWeight.SemiBold : FontWeight.Normal),
             size,
             brush);
 

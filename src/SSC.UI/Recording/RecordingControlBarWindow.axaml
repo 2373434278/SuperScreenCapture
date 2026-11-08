@@ -11,27 +11,28 @@
         WindowDecorations="None"
         Background="Transparent"
         TransparencyBackgroundFallback="Transparent"
-        TransparencyLevelHint="Transparent"
-        Foreground="{DynamicResource SscText}">
+        TransparencyLevelHint="Transparent">
   <Window.Styles>
+    <!-- 原型 .rec-btn：深色玻璃控制条上的图标按钮 -->
     <Style Selector="Button.rec">
-      <Setter Property="Width" Value="32" />
-      <Setter Property="Height" Value="32" />
+      <Setter Property="Width" Value="34" />
+      <Setter Property="Height" Value="34" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="CornerRadius" Value="9" />
       <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Button.rec:pointerover">
-      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="Background" Value="#1FFFFFFF" />
     </Style>
     <Style Selector="Button.rec.active">
-      <Setter Property="Background" Value="{DynamicResource SscAccentSoft}" />
+      <Setter Property="Background" Value="#427B7FFF" />
     </Style>
     <Style Selector="Button.rec:disabled">
       <Setter Property="Opacity" Value="0.3" />
     </Style>
     <Style Selector="Button.rec Path">
-      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="Stroke" Value="#BCFFFFFF" />
       <Setter Property="StrokeThickness" Value="1.7" />
       <Setter Property="Width" Value="16" />
       <Setter Property="Height" Value="16" />
@@ -39,18 +40,28 @@
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector="Button.rec.active Path">
-      <Setter Property="Stroke" Value="{DynamicResource SscAccent}" />
+    <Style Selector="Button.rec:pointerover Path">
+      <Setter Property="Stroke" Value="White" />
     </Style>
+    <Style Selector="Button.rec.active Path">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
+
+    <!-- 原型 .rec-stop：红色半透明底 + 红色描边图标 -->
     <Style Selector="Button.stop">
-      <Setter Property="Width" Value="36" />
-      <Setter Property="Height" Value="30" />
+      <Setter Property="Width" Value="42" />
+      <Setter Property="Height" Value="34" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="CornerRadius" Value="9" />
-      <Setter Property="Background" Value="{DynamicResource SscDanger}" />
+      <Setter Property="Background" Value="#2EFF4757" />
+      <Setter Property="BorderBrush" Value="#57FF4757" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button.stop:pointerover">
+      <Setter Property="Background" Value="#47FF4757" />
     </Style>
     <Style Selector="Button.stop Path">
-      <Setter Property="Stroke" Value="White" />
+      <Setter Property="Stroke" Value="#FF7180" />
       <Setter Property="StrokeThickness" Value="2" />
       <Setter Property="Width" Value="15" />
       <Setter Property="Height" Value="15" />
@@ -60,36 +71,37 @@
     </Style>
   </Window.Styles>
 
-  <Border Background="{DynamicResource SscPanelBg}"
-          BorderBrush="{DynamicResource SscBorder}"
+  <Border Background="#E00A0E16"
+          BorderBrush="#29FFFFFF"
           BorderThickness="1"
-          CornerRadius="14"
-          BoxShadow="0 12 34 0 #66000000"
-          Padding="10,0">
+          CornerRadius="15"
+          BoxShadow="0 24 70 0 #99000000"
+          Padding="8,12">
     <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
       <Border x:Name="DragHandle" Grid.Column="0" Padding="8,0" Background="Transparent" Cursor="SizeAll">
-        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Border x:Name="RecordDot" Width="9" Height="9" CornerRadius="5" Background="{DynamicResource SscDanger}" />
-          <TextBlock x:Name="TimeText" Text="00:00" FontSize="15" FontWeight="Bold" FontFamily="Menlo, Consolas"
-                     Foreground="{DynamicResource SscText}" VerticalAlignment="Center" />
+        <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+          <Border x:Name="RecordDot" Width="10" Height="10" CornerRadius="5" Background="#FF4757"
+                  BoxShadow="0 0 0 4 #2EFF4757" />
+          <TextBlock x:Name="TimeText" Text="00:00" FontSize="13.5" FontWeight="SemiBold" FontFamily="SF Mono, Menlo, Consolas, monospace"
+                     Foreground="White" VerticalAlignment="Center" MinWidth="56" />
         </StackPanel>
       </Border>
 
-      <TextBlock x:Name="PhaseText" Grid.Column="1" FontSize="10.5" Foreground="{DynamicResource SscTextMuted}"
+      <TextBlock x:Name="PhaseText" Grid.Column="1" IsVisible="False" FontSize="10.5" Foreground="#99FFFFFF"
                  VerticalAlignment="Center" Margin="2,0,6,0" />
 
-      <Border Grid.Column="2" Width="1" Height="18" Background="{DynamicResource SscBorder}" Margin="2,0,6,0" />
+      <Border Grid.Column="2" Width="1" Height="24" Background="#29FFFFFF" Margin="4,0,8,0" />
 
       <Button x:Name="MicButton" Grid.Column="3" Classes="rec">
         <Path Data="M9 3h6v11a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" />
       </Button>
 
-      <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="3" Margin="5,0,2,0" VerticalAlignment="Center">
-        <Border x:Name="Level1" Width="3" Height="6" CornerRadius="2" Background="{DynamicResource SscAccent}" Opacity="0.2" />
-        <Border x:Name="Level2" Width="3" Height="9" CornerRadius="2" Background="{DynamicResource SscAccent}" Opacity="0.2" />
-        <Border x:Name="Level3" Width="3" Height="12" CornerRadius="2" Background="{DynamicResource SscAccent}" Opacity="0.2" />
-        <Border x:Name="Level4" Width="3" Height="15" CornerRadius="2" Background="{DynamicResource SscAccent}" Opacity="0.2" />
-        <Border x:Name="Level5" Width="3" Height="18" CornerRadius="2" Background="{DynamicResource SscAccent}" Opacity="0.2" />
+      <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2" Margin="5,0,2,0" VerticalAlignment="Center">
+        <Border x:Name="Level1" Width="2.5" Height="6" CornerRadius="2" Background="#FF17C964" Opacity="0.2" />
+        <Border x:Name="Level2" Width="2.5" Height="9" CornerRadius="2" Background="#FF22D3EE" Opacity="0.2" />
+        <Border x:Name="Level3" Width="2.5" Height="12" CornerRadius="2" Background="#FF22D3EE" Opacity="0.2" />
+        <Border x:Name="Level4" Width="2.5" Height="15" CornerRadius="2" Background="#FF22D3EE" Opacity="0.2" />
+        <Border x:Name="Level5" Width="2.5" Height="18" CornerRadius="2" Background="#FF17C964" Opacity="0.2" />
       </StackPanel>
 
       <Button x:Name="SystemAudioButton" Grid.Column="5" Classes="rec" IsEnabled="False">
@@ -104,7 +116,7 @@
         <Path x:Name="PauseIcon" Data="M9 5v14M15 5v14" />
       </Button>
 
-      <Border Grid.Column="8" Width="1" Height="18" Background="{DynamicResource SscBorder}" Margin="6,0" />
+      <Border Grid.Column="8" Width="1" Height="24" Background="#29FFFFFF" Margin="7,0" />
 
       <Button x:Name="GearButton" Grid.Column="9" Classes="rec">
         <Path Data="M12 9a3 3 0 1 1 0 6a3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" />

@@ -9,6 +9,10 @@ using SSC.Domain.Recording;
 
 namespace SSC.UI.Recording;
 
+/// <summary>
+/// 录制完成摘要卡片（原型 P3 的 rec-summary）。展示成功状态、时长与文件路径，
+/// 并提供播放与再次录制两个主要操作。
+/// </summary>
 public partial class RecordingSummaryWindow : Window
 {
     private readonly RecordingStopResult _result;
@@ -47,7 +51,6 @@ public partial class RecordingSummaryWindow : Window
         };
 
         CloseButton.Click += (_, _) => Close();
-        DoneButton.Click += (_, _) => Close();
         PlayButton.Click += (_, _) => OpenPath(_result.Entry?.FilePath, reveal: false);
         OpenFolderButton.Click += (_, _) => OpenPath(_result.Entry?.FilePath, reveal: true);
         AgainButton.Click += (_, _) =>
@@ -63,7 +66,6 @@ public partial class RecordingSummaryWindow : Window
     private void ApplyLocalization(RecordingOptions? options)
     {
         Title = _localizer["appTitle"];
-        HeaderTitle.Text = _localizer["recordingSavedTitle"];
         SavedTitle.Text = _localizer["recordingSavedTitle"];
         var duration = _result.Duration;
         SummaryText.Text = string.Format(
@@ -75,7 +77,6 @@ public partial class RecordingSummaryWindow : Window
         PlayButton.Content = _localizer["recordingPlay"];
         OpenFolderButton.Content = _localizer["recordingOpenFolder"];
         AgainButton.Content = _localizer["recordingAgain"];
-        DoneButton.Content = _localizer["recordingClose"];
         ToolTip.SetTip(CloseButton, _localizer["recordingClose"]);
     }
 

@@ -11,5 +11,8 @@
   </Application.Resources>
   <Application.Styles>
     <FluentTheme />
+    <!-- Shared prototype-aligned controls; must load after FluentTheme so the
+         design-system setters win over the platform defaults. -->
+    <StyleInclude Source="avares://SSC.UI/Styles/Controls.axaml" />
   </Application.Styles>
 </Application>

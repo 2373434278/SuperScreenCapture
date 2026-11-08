@@ -1,27 +1,93 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Design tokens mirroring prototype/index.html. The prototype defines a light
+    palette on :root and overrides it for [data-theme="dark"]; Avalonia's theme
+    dictionaries give us the same override behaviour.
+  -->
   <ResourceDictionary.ThemeDictionaries>
     <ResourceDictionary x:Key="Dark">
+      <!-- Backdrop behind the rounded app frame (matching the prototype backdrop token). -->
+      <SolidColorBrush x:Key="SscBackdropBg" Color="#05070B" />
+      <!-- App surface tokens. -->
       <SolidColorBrush x:Key="SscWindowBackground" Color="#0B0E15" />
       <SolidColorBrush x:Key="SscPanelBg" Color="#121722" />
       <SolidColorBrush x:Key="SscPanelAltBg" Color="#181E2B" />
-      <SolidColorBrush x:Key="SscBorder" Color="#22FFFFFF" />
+      <SolidColorBrush x:Key="SscPanel3Bg" Color="#202838" />
+      <SolidColorBrush x:Key="SscBorder" Color="#17FFFFFF" />
+      <SolidColorBrush x:Key="SscBorderStrong" Color="#29FFFFFF" />
       <SolidColorBrush x:Key="SscText" Color="#F2F5FA" />
       <SolidColorBrush x:Key="SscTextMuted" Color="#A7B1C2" />
+      <SolidColorBrush x:Key="SscTextSubtle" Color="#68748A" />
       <SolidColorBrush x:Key="SscAccent" Color="#7B7FFF" />
-      <SolidColorBrush x:Key="SscAccentSoft" Color="#2A7B7FFF" />
-      <SolidColorBrush x:Key="SscDanger" Color="#FF6B78" />
+      <SolidColorBrush x:Key="SscAccent2" Color="#9A9DFF" />
+      <SolidColorBrush x:Key="SscAccentSoft" Color="#297B7FFF" />
+      <SolidColorBrush x:Key="SscDanger" Color="#FF4757" />
+      <SolidColorBrush x:Key="SscDangerSoft" Color="#1FFF4757" />
+      <SolidColorBrush x:Key="SscSuccess" Color="#17C964" />
+      <SolidColorBrush x:Key="SscSuccessSoft" Color="#1F17C964" />
+      <SolidColorBrush x:Key="SscWarning" Color="#F5A524" />
+      <SolidColorBrush x:Key="SscWarningSoft" Color="#24F5A524" />
+      <SolidColorBrush x:Key="SscWarningText" Color="#F3C77C" />
+      <LinearGradientBrush x:Key="SscHeroGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#297B7FFF" Offset="0" />
+        <GradientStop Color="#1222D3EE" Offset="1" />
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="SscGlass" Color="#D6121722" />
+      <LinearGradientBrush x:Key="SscPrimaryGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#7B7FFF" Offset="0" />
+        <GradientStop Color="#9A9DFF" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="SscBrandGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#7B7FFF" Offset="0" />
+        <GradientStop Color="#B06CFF" Offset="0.55" />
+        <GradientStop Color="#22D3EE" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="SscDangerGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#FF4757" Offset="0" />
+        <GradientStop Color="#FF7A68" Offset="1" />
+      </LinearGradientBrush>
     </ResourceDictionary>
+
     <ResourceDictionary x:Key="Default">
-      <SolidColorBrush x:Key="SscWindowBackground" Color="#F3F5F9" />
+      <SolidColorBrush x:Key="SscBackdropBg" Color="#E9EDF5" />
+      <SolidColorBrush x:Key="SscWindowBackground" Color="#F7F8FB" />
       <SolidColorBrush x:Key="SscPanelBg" Color="#FFFFFF" />
       <SolidColorBrush x:Key="SscPanelAltBg" Color="#F1F3F8" />
+      <SolidColorBrush x:Key="SscPanel3Bg" Color="#E7EAF1" />
       <SolidColorBrush x:Key="SscBorder" Color="#1A111827" />
+      <SolidColorBrush x:Key="SscBorderStrong" Color="#29111827" />
       <SolidColorBrush x:Key="SscText" Color="#111827" />
-      <SolidColorBrush x:Key="SscTextMuted" Color="#6B7280" />
+      <SolidColorBrush x:Key="SscTextMuted" Color="#4B5563" />
+      <SolidColorBrush x:Key="SscTextSubtle" Color="#98A2B3" />
       <SolidColorBrush x:Key="SscAccent" Color="#5B5FF0" />
+      <SolidColorBrush x:Key="SscAccent2" Color="#7C7FF7" />
       <SolidColorBrush x:Key="SscAccentSoft" Color="#1F5B5FF0" />
-      <SolidColorBrush x:Key="SscDanger" Color="#E5484D" />
+      <SolidColorBrush x:Key="SscDanger" Color="#FF4757" />
+      <SolidColorBrush x:Key="SscDangerSoft" Color="#1FFF4757" />
+      <SolidColorBrush x:Key="SscSuccess" Color="#17C964" />
+      <SolidColorBrush x:Key="SscSuccessSoft" Color="#1F17C964" />
+      <SolidColorBrush x:Key="SscWarning" Color="#F5A524" />
+      <SolidColorBrush x:Key="SscWarningSoft" Color="#24F5A524" />
+      <SolidColorBrush x:Key="SscWarningText" Color="#9A6700" />
+      <LinearGradientBrush x:Key="SscHeroGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#1F5B5FF0" Offset="0" />
+        <GradientStop Color="#1222D3EE" Offset="1" />
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="SscGlass" Color="#D1FFFFFF" />
+      <LinearGradientBrush x:Key="SscPrimaryGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#5B5FF0" Offset="0" />
+        <GradientStop Color="#7C7FF7" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="SscBrandGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#5B5FF0" Offset="0" />
+        <GradientStop Color="#B06CFF" Offset="0.55" />
+        <GradientStop Color="#22D3EE" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="SscDangerGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#FF4757" Offset="0" />
+        <GradientStop Color="#FF7A68" Offset="1" />
+      </LinearGradientBrush>
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

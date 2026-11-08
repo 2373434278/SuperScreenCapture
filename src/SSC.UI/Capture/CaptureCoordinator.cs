@@ -13,6 +13,10 @@ using SSC.UI.Editing;
 
 namespace SSC.UI.Capture;
 
+/// <summary>
+/// 截图流程协调器：处理权限、冻结多显示器画面、覆盖层框选、
+/// 滚动拼接以及后续保存与编辑器打开。
+/// </summary>
 public sealed class CaptureCoordinator
 {
     private readonly IScreenCaptureService _capture;
@@ -54,15 +58,18 @@ public sealed class CaptureCoordinator
         _stitcher = stitcher ?? throw new ArgumentNullException(nameof(stitcher));
     }
 
+    /// <summary>进入区域框选模式。</summary>
     public Task<CaptureOutcome> CaptureRegionAsync(CancellationToken cancellationToken = default) =>
         RunOverlayCaptureAsync(CaptureOverlayMode.Region, windowResolver: null, cancellationToken);
 
+    /// <summary>进入窗口选择模式，点击窗口后按窗口 ID 重新抓取。</summary>
     public Task<CaptureOutcome> CaptureWindowSelectionAsync(CancellationToken cancellationToken = default) =>
         RunOverlayCaptureAsync(
             CaptureOverlayMode.Window,
             point => _capture.GetWindowAtPointAsync(point, cancellationToken),
             cancellationToken);
 
+    /// <summary>滚动长截图：先框选区域，再通过悬浮条逐屏追加并拼接。</summary>
     public async Task<CaptureOutcome> CaptureScrollAsync(CancellationToken cancellationToken = default)
     {
         if (_running)
@@ -104,6 +111,7 @@ public sealed class CaptureCoordinator
             var selectionCompletion = new TaskCompletionSource<CaptureSelection?>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             var overlays = new List<CaptureOverlayWindow>(captured.Count);
+            var displayList = captured.Select(static item => item.Display).ToArray();
             CaptureSelection? selection;
             try
             {
@@ -113,7 +121,10 @@ public sealed class CaptureCoordinator
                         display,
                         frame,
                         _localizer,
-                        selected => selectionCompletion.TrySetResult(selected)));
+                        selected => selectionCompletion.TrySetResult(selected),
+                        displays: displayList,
+                        activateDisplay: target =>
+                            overlays.FirstOrDefault(overlay => overlay.Display.Id == target.Id)?.ActivateOverlay()));
                 }
 
                 foreach (var overlay in overlays)
@@ -220,19 +231,21 @@ public sealed class CaptureCoordinator
                 return new CaptureOutcome(false, _localizer["scrollCanceled"]);
             }
 
-            var editor = new AnnotationEditorWindow(
-                saved,
-                stitched,
-                _localizer,
-                _annotationRenderer,
-                _screenshots,
-                _clipboard,
-                _ocrService,
-                _uploads,
-                _settings,
-                _encoder);
-            editor.Show();
-            editor.Activate();
+            var editor = _settings.Current.OpenEditor
+                ? new AnnotationEditorWindow(
+                    saved,
+                    stitched,
+                    _localizer,
+                    _annotationRenderer,
+                    _screenshots,
+                    _clipboard,
+                    _ocrService,
+                    _uploads,
+                    _settings,
+                    _encoder)
+                : null;
+            editor?.Show();
+            editor?.Activate();
             return new CaptureOutcome(true, _localizer["scrollSaved"], saved);
         }
         catch (OperationCanceledException)
@@ -252,6 +265,7 @@ public sealed class CaptureCoordinator
         }
     }
 
+    /// <summary>直接抓取主显示器全屏并进入编辑器（可在设置中关闭自动打开）。</summary>
     public async Task<CaptureOutcome> CaptureFullScreenAsync(CancellationToken cancellationToken = default)
     {
         if (_running)
@@ -284,19 +298,23 @@ public sealed class CaptureCoordinator
 
                 var frame = await _capture.CaptureDisplayAsync(display.Id, null, cancellationToken).ConfigureAwait(true);
                 var result = await _screenshots.SaveAsync(frame, CaptureKind.Screenshot, cancellationToken).ConfigureAwait(true);
-                editor = new AnnotationEditorWindow(
-                    result,
-                    frame,
-                    _localizer,
-                    _annotationRenderer,
-                    _screenshots,
-                    _clipboard,
-                    _ocrService,
-                    _uploads,
-                    settings: _settings,
-                    encoder: _encoder,
-                    retake: () => CaptureFullScreenAsync());
-                editor.Show();
+                if (_settings.Current.OpenEditor)
+                {
+                    editor = new AnnotationEditorWindow(
+                        result,
+                        frame,
+                        _localizer,
+                        _annotationRenderer,
+                        _screenshots,
+                        _clipboard,
+                        _ocrService,
+                        _uploads,
+                        settings: _settings,
+                        encoder: _encoder,
+                        retake: () => CaptureFullScreenAsync());
+                    editor.Show();
+                }
+
                 return new CaptureOutcome(true, _localizer["captureSaved"], result);
             }
             finally
@@ -324,6 +342,7 @@ public sealed class CaptureCoordinator
         }
     }
 
+    /// <summary>延时后执行全屏截图。</summary>
     public async Task<CaptureOutcome> CaptureDelayedAsync(
         TimeSpan delay,
         CancellationToken cancellationToken = default)
@@ -376,6 +395,7 @@ public sealed class CaptureCoordinator
                 var completion = new TaskCompletionSource<CaptureSelection?>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
                 var overlays = new List<CaptureOverlayWindow>(captured.Count);
+                var displayList = captured.Select(static item => item.Display).ToArray();
 
                 try
                 {
@@ -387,7 +407,9 @@ public sealed class CaptureCoordinator
                             _localizer,
                             selection => completion.TrySetResult(selection),
                             mode,
-                            windowResolver));
+                            windowResolver,
+                            displayList,
+                            target => overlays.FirstOrDefault(overlay => overlay.Display.Id == target.Id)?.ActivateOverlay()));
                     }
 
                     foreach (var overlay in overlays)
@@ -421,19 +443,23 @@ public sealed class CaptureCoordinator
                     Func<Task> retake = mode == CaptureOverlayMode.Window
                         ? () => CaptureWindowSelectionAsync()
                         : () => CaptureRegionAsync();
-                    editor = new AnnotationEditorWindow(
-                        result,
-                        capturedFrame,
-                        _localizer,
-                        _annotationRenderer,
-                        _screenshots,
-                        _clipboard,
-                        _ocrService,
-                        _uploads,
-                        settings: _settings,
-                        encoder: _encoder,
-                        retake);
-                    editor.Show();
+                    if (_settings.Current.OpenEditor)
+                    {
+                        editor = new AnnotationEditorWindow(
+                            result,
+                            capturedFrame,
+                            _localizer,
+                            _annotationRenderer,
+                            _screenshots,
+                            _clipboard,
+                            _ocrService,
+                            _uploads,
+                            settings: _settings,
+                            encoder: _encoder,
+                            retake);
+                        editor.Show();
+                    }
+
                     return new CaptureOutcome(true, _localizer["captureSaved"], result);
                 }
                 finally
@@ -469,6 +495,9 @@ public sealed class CaptureCoordinator
         }
     }
 
+    /// <summary>
+    /// 检查并请求屏幕录制权限；未授权时打开系统设置，返回 false 终止本次截图。
+    /// </summary>
     private async Task<bool> EnsurePermissionAsync(CancellationToken cancellationToken)
     {
         var status = await _permissions.CheckAsync(PermissionKind.ScreenRecording, cancellationToken)

@@ -58,6 +58,34 @@ public sealed class MainWindowTests
     }
 
     [AvaloniaFact]
+    public void MainWindow_RendersEverySettingsTab()
+    {
+        var platform = new PlatformDescriptor(PlatformKind.Mock, "Mock", "test");
+        var settings = new SettingsService(new InMemorySettingsRepository(), new FakeAppPaths(), platform);
+        var localizer = new JsonLocalizer();
+        var viewModel = new MainWindowViewModel(settings, localizer, new MockAutoStartService(), platform);
+        var window = new MainWindow(viewModel);
+        window.Show();
+
+        try
+        {
+            foreach (var tab in new[] { "output", "recording", "ocr", "upload", "about" })
+            {
+                viewModel.SelectTabCommand.Execute(tab);
+                var frame = window.CaptureRenderedFrame();
+                Assert.NotNull(frame);
+                using var stream = File.Create(
+                    Path.Combine(Path.GetTempPath(), $"ssc-ui-settings-{tab}.png"));
+                frame!.Save(stream, new PngBitmapEncoderOptions());
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void HotkeysPage_FlagsConflictsAndRenders()
     {
         var platform = new PlatformDescriptor(PlatformKind.Mock, "Mock", "test");

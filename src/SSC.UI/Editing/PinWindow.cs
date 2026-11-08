@@ -9,11 +9,15 @@ using SSC.UI.Capture;
 
 namespace SSC.UI.Editing;
 
+/// <summary>
+/// 贴图置顶窗口（原型 P2 的 .pin-window）。标题栏可拖动，图片按最大尺寸等比缩放；
+/// 窗口会被系统捕获排除，避免被后续截图重复录入。
+/// </summary>
 public sealed class PinWindow : Window
 {
     private const double PinMaxWidth = 520;
     private const double PinMaxHeight = 420;
-    private const double HeaderHeight = 34;
+    private const double HeaderHeight = 30;
 
     public PinWindow(CaptureFrame frame, ILocalizer localizer)
     {
@@ -46,7 +50,7 @@ public sealed class PinWindow : Window
         var title = new TextBlock
         {
             Text = localizer["editorPinnedTitle"],
-            FontSize = 11,
+            FontSize = 10.5,
             FontWeight = FontWeight.SemiBold,
             Foreground = FindBrush("SscTextMuted", Color.Parse("#A7B1C2")),
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
@@ -55,10 +59,10 @@ public sealed class PinWindow : Window
         var pinIcon = new Avalonia.Controls.Shapes.Path
         {
             Data = Geometry.Parse("M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6ZM12 15v5"),
-            Stroke = FindBrush("SscTextMuted", Color.Parse("#A7B1C2")),
+            Stroke = FindBrush("SscAccent", Color.Parse("#7B7FFF")),
             StrokeThickness = 1.7,
-            Width = 12,
-            Height = 12,
+            Width = 13,
+            Height = 13,
             Stretch = Stretch.Uniform,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
         };
@@ -66,12 +70,12 @@ public sealed class PinWindow : Window
         var close = new Button
         {
             Content = "×",
-            Width = 24,
-            Height = 24,
+            Width = 22,
+            Height = 22,
             Padding = new Thickness(0),
             Background = Brushes.Transparent,
             Foreground = FindBrush("SscTextMuted", Color.Parse("#A7B1C2")),
-            FontSize = 16,
+            FontSize = 13,
             HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center,
             VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center
         };
@@ -106,8 +110,8 @@ public sealed class PinWindow : Window
 
         Content = new Border
         {
-            Background = FindBrush("SscWindowBackground", Color.Parse("#0B0E15")),
-            BorderBrush = FindBrush("SscBorder", Color.Parse("#22FFFFFF")),
+            Background = FindBrush("SscPanelBg", Color.Parse("#121722")),
+            BorderBrush = FindBrush("SscBorderStrong", Color.Parse("#29FFFFFF")),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             ClipToBounds = true,

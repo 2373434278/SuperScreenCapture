@@ -18,6 +18,10 @@ using SSC.UI.Upload;
 
 namespace SSC.UI.History;
 
+/// <summary>
+/// 历史记录窗口（原型 P4）。左侧展示网格或列表，右侧以抽屉形式展示详情，
+/// 删除操作使用原型中的确认弹层，避免误删。
+/// </summary>
 public partial class HistoryWindow : Window
 {
     private readonly IHistoryRepository _repository;
@@ -36,13 +40,13 @@ public partial class HistoryWindow : Window
     private IDisposable? _subscription;
     private CancellationTokenSource? _refreshCancellation;
     private HistoryCardViewModel? _selected;
+    private HistoryCardViewModel? _pendingDelete;
     private CaptureKind? _kind;
     private DateTimeOffset? _since;
     private bool _gridView = true;
     private int _refreshVersion;
-    private Guid? _pendingDeleteId;
-    private DateTimeOffset _pendingDeleteAt;
 
+    /// <summary>由依赖注入构造历史窗口。</summary>
     public HistoryWindow(
         IHistoryRepository repository,
         ILocalizer localizer,
@@ -105,6 +109,7 @@ public partial class HistoryWindow : Window
     private void WireControls()
     {
         CloseButton.Click += (_, _) => Close();
+        DetailClose.Click += (_, _) => CloseDrawer();
         SearchBox.TextChanged += (_, _) =>
         {
             _searchTimer.Stop();
@@ -120,32 +125,48 @@ public partial class HistoryWindow : Window
         ListResults.SelectionChanged += (_, _) => SelectCard(ListResults.SelectedItem as HistoryCardViewModel);
         GridResults.SelectionChanged += (_, _) => SelectCard(GridResults.SelectedItem as HistoryCardViewModel);
 
-        DetailOpen.Click += (_, _) => _ = RunActionAsync("Open", _selected);
         DetailCopy.Click += (_, _) => _ = RunActionAsync("Copy", _selected);
         DetailEdit.Click += (_, _) => _ = RunActionAsync("Edit", _selected);
         DetailPin.Click += (_, _) => _ = RunActionAsync("Pin", _selected);
-        DetailOcr.Click += (_, _) => _ = RunActionAsync("Ocr", _selected);
         DetailUpload.Click += (_, _) => _ = RunActionAsync("Upload", _selected);
-        DetailDelete.Click += (_, _) => _ = RunActionAsync("Delete", _selected);
+        DetailDelete.Click += (_, _) => ShowDeleteModal(_selected);
+
+        DeleteCancel.Click += (_, _) => HideDeleteModal();
+        DeleteConfirm.Click += (_, _) => ConfirmDelete();
     }
 
     private void ApplyLocalization()
     {
         Title = _localizer["historyTitle"];
         TitleText.Text = _localizer["historyTitle"];
+        SearchBox.PlaceholderText = _localizer["historySearchPlaceholder"];
         AllFilter.Content = _localizer["historyAll"];
         ScreenshotFilter.Content = _localizer["historyScreenshots"];
         RecordingFilter.Content = _localizer["historyRecordings"];
         GifFilter.Content = _localizer["historyGifs"];
-        SearchBox.PlaceholderText = _localizer["historySearchPlaceholder"];
-        DetailOpen.Content = _localizer["historyOpen"];
-        DetailCopy.Content = _localizer["historyCopy"];
-        DetailEdit.Content = _localizer["historyEdit"];
-        DetailPin.Content = _localizer["historyPin"];
-        DetailOcr.Content = _localizer["historyOcr"];
-        DetailUpload.Content = _localizer["historyUpload"];
-        DetailDelete.Content = _localizer["historyDelete"];
-        EmptyText.Text = _localizer["historyEmpty"];
+        ToolTip.SetTip(GridViewButton, _localizer["historyGrid"]);
+        ToolTip.SetTip(ListViewButton, _localizer["historyList"]);
+
+        DetailSectionTitle.Text = _localizer["historyDetail"];
+        DetailTypeLabel.Text = _localizer["historyMetaType"];
+        DetailSizeLabel.Text = _localizer["historyMetaSize"];
+        DetailResolutionLabel.Text = _localizer["historyMetaResolution"];
+        DetailDurationLabel.Text = _localizer["historyMetaDuration"];
+        DetailCreatedLabel.Text = _localizer["historyMetaCreated"];
+        DetailTagsLabel.Text = _localizer["historyMetaTags"];
+        DetailCopyText.Text = _localizer["historyCopy"];
+        DetailEditText.Text = _localizer["historyEdit"];
+        DetailPinText.Text = _localizer["historyPin"];
+        DetailUploadText.Text = _localizer["historyUpload"];
+        DetailDeleteText.Text = _localizer["historyDelete"];
+
+        DeleteTitle.Text = _localizer["historyDeleteTitle"];
+        DeleteDescription.Text = _localizer["historyDeleteDesc"];
+        DeleteCancel.Content = _localizer["historyCancel"];
+        DeleteConfirm.Content = _localizer["historyDelete"];
+
+        EmptyTitle.Text = _localizer["historyEmpty"];
+        EmptyText.Text = _localizer["historyEmptyDesc"];
         TimeFilter.ItemsSource = new[]
         {
             _localizer["historyToday"],
@@ -153,6 +174,8 @@ public partial class HistoryWindow : Window
             _localizer["historyAllTime"]
         };
         TimeFilter.SelectedIndex = 2;
+        VersionText.Text = $"{_localizer["versionPrefix"]}{SSC.Application.AppInfo.Version}";
+        StatusText.Text = _localizer["statusReady"];
     }
 
     private void SetKind(CaptureKind? kind)
@@ -185,6 +208,7 @@ public partial class HistoryWindow : Window
         SetClass(ListViewButton, "active", !grid);
     }
 
+    /// <summary>按当前搜索词和筛选条件重新查询历史记录。</summary>
     private async Task RefreshAsync()
     {
         var version = ++_refreshVersion;
@@ -224,12 +248,20 @@ public partial class HistoryWindow : Window
 
             ListResults.ItemsSource = _cards;
             GridResults.ItemsSource = _cards;
-            CountText.Text = count.ToString();
+            CountText.Text = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                _localizer["historyCount"],
+                count);
+            var hasQuery = !string.IsNullOrWhiteSpace(SearchBox.Text);
             EmptyState.IsVisible = _cards.Count == 0;
-            EmptyText.Text = string.IsNullOrWhiteSpace(SearchBox.Text)
-                ? _localizer["historyEmpty"]
-                : _localizer["historyNoResults"];
-            StatusText.Text = $"{_cards.Count} / {count}";
+            EmptyTitle.Text = hasQuery ? _localizer["historyNoResults"] : _localizer["historyEmpty"];
+            EmptyText.Text = hasQuery ? _localizer["historyNoResultDesc"] : _localizer["historyEmptyDesc"];
+            StatusText.Text = _cards.Count == count
+                ? string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    _localizer["historyCount"],
+                    count)
+                : $"{_cards.Count} / {count}";
         }
         catch (OperationCanceledException)
         {
@@ -260,9 +292,7 @@ public partial class HistoryWindow : Window
     {
         ListResults.ItemsSource = null;
         GridResults.ItemsSource = null;
-        DetailBorder.IsVisible = false;
-        DetailImage.Source = null;
-        _selected = null;
+        CloseDrawer();
         DisposeCards();
         _cards.Clear();
     }
@@ -275,10 +305,11 @@ public partial class HistoryWindow : Window
         }
     }
 
+    /// <summary>选中卡片后填充详情抽屉。</summary>
     private void SelectCard(HistoryCardViewModel? card)
     {
         _selected = card;
-        DetailBorder.IsVisible = card is not null;
+        DetailDrawer.IsVisible = card is not null;
         if (card is null)
         {
             DetailImage.Source = null;
@@ -286,13 +317,69 @@ public partial class HistoryWindow : Window
         }
 
         DetailTitle.Text = card.Title;
-        DetailMeta.Text = card.DetailMeta;
+        DetailType.Text = card.KindLabel;
+        DetailSize.Text = card.SizeText;
+        DetailResolution.Text = card.ResolutionText;
+        DetailDuration.Text = card.HasDuration ? card.DurationText : "—";
+        DetailCreated.Text = card.CreatedText;
+        DetailTags.Text = string.IsNullOrWhiteSpace(card.TagsText) ? "—" : card.TagsText;
+        DetailTagChip.Text = card.TagsText;
+        DetailTagChip.IsVisible = !string.IsNullOrWhiteSpace(card.TagsText);
         DetailImage.Source = card.Thumbnail;
         DetailCopy.IsEnabled = card.IsImage;
         DetailEdit.IsEnabled = card.IsImage;
         DetailPin.IsEnabled = card.IsImage;
-        DetailOcr.IsEnabled = card.IsImage;
         DetailUpload.IsEnabled = card.IsImage;
+    }
+
+    private void CloseDrawer()
+    {
+        DetailDrawer.IsVisible = false;
+        DetailImage.Source = null;
+        _selected = null;
+    }
+
+    private void ShowDeleteModal(HistoryCardViewModel? card)
+    {
+        if (card is null)
+        {
+            return;
+        }
+
+        _pendingDelete = card;
+        DeleteModal.IsVisible = true;
+    }
+
+    private void HideDeleteModal()
+    {
+        _pendingDelete = null;
+        DeleteModal.IsVisible = false;
+    }
+
+    private async void ConfirmDelete()
+    {
+        var card = _pendingDelete;
+        HideDeleteModal();
+        if (card is null)
+        {
+            return;
+        }
+
+        _repository.Delete(card.Entry.Id);
+        try
+        {
+            if (File.Exists(card.Entry.FilePath))
+            {
+                File.Delete(card.Entry.FilePath);
+            }
+        }
+        catch (IOException)
+        {
+        }
+
+        StatusText.Text = _localizer["historyDeleted"];
+        CloseDrawer();
+        await RefreshAsync();
     }
 
     private async void OnCardAction(object? sender, RoutedEventArgs e)
@@ -334,7 +421,7 @@ public partial class HistoryWindow : Window
                 await UploadAsync(entry);
                 break;
             case "Delete":
-                await DeleteWithConfirmationAsync(card);
+                ShowDeleteModal(card);
                 break;
         }
     }
@@ -434,34 +521,6 @@ public partial class HistoryWindow : Window
         {
             StatusText.Text = $"{_localizer["uploadFailed"]}: {exception.Message}";
         }
-    }
-
-    private async Task DeleteWithConfirmationAsync(HistoryCardViewModel card)
-    {
-        var id = card.Entry.Id;
-        if (_pendingDeleteId != id || DateTimeOffset.UtcNow - _pendingDeleteAt > TimeSpan.FromSeconds(5))
-        {
-            _pendingDeleteId = id;
-            _pendingDeleteAt = DateTimeOffset.UtcNow;
-            StatusText.Text = _localizer["historyConfirmDelete"];
-            return;
-        }
-
-        _pendingDeleteId = null;
-        _repository.Delete(id);
-        try
-        {
-            if (File.Exists(card.Entry.FilePath))
-            {
-                File.Delete(card.Entry.FilePath);
-            }
-        }
-        catch (IOException)
-        {
-        }
-
-        StatusText.Text = _localizer["historyDeleted"];
-        await RefreshAsync();
     }
 
     private static void OpenPath(string path)
