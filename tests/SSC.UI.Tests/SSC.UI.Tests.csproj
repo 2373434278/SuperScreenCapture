@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SSC.UI.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SSC.Platform.Abstractions/SSC.Platform.Abstractions.csproj" />
+    <ProjectReference Include="../../src/SSC.Application/SSC.Application.csproj" />
+    <ProjectReference Include="../../src/SSC.Infrastructure/SSC.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/SSC.Platform.Mock/SSC.Platform.Mock.csproj" />
+    <ProjectReference Include="../../src/SSC.UI/SSC.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Headless.XUnit" />
+    <PackageReference Include="Avalonia.Skia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

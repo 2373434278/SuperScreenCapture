@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <Version>0.1.0</Version>
+    <Authors>SuperScreenCapture contributors</Authors>
+    <Company>SuperScreenCapture contributors</Company>
+    <Copyright>Copyright 2026 SuperScreenCapture contributors</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

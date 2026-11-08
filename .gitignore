@@ -18,6 +18,20 @@ CODE_OF_CONDUCT*
 *.pptx
 *.xlsx
 
+# Local tooling metadata
+.zion-mcp/
+.qoder/
+
+# Build outputs
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+.idea/
+
 # OS metadata
 .DS_Store
 Thumbs.db

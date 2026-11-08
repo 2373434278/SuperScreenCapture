@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="SscWindowBackground" Color="#0B0E15" />
+      <SolidColorBrush x:Key="SscPanelBg" Color="#121722" />
+      <SolidColorBrush x:Key="SscPanelAltBg" Color="#181E2B" />
+      <SolidColorBrush x:Key="SscBorder" Color="#22FFFFFF" />
+      <SolidColorBrush x:Key="SscText" Color="#F2F5FA" />
+      <SolidColorBrush x:Key="SscTextMuted" Color="#A7B1C2" />
+      <SolidColorBrush x:Key="SscAccent" Color="#7B7FFF" />
+      <SolidColorBrush x:Key="SscAccentSoft" Color="#2A7B7FFF" />
+      <SolidColorBrush x:Key="SscDanger" Color="#FF6B78" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Default">
+      <SolidColorBrush x:Key="SscWindowBackground" Color="#F3F5F9" />
+      <SolidColorBrush x:Key="SscPanelBg" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="SscPanelAltBg" Color="#F1F3F8" />
+      <SolidColorBrush x:Key="SscBorder" Color="#1A111827" />
+      <SolidColorBrush x:Key="SscText" Color="#111827" />
+      <SolidColorBrush x:Key="SscTextMuted" Color="#6B7280" />
+      <SolidColorBrush x:Key="SscAccent" Color="#5B5FF0" />
+      <SolidColorBrush x:Key="SscAccentSoft" Color="#1F5B5FF0" />
+      <SolidColorBrush x:Key="SscDanger" Color="#E5484D" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

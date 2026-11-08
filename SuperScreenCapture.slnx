@@ -1,0 +1,16 @@
+<Solution>
+  <Project Path="src/SSC.Domain/SSC.Domain.csproj" />
+  <Project Path="src/SSC.Platform.Abstractions/SSC.Platform.Abstractions.csproj" />
+  <Project Path="src/SSC.Application/SSC.Application.csproj" />
+  <Project Path="src/SSC.Infrastructure/SSC.Infrastructure.csproj" />
+  <Project Path="src/SSC.Platform.Mac/SSC.Platform.Mac.csproj" />
+  <Project Path="src/SSC.Platform.Windows/SSC.Platform.Windows.csproj" />
+  <Project Path="src/SSC.Platform.Mock/SSC.Platform.Mock.csproj" />
+  <Project Path="src/SSC.UI/SSC.UI.csproj" />
+  <Project Path="src/SSC.App/SSC.App.csproj" />
+  <Project Path="tests/SSC.Domain.Tests/SSC.Domain.Tests.csproj" />
+  <Project Path="tests/SSC.Application.Tests/SSC.Application.Tests.csproj" />
+  <Project Path="tests/SSC.Infrastructure.Tests/SSC.Infrastructure.Tests.csproj" />
+  <Project Path="tests/SSC.Architecture.Tests/SSC.Architecture.Tests.csproj" />
+  <Project Path="tests/SSC.UI.Tests/SSC.UI.Tests.csproj" />
+</Solution>
