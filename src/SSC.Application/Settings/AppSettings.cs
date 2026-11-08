@@ -24,6 +24,10 @@ public sealed class AppSettings
 
     public int RecordingBitrateMbps { get; set; } = 12;
 
+    public int RecordingMaxHeight { get; set; } = 1080;
+
+    public bool RecordMicrophone { get; set; } = true;
+
     public string OcrEngine { get; set; } = "native";
 
     public bool UploadEnabled { get; set; }

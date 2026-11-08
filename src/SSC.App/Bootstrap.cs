@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using SSC.Application.Abstractions;
+using SSC.Application.Recording;
 using SSC.Application.Settings;
 using SSC.Infrastructure.DependencyInjection;
 using SSC.Infrastructure.Logging;
 using SSC.Infrastructure.Paths;
 using SSC.Infrastructure.Persistence;
 using SSC.UI.Capture;
+using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
 #if SSC_WINDOWS
@@ -32,6 +34,8 @@ internal static class Bootstrap
         services.AddMacPlatform();
 #endif
         services.AddSingleton<CaptureCoordinator>();
+        services.AddSingleton<RecordingSessionManager>();
+        services.AddSingleton<RecordingCoordinator>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 

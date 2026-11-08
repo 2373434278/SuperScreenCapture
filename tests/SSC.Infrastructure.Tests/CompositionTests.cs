@@ -37,5 +37,8 @@ public sealed class CompositionTests
 
         var hotkeys = provider.GetRequiredService<IHotkeyService>();
         Assert.True(hotkeys.Register("captureRegion", "⌘⇧2", () => { }));
+
+        var recording = provider.GetRequiredService<IRecordingService>();
+        Assert.IsType<MockRecordingService>(recording);
     }
 }

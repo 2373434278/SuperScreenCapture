@@ -33,6 +33,20 @@ typedef struct {
     uint32_t height;
 } ssc_window;
 
+typedef struct {
+    uint32_t display_id;
+    int32_t x;
+    int32_t y;
+    uint32_t width;
+    uint32_t height;
+    double display_scale;
+    uint32_t fps;
+    uint32_t bitrate_mbps;
+    uint32_t output_width;
+    uint32_t output_height;
+    int32_t include_microphone;
+} ssc_recording_config;
+
 int32_t ssc_display_count(void);
 int32_t ssc_display_get(int32_t index, ssc_display *out);
 int32_t ssc_window_at_point(int32_t x, int32_t y, ssc_window *out);
@@ -43,6 +57,18 @@ int32_t ssc_request_permission(void);
 int32_t ssc_copy_image_to_clipboard(const uint8_t *pixels, uint32_t width, uint32_t height, uint32_t stride);
 const char *ssc_last_error(void);
 void ssc_free_image(ssc_image *image);
+
+/* Recording states: 0 idle, 1 recording, 2 paused, 3 finalizing, 4 completed, 5 failed. */
+int32_t ssc_recording_start(const char *path, const ssc_recording_config *config);
+int32_t ssc_recording_pause(void);
+int32_t ssc_recording_resume(void);
+int32_t ssc_recording_stop(void);
+int32_t ssc_recording_set_microphone(int32_t enabled);
+int32_t ssc_recording_state(void);
+double ssc_recording_elapsed_seconds(void);
+double ssc_recording_mic_level(void);
+int32_t ssc_microphone_permission_status(void);
+int32_t ssc_request_microphone_permission(void);
 
 #ifdef __cplusplus
 }

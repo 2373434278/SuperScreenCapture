@@ -15,6 +15,7 @@ public static class MockServiceCollectionExtensions
         services.AddSingleton(new PlatformCapabilities(
             ScreenCapture: true,
             WindowCapture: true,
+            Recording: true,
             SystemAudio: false,
             Ocr: true,
             GlobalHotkeys: true));
@@ -23,6 +24,7 @@ public static class MockServiceCollectionExtensions
         services.AddSingleton<IHotkeyService, MockHotkeyService>();
         services.AddSingleton<IAutoStartService, MockAutoStartService>();
         services.AddSingleton<IClipboardService, MockClipboardService>();
+        services.AddSingleton<IRecordingService, MockRecordingService>();
         return services;
     }
 }

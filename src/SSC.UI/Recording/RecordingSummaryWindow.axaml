@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.Recording.RecordingSummaryWindow"
+        Title="SuperScreenCapture"
+        Width="440"
+        Height="330"
+        CanResize="False"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyBackgroundFallback="Transparent"
+        TransparencyLevelHint="Transparent"
+        Foreground="{DynamicResource SscText}">
+  <Window.Styles>
+    <Style Selector="Button.ghost">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </Window.Styles>
+
+  <Border Background="{DynamicResource SscPanelBg}"
+          BorderBrush="{DynamicResource SscBorder}"
+          BorderThickness="1"
+          CornerRadius="16"
+          BoxShadow="0 16 44 0 #77000000"
+          ClipToBounds="True">
+    <Grid RowDefinitions="Auto,*">
+      <Border x:Name="Header" Padding="14,12" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock x:Name="HeaderTitle" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SscTextMuted}" VerticalAlignment="Center" />
+          <Button x:Name="CloseButton" Grid.Column="1" Content="×" Width="24" Height="24" Padding="0"
+                  Background="Transparent" Foreground="{DynamicResource SscTextMuted}" FontSize="16"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <StackPanel Grid.Row="1" Margin="20,18,20,18" Spacing="9" HorizontalAlignment="Center">
+        <Border Width="54" Height="54" CornerRadius="27" Background="{DynamicResource SscAccentSoft}" HorizontalAlignment="Center">
+          <Path Data="m5 12 5 5L20 6"
+                Stroke="{DynamicResource SscAccent}"
+                StrokeThickness="2.4"
+                Width="24"
+                Height="24"
+                Stretch="Uniform"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+        </Border>
+        <TextBlock x:Name="SavedTitle" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource SscText}" HorizontalAlignment="Center" />
+        <TextBlock x:Name="SummaryText" FontSize="11.5" Foreground="{DynamicResource SscTextMuted}" HorizontalAlignment="Center" />
+        <TextBlock x:Name="FilePathText" FontSize="10.5" Foreground="{DynamicResource SscTextMuted}"
+                   TextTrimming="CharacterEllipsis" MaxWidth="360" HorizontalAlignment="Center" />
+        <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+          <Button x:Name="PlayButton" Classes="ghost" HorizontalAlignment="Stretch" />
+          <Button x:Name="OpenFolderButton" Grid.Column="1" Classes="ghost" Margin="8,0,0,0" HorizontalAlignment="Stretch" />
+        </Grid>
+        <Grid ColumnDefinitions="*,*">
+          <Button x:Name="AgainButton" Classes="primary" HorizontalAlignment="Stretch" />
+          <Button x:Name="DoneButton" Grid.Column="1" Classes="ghost" Margin="8,0,0,0" HorizontalAlignment="Stretch" />
+        </Grid>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

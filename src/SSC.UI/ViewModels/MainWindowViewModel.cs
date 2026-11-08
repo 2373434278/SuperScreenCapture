@@ -9,6 +9,7 @@ using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
+using SSC.UI.Recording;
 
 namespace SSC.UI.ViewModels;
 
@@ -19,6 +20,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IAutoStartService _autoStart;
     private readonly PlatformDescriptor _platform;
     private readonly CaptureCoordinator? _captureCoordinator;
+    private readonly RecordingCoordinator? _recordingCoordinator;
     private AppSettings _draft;
     private string _activeTab = "general";
     private bool _disposed;
@@ -28,13 +30,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ILocalizer localizer,
         IAutoStartService autoStart,
         PlatformDescriptor platform,
-        CaptureCoordinator? captureCoordinator = null)
+        CaptureCoordinator? captureCoordinator = null,
+        RecordingCoordinator? recordingCoordinator = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
         _autoStart = autoStart ?? throw new ArgumentNullException(nameof(autoStart));
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _captureCoordinator = captureCoordinator;
+        _recordingCoordinator = recordingCoordinator;
 
         _draft = _settingsService.Current;
         _localizer.SetLanguage(_draft.Language);
@@ -199,6 +203,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         var outcome = await _captureCoordinator.CaptureRegionAsync();
+        StatusMessage = outcome.Message;
+    }
+
+    [RelayCommand]
+    private async Task StartRecordingAsync()
+    {
+        if (_recordingCoordinator is null)
+        {
+            ShowComingSoon();
+            return;
+        }
+
+        var outcome = await _recordingCoordinator.StartRegionRecordingAsync();
         StatusMessage = outcome.Message;
     }
 

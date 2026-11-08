@@ -5,6 +5,7 @@ public sealed record PlatformDescriptor(PlatformKind Kind, string DisplayName, s
 public sealed record PlatformCapabilities(
     bool ScreenCapture,
     bool WindowCapture,
+    bool Recording,
     bool SystemAudio,
     bool Ocr,
     bool GlobalHotkeys);

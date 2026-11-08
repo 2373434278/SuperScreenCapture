@@ -43,6 +43,22 @@ internal static class MacNativeMethods
         public uint Height;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SscRecordingConfig
+    {
+        public uint DisplayId;
+        public int X;
+        public int Y;
+        public uint Width;
+        public uint Height;
+        public double DisplayScale;
+        public uint Fps;
+        public uint BitrateMbps;
+        public uint OutputWidth;
+        public uint OutputHeight;
+        public int IncludeMicrophone;
+    }
+
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int ssc_display_count();
 
@@ -76,6 +92,38 @@ internal static class MacNativeMethods
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void ssc_free_image(ref SscImage image);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_start(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string path,
+        ref SscRecordingConfig config);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_pause();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_resume();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_stop();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_set_microphone(int enabled);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_recording_state();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern double ssc_recording_elapsed_seconds();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern double ssc_recording_mic_level();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_microphone_permission_status();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_request_microphone_permission();
 
     internal static string GetLastError()
     {

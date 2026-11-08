@@ -15,6 +15,7 @@ public static class MacServiceCollectionExtensions
         services.AddSingleton(new PlatformCapabilities(
             ScreenCapture: true,
             WindowCapture: true,
+            Recording: true,
             SystemAudio: false,
             Ocr: false,
             GlobalHotkeys: false));
@@ -23,6 +24,7 @@ public static class MacServiceCollectionExtensions
         services.AddSingleton<IHotkeyService, MacHotkeyService>();
         services.AddSingleton<IAutoStartService, MacAutoStartService>();
         services.AddSingleton<IClipboardService, MacClipboardService>();
+        services.AddSingleton<IRecordingService, MacRecordingService>();
         return services;
     }
 }

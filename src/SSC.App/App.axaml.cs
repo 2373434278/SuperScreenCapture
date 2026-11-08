@@ -8,8 +8,11 @@ using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SSC.Application.Abstractions;
+using SSC.Application.Recording;
 using SSC.Application.Settings;
+using SSC.Domain.Recording;
 using SSC.UI.Capture;
+using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
 using AppInfo = SSC.Application.AppInfo;
@@ -87,6 +90,8 @@ public partial class App : Avalonia.Application
                 CaptureFull,
                 CaptureDelayed,
                 CaptureWindow,
+                StartRecording,
+                StartFullScreenRecording,
                 NotifyComingSoon,
                 Quit);
             _trayIcon = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, _trayActions);
@@ -101,7 +106,9 @@ public partial class App : Avalonia.Application
 
         var arguments = Environment.GetCommandLineArgs();
         var selfTest = arguments.Contains("--capture-self-test", StringComparer.OrdinalIgnoreCase);
+        var recordingSelfTest = arguments.Contains("--recording-self-test", StringComparer.OrdinalIgnoreCase);
         var startHidden = selfTest
+            || recordingSelfTest
             || arguments.Contains("--hidden", StringComparer.OrdinalIgnoreCase);
         if (!startHidden)
         {
@@ -128,6 +135,74 @@ public partial class App : Avalonia.Application
                 }
                 finally
                 {
+                    Quit();
+                }
+            });
+        }
+
+        if (recordingSelfTest)
+        {
+            Dispatcher.UIThread.Post(async () =>
+            {
+                RecordingStartResult? start = null;
+                RecordingStopResult? stop = null;
+                try
+                {
+                    var capture = _services.GetRequiredService<IScreenCaptureService>();
+                    var session = _services.GetRequiredService<RecordingSessionManager>();
+                    var displays = await capture.GetDisplaysAsync();
+                    var display = displays.FirstOrDefault(candidate => candidate.IsPrimary) ?? displays.FirstOrDefault()
+                        ?? throw new InvalidOperationException("No display is available.");
+
+                    var options = new RecordingOptions(
+                        display.Id,
+                        display.Bounds,
+                        display.ScaleFactor,
+                        30,
+                        12,
+                        1080,
+                        true);
+                    start = await session.StartAsync(options);
+                    Log.Information(
+                        "Recording self-test start success={Success} message={Message} path={Path}",
+                        start.Success,
+                        start.Message,
+                        start.FilePath);
+
+                    if (start.Success)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(3));
+                        await session.PauseAsync();
+                        await Task.Delay(TimeSpan.FromMilliseconds(500));
+                        await session.ResumeAsync();
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                        stop = await session.StopAsync();
+                        Log.Information(
+                            "Recording self-test stop success={Success} message={Message} path={Path} duration={Duration}",
+                            stop.Success,
+                            stop.Message,
+                            stop.Entry?.FilePath,
+                            stop.Duration);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(exception, "Recording self-test failed.");
+                }
+                finally
+                {
+                    if (start?.Success == true && stop is null)
+                    {
+                        try
+                        {
+                            await _services.GetRequiredService<RecordingSessionManager>().StopAsync();
+                        }
+                        catch (Exception exception)
+                        {
+                            Log.Error(exception, "Recording self-test cleanup failed.");
+                        }
+                    }
+
                     Quit();
                 }
             });
@@ -218,6 +293,42 @@ public partial class App : Avalonia.Application
 
     private async void CaptureWindow() =>
         await RunCaptureAsync(coordinator => coordinator.CaptureWindowSelectionAsync());
+
+    private async void StartRecording() =>
+        await RunRecordingAsync(coordinator => coordinator.StartRegionRecordingAsync());
+
+    private async void StartFullScreenRecording() =>
+        await RunRecordingAsync(coordinator => coordinator.StartFullScreenRecordingAsync());
+
+    private async Task RunRecordingAsync(Func<RecordingCoordinator, Task<RecordingOutcome>> action)
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var viewModel = _services.GetRequiredService<MainWindowViewModel>();
+        try
+        {
+            var outcome = await action(_services.GetRequiredService<RecordingCoordinator>());
+            Log.Information(
+                "Recording outcome success={Success} message={Message} path={Path}",
+                outcome.Success,
+                outcome.Message,
+                outcome.StopResult?.Entry?.FilePath);
+            viewModel.ShowStatus(outcome.Message);
+            if (!outcome.Success)
+            {
+                ShowMainWindow();
+            }
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "Recording failed.");
+            viewModel.ShowStatus(exception.Message);
+            ShowMainWindow();
+        }
+    }
 
     private async Task RunCaptureAsync(Func<CaptureCoordinator, Task<CaptureOutcome>> action)
     {

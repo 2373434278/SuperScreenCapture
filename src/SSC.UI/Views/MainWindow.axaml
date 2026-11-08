@@ -228,7 +228,7 @@
                 <TextBlock Text="{Binding L[navAnnotate]}" />
               </StackPanel>
             </Button>
-            <Button Classes="topnav" Command="{Binding ShowComingSoonCommand}" ToolTip.Tip="{Binding L[comingSoonShort]}">
+            <Button Classes="topnav" Command="{Binding StartRecordingCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
                 <TextBlock Text="{Binding L[navRecord]}" />

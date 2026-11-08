@@ -7,7 +7,7 @@ import SSCMacKitC
 private let errorBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: 2048)
 private let errorLock = NSLock()
 
-private func setLastError(_ message: String) {
+func setLastError(_ message: String) {
     errorLock.lock()
     defer { errorLock.unlock() }
     errorBuffer.initialize(repeating: 0, count: 2048)
@@ -190,13 +190,20 @@ private func shareableContentSync() throws -> SCShareableContent {
     return try result.get()
 }
 
-private func ownApplicationWindows(in content: SCShareableContent) -> [SCWindow] {
-    guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-        return []
-    }
+func ownApplicationWindows(in content: SCShareableContent) -> [SCWindow] {
+    let bundleIdentifier = Bundle.main.bundleIdentifier
+    let processIdentifier = ProcessInfo.processInfo.processIdentifier
 
     return content.windows.filter { window in
-        window.owningApplication?.bundleIdentifier == bundleIdentifier
+        guard let application = window.owningApplication else {
+            return false
+        }
+
+        if application.processID == processIdentifier {
+            return true
+        }
+
+        return bundleIdentifier != nil && application.bundleIdentifier == bundleIdentifier
     }
 }
 

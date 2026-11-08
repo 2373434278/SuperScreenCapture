@@ -108,6 +108,9 @@ public sealed class SettingsService
         settings.JpegQuality = Math.Clamp(settings.JpegQuality, 40, 100);
         settings.RecordingFps = settings.RecordingFps is 15 or 30 or 60 ? settings.RecordingFps : 30;
         settings.RecordingBitrateMbps = Math.Clamp(settings.RecordingBitrateMbps, 1, 100);
+        settings.RecordingMaxHeight = settings.RecordingMaxHeight is 1080 or 1440 or 2160
+            ? settings.RecordingMaxHeight
+            : 1080;
         settings.OcrEngine = settings.OcrEngine is "tesseract" ? "tesseract" : "native";
 
         var hotkeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

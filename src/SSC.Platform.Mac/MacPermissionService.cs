@@ -23,6 +23,13 @@ public sealed class MacPermissionService : IPermissionService
             PermissionKind.ScreenRecording => CGPreflightScreenCaptureAccess()
                 ? PermissionStatus.Granted
                 : PermissionStatus.Denied,
+            PermissionKind.Microphone => MacNativeMethods.ssc_microphone_permission_status() switch
+            {
+                1 => PermissionStatus.Granted,
+                2 => PermissionStatus.Denied,
+                3 => PermissionStatus.Restricted,
+                _ => PermissionStatus.NotDetermined
+            },
             _ => PermissionStatus.NotDetermined
         });
     }
@@ -41,6 +48,16 @@ public sealed class MacPermissionService : IPermissionService
             return Task.FromResult(CGRequestScreenCaptureAccess()
                 ? PermissionStatus.Granted
                 : PermissionStatus.Denied);
+        }
+
+        if (kind == PermissionKind.Microphone)
+        {
+            return Task.Run(() => MacNativeMethods.ssc_request_microphone_permission() switch
+            {
+                1 => PermissionStatus.Granted,
+                2 => PermissionStatus.Denied,
+                _ => PermissionStatus.NotDetermined
+            }, cancellationToken);
         }
 
         return Task.FromResult(PermissionStatus.NotDetermined);
