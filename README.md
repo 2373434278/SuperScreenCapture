@@ -165,6 +165,7 @@ native/mac/SSCMacKit（Swift，C ABI）← SSC.Platform.Mac
 - Windows 窗口录制使用 WGC，未打包运行时可能显示系统捕获黄框；全屏录制优先使用 DXGI Desktop Duplication。
 - Windows OCR 需要系统已安装对应语言包。
 - 滚动长截图仅适用于可手动滚动且内容相对静止的页面；匹配失败时会提示并保留多帧结果。
+- GIF 帧率受系统逐帧抓取速度限制，高帧率或大区域下可能丢帧。
 - 未签名构建需要按上文说明手动放行。
 
 ## 许可证
