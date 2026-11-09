@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$PublishDir,
     [Parameter(Mandatory = $true)][string]$OutputDir,
-    [string]$Version = "1.0.0",
+    [string]$Version = "1.1.0",
     [string]$PackId = "SuperScreenCapture"
 )
 

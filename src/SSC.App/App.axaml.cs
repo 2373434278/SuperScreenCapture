@@ -139,12 +139,46 @@ public partial class App : Avalonia.Application
         var arguments = Environment.GetCommandLineArgs();
         var selfTest = arguments.Contains("--capture-self-test", StringComparer.OrdinalIgnoreCase);
         var recordingSelfTest = arguments.Contains("--recording-self-test", StringComparer.OrdinalIgnoreCase);
+        var autoStartSelfTest = arguments.Contains("--autostart-self-test", StringComparer.OrdinalIgnoreCase);
         var startHidden = selfTest
             || recordingSelfTest
+            || autoStartSelfTest
             || arguments.Contains("--hidden", StringComparer.OrdinalIgnoreCase);
         if (!startHidden)
         {
             _mainWindow.Show();
+        }
+
+        if (autoStartSelfTest)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try
+                {
+                    var autoStart = _services!.GetRequiredService<IAutoStartService>();
+                    var before = autoStart.GetStatus();
+                    var enable = autoStart.SetEnabled(true);
+                    var enabled = autoStart.GetStatus();
+                    var disable = autoStart.SetEnabled(false);
+                    var after = autoStart.GetStatus();
+                    Log.Information(
+                        "Autostart self-test before={Before} enableSuccess={EnableSuccess} enabled={Enabled} disableSuccess={DisableSuccess} after={After} detail={Detail}",
+                        before.State,
+                        enable.Success,
+                        enabled.State,
+                        disable.Success,
+                        after.State,
+                        enable.Error ?? disable.Error);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(exception, "Autostart self-test failed.");
+                }
+                finally
+                {
+                    Quit();
+                }
+            });
         }
 
         if (selfTest)
