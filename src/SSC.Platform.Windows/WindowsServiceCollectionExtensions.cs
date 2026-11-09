@@ -19,7 +19,7 @@ public static class WindowsServiceCollectionExtensions
             Camera: true,
             SystemAudio: false,
             Ocr: false,
-            GlobalHotkeys: false));
+            GlobalHotkeys: true));
         services.AddSingleton<IScreenCaptureService, WindowsScreenCaptureService>();
         services.AddSingleton<IPermissionService, WindowsPermissionService>();
         services.AddSingleton<IHotkeyService, WindowsHotkeyService>();

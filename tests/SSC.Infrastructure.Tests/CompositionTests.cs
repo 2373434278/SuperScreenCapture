@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SSC.Application.Abstractions;
+using SSC.Application.Hotkeys;
 using SSC.Application.Settings;
 using SSC.Infrastructure.DependencyInjection;
 using SSC.Infrastructure.Paths;
@@ -36,7 +37,8 @@ public sealed class CompositionTests
         Assert.Equal(0, history.Count());
 
         var hotkeys = provider.GetRequiredService<IHotkeyService>();
-        Assert.True(hotkeys.Register("captureRegion", "⌘⇧2", () => { }));
+        Assert.True(HotkeyGesture.TryParse("⌘⇧2", out var gesture, out _));
+        Assert.True(hotkeys.Register("captureRegion", gesture, () => { }).Success);
 
         var recording = provider.GetRequiredService<IRecordingService>();
         Assert.IsType<MockRecordingService>(recording);

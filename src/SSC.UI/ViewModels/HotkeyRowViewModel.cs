@@ -5,12 +5,13 @@ namespace SSC.UI.ViewModels;
 /// <summary>快捷键设置页的一行：动作名称、组合键文本与冲突提示。</summary>
 public sealed partial class HotkeyRowViewModel : ObservableObject
 {
-    public HotkeyRowViewModel(string actionKey, string labelKey, string actionLabel, string gesture)
+    public HotkeyRowViewModel(string actionKey, string labelKey, string actionLabel, string gesture, string prompt = "")
     {
         ActionKey = actionKey;
         LabelKey = labelKey;
         ActionLabel = actionLabel;
         Gesture = gesture;
+        Prompt = prompt;
     }
 
     /// <summary>动作稳定键，用于持久化与冲突检测。</summary>
@@ -22,6 +23,9 @@ public sealed partial class HotkeyRowViewModel : ObservableObject
     /// <summary>本地化后的动作名称。</summary>
     [ObservableProperty]
     private string actionLabel;
+
+    /// <summary>录制框的占位提示文案。</summary>
+    public string Prompt { get; }
 
     /// <summary>用户输入的组合键文本，例如 ⌘⇧2。</summary>
     [ObservableProperty]

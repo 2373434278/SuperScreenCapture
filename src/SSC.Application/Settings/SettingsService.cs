@@ -90,9 +90,28 @@ public sealed class SettingsService
     {
         var defaults = CreateDefaults();
 
-        settings.SchemaVersion = 1;
+        settings.SchemaVersion = 2;
         settings.Language = settings.Language is "en" or "zh" ? settings.Language : defaults.Language;
         settings.Theme = settings.Theme is "light" or "dark" ? settings.Theme : defaults.Theme;
+        settings.CaptureDelaySeconds = Math.Clamp(settings.CaptureDelaySeconds, 1, 30);
+        settings.UpdateChannel = settings.UpdateChannel is "preview" ? "preview" : "stable";
+        settings.QuickAccessSeconds = Math.Clamp(settings.QuickAccessSeconds, 2, 15);
+        settings.RecentColors = (settings.RecentColors ?? new List<string>())
+            .Where(static color => color is { Length: 7 } &&
+                                   color[0] == '#' &&
+                                   color[1..].All(char.IsAsciiHexDigit))
+            .Select(static color => color.ToUpperInvariant())
+            .Distinct(StringComparer.Ordinal)
+            .Take(10)
+            .ToList();
+        settings.GifFps = settings.GifFps is 5 or 10 or 15 ? settings.GifFps : 10;
+        settings.GifMaxDurationSeconds = Math.Clamp(settings.GifMaxDurationSeconds, 5, 60);
+        settings.GifMaxDimension = settings.GifMaxDimension is 480 or 640 or 960 or 0
+            ? settings.GifMaxDimension
+            : 960;
+        settings.HistoryRetentionDays = settings.HistoryRetentionDays is 0 or 7 or 30 or 90
+            ? settings.HistoryRetentionDays
+            : 0;
         settings.SaveDirectory = string.IsNullOrWhiteSpace(settings.SaveDirectory)
             ? defaults.SaveDirectory
             : settings.SaveDirectory.Trim();

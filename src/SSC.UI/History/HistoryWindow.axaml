@@ -58,6 +58,19 @@
     <Style Selector="Button.view.active Path">
       <Setter Property="Stroke" Value="{DynamicResource SscText}" />
     </Style>
+    <Style Selector="Button.tag-remove">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource SscTextSubtle}" />
+    </Style>
+    <Style Selector="Button.tag-remove:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource SscDanger}" />
+    </Style>
 
     <!-- 卡片：原型 .hcard -->
     <Style Selector="Border.hcard">
@@ -274,6 +287,7 @@
                 <Button x:Name="ScreenshotFilter" Classes="filter-chip" />
                 <Button x:Name="RecordingFilter" Classes="filter-chip" />
                 <Button x:Name="GifFilter" Classes="filter-chip" />
+                <Button x:Name="FavoriteFilter" Classes="filter-chip" />
               </StackPanel>
               <ComboBox x:Name="TimeFilter" Grid.Column="2" Width="130" Height="30" FontSize="11" Classes="input" />
             </Grid>
@@ -304,15 +318,26 @@
                               <TextBlock Text="{Binding KindLabel}" />
                             </Border>
 
+                            <Button Classes="thumb-action favorite" Tag="{Binding}" CommandParameter="Favorite" Click="OnCardAction"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="7,7,0,0"
+                                    IsVisible="{Binding IsFavorite}">
+                              <Path Data="m12 3.6 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9L3.5 9.8l5.9-.9Z" Fill="{DynamicResource SscWarning}" Stroke="{DynamicResource SscWarning}" StrokeThickness="1.2" />
+                            </Button>
+                            <Button Classes="thumb-action favorite" Tag="{Binding}" CommandParameter="Favorite" Click="OnCardAction"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="7,7,0,0"
+                                    IsVisible="{Binding IsNotFavorite}">
+                              <Path Data="m12 3.6 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9L3.5 9.8l5.9-.9Z" />
+                            </Button>
+
                             <Border Classes="hdur" IsVisible="{Binding HasDuration}">
                               <TextBlock Text="{Binding DurationText}" />
                             </Border>
 
                             <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,7,7,0">
-                              <Button Classes="thumb-action" Tag="{Binding}" CommandParameter="Copy" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                              <Button Classes="thumb-action" Tag="{Binding}" CommandParameter="Copy" Click="OnCardAction" IsEnabled="{Binding CanEditFrame}">
                                 <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
                               </Button>
-                              <Button Classes="thumb-action" Tag="{Binding}" CommandParameter="Edit" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                              <Button Classes="thumb-action" Tag="{Binding}" CommandParameter="Edit" Click="OnCardAction" IsEnabled="{Binding CanEditFrame}">
                                 <Path Data="m4 20 4.2-1 9.8-9.8-3-3L5.2 16 4 20Z" />
                               </Button>
                               <Button Classes="thumb-action" Tag="{Binding}" CommandParameter="Pin" Click="OnCardAction" IsEnabled="{Binding IsImage}">
@@ -352,16 +377,25 @@
                           <TextBlock Text="{Binding Meta}" FontSize="10.5" Foreground="{DynamicResource SscTextSubtle}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Copy" Click="OnCardAction" IsEnabled="{Binding IsImage}" ToolTip.Tip="{Binding KindLabel}">
+                          <Button Classes="row-action favorite" Tag="{Binding}" CommandParameter="Favorite" Click="OnCardAction">
+                            <Panel>
+                              <Path Data="m12 3.6 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9L3.5 9.8l5.9-.9Z"
+                                    Fill="{DynamicResource SscWarning}" Stroke="{DynamicResource SscWarning}" StrokeThickness="1.2"
+                                    IsVisible="{Binding IsFavorite}" />
+                              <Path Data="m12 3.6 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.7-5.2 2.7 1-5.9L3.5 9.8l5.9-.9Z"
+                                    IsVisible="{Binding IsNotFavorite}" />
+                            </Panel>
+                          </Button>
+                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Copy" Click="OnCardAction" IsEnabled="{Binding CanEditFrame}" ToolTip.Tip="{Binding KindLabel}">
                             <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
                           </Button>
-                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Edit" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Edit" Click="OnCardAction" IsEnabled="{Binding CanEditFrame}">
                             <Path Data="m4 20 4.2-1 9.8-9.8-3-3L5.2 16 4 20Z" />
                           </Button>
                           <Button Classes="row-action" Tag="{Binding}" CommandParameter="Pin" Click="OnCardAction" IsEnabled="{Binding IsImage}">
                             <Path Data="M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6ZM12 15v5" />
                           </Button>
-                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Ocr" Click="OnCardAction" IsEnabled="{Binding IsImage}">
+                          <Button Classes="row-action" Tag="{Binding}" CommandParameter="Ocr" Click="OnCardAction" IsEnabled="{Binding CanEditFrame}">
                             <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
                           </Button>
                           <Button Classes="row-action" Tag="{Binding}" CommandParameter="Delete" Click="OnCardAction">
@@ -438,15 +472,12 @@
                         <TextBlock x:Name="DetailCreated" Grid.Column="1" Classes="meta-value" />
                       </Grid>
                       <Grid ColumnDefinitions="Auto,*">
-                        <TextBlock x:Name="DetailTagsLabel" Classes="meta-label" />
-                        <TextBlock x:Name="DetailTags" Grid.Column="1" Classes="meta-value" />
+                        <TextBlock x:Name="DetailTagsLabel" Classes="meta-label" VerticalAlignment="Top" Margin="0,6,0,0" />
+                        <StackPanel Grid.Column="1" Spacing="6">
+                          <WrapPanel x:Name="DetailTagChips" />
+                          <TextBox x:Name="DetailTagInput" Classes="input" Height="28" FontSize="11" />
+                        </StackPanel>
                       </Grid>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,14,0,0">
-                      <Border Classes="chip">
-                        <TextBlock x:Name="DetailTagChip" />
-                      </Border>
                     </StackPanel>
                   </StackPanel>
                 </ScrollViewer>

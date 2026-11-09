@@ -22,7 +22,18 @@ public sealed record HistoryEntry
 
     public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
 
+    public bool IsFavorite { get; init; }
+
     public string OcrText { get; init; } = string.Empty;
+
+    public static IReadOnlyList<string> NormalizeTags(IEnumerable<string>? tags) =>
+        (tags ?? Array.Empty<string>())
+            .Where(static tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(static tag => tag.Trim())
+            .Where(static tag => tag.Length <= 24)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(12)
+            .ToArray();
 
     public static HistoryEntry Create(
         Guid id,
@@ -34,7 +45,8 @@ public sealed record HistoryEntry
         int height,
         TimeSpan? duration = null,
         IEnumerable<string>? tags = null,
-        string? ocrText = null)
+        string? ocrText = null,
+        bool isFavorite = false)
     {
         if (id == Guid.Empty)
         {
@@ -66,11 +78,7 @@ public sealed record HistoryEntry
             throw new ArgumentOutOfRangeException(nameof(duration));
         }
 
-        var normalizedTags = (tags ?? Array.Empty<string>())
-            .Where(static tag => !string.IsNullOrWhiteSpace(tag))
-            .Select(static tag => tag.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var normalizedTags = NormalizeTags(tags);
 
         return new HistoryEntry
         {
@@ -83,6 +91,7 @@ public sealed record HistoryEntry
             Height = height,
             Duration = duration,
             Tags = normalizedTags,
+            IsFavorite = isFavorite,
             OcrText = ocrText?.Trim() ?? string.Empty
         };
     }

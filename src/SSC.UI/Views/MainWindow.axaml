@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SSC.UI.ViewModels"
+        xmlns:controls="using:SSC.UI.Controls"
         x:Class="SSC.UI.Views.MainWindow"
         Title="{Binding WindowTitle}"
         Width="1320"
@@ -106,6 +107,22 @@
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBox.hotkey-box:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+    </Style>
+    <Style Selector="controls|HotkeyRecorderBox.hotkey-box">
+      <Setter Property="Width" Value="132" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="8,0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontFamily" Value="SF Mono, Menlo, Consolas, monospace" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SscBorderStrong}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="controls|HotkeyRecorderBox.hotkey-box:focus">
       <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
     </Style>
 
@@ -471,20 +488,24 @@
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <StackPanel Spacing="2" VerticalAlignment="Center">
                           <TextBlock Text="{Binding L[launchAtLogin]}" Classes="set-label" />
+                          <TextBlock Text="{Binding AutoStartStatusText}" Classes="set-desc" IsVisible="{Binding HasAutoStartStatus}" />
                           <TextBlock Text="{Binding L[launchAtLoginDesc]}" Classes="set-desc" />
                         </StackPanel>
-                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding LaunchAtLogin, Mode=TwoWay}" VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding LaunchAtLogin, Mode=TwoWay}" IsEnabled="{Binding CanLaunchAtLogin}" VerticalAlignment="Center" />
                       </Grid>
                     </Border>
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
-                        <TextBlock Text="{Binding L[startAction]}" Classes="set-label" VerticalAlignment="Center" />
-                        <Border Grid.Column="1" Classes="select" Width="190">
-                          <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding L[startTray]}" VerticalAlignment="Center" />
-                            <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding L[captureDelayLabel]}" Classes="set-label" />
+                          <TextBlock Text="{Binding L[captureDelayDesc]}" Classes="set-desc" />
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" Width="110" Classes="input" SelectedIndex="{Binding CaptureDelayIndex, Mode=TwoWay}" VerticalAlignment="Center">
+                          <ComboBoxItem Content="1 s" />
+                          <ComboBoxItem Content="3 s" />
+                          <ComboBoxItem Content="5 s" />
+                          <ComboBoxItem Content="10 s" />
+                        </ComboBox>
                       </Grid>
                     </Border>
                     <Border Classes="set-row" Padding="0" BorderThickness="0">
@@ -504,12 +525,10 @@
                     <Border Classes="set-row" Padding="0" BorderThickness="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <TextBlock Text="{Binding L[updateChannel]}" Classes="set-label" VerticalAlignment="Center" />
-                        <Border Grid.Column="1" Classes="select" Width="160">
-                          <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding L[stable]}" VerticalAlignment="Center" />
-                            <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
+                        <ComboBox Grid.Column="1" Width="160" Classes="input" SelectedIndex="{Binding UpdateChannelIndex, Mode=TwoWay}" VerticalAlignment="Center">
+                          <ComboBoxItem Content="{Binding L[stable]}" />
+                          <ComboBoxItem Content="{Binding L[updateChannelPreview]}" />
+                        </ComboBox>
                       </Grid>
                     </Border>
                   </StackPanel>
@@ -532,10 +551,11 @@
                                          FontSize="10.5"
                                          HorizontalAlignment="Left" />
                             </StackPanel>
-                            <TextBox Grid.Column="1"
+                            <controls:HotkeyRecorderBox Grid.Column="1"
                                      Classes="hotkey-box"
                                      Text="{Binding Gesture, Mode=TwoWay}"
-                                     PlaceholderText="⌘⇧2 / Ctrl+Shift+2"
+                                     PlaceholderText="{Binding Prompt}"
+                                     ToolTip.Tip="{Binding $parent[ItemsControl].DataContext.L[hotkeysHint]}"
                                      VerticalAlignment="Center" />
                           </Grid>
                         </Border>
@@ -609,16 +629,52 @@
                     </Border>
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
-                        <TextBlock Text="{Binding L[autoSave]}" Classes="set-label" VerticalAlignment="Center" ToolTip.Tip="{Binding L[autoSaveLocked]}" />
-                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding AutoSave, Mode=OneWay}" IsEnabled="False" VerticalAlignment="Center" />
-                      </Grid>
-                    </Border>
-                    <Border Classes="set-row" Padding="0" BorderThickness="0">
-                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <TextBlock Text="{Binding L[openEditor]}" Classes="set-label" VerticalAlignment="Center" />
                         <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding OpenEditor, Mode=TwoWay}" VerticalAlignment="Center" />
                       </Grid>
                     </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[showQuickAccess]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ShowQuickAccess, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[storageTitle]}" Classes="section" />
+                    <TextBlock Text="{Binding L[storageDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <StackPanel Spacing="3" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding StorageSummaryText}" Classes="set-label" />
+                          <TextBlock Text="{Binding StorageDetailText}" Classes="set-desc" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="btn btn-ghost btn-sm" Content="{Binding L[storageRefresh]}" Command="{Binding RefreshStorageCommand}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[storageRetentionLabel]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="170" Classes="input" SelectedIndex="{Binding RetentionIndex, Mode=TwoWay}" VerticalAlignment="Center">
+                          <ComboBoxItem Content="{Binding L[storageRetentionNever]}" />
+                          <ComboBoxItem Content="{Binding L[storageRetention7]}" />
+                          <ComboBoxItem Content="{Binding L[storageRetention30]}" />
+                          <ComboBoxItem Content="{Binding L[storageRetention90]}" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[storageKeepFavorites]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding KeepFavoritesOnCleanup, Mode=TwoWay}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,10,0,0">
+                      <Button Classes="btn btn-ghost btn-sm" Content="{Binding CleanupButtonText}" Command="{Binding CleanupStorageCommand}" />
+                      <Button Classes="btn btn-danger btn-sm" Content="{Binding ClearButtonText}" Command="{Binding ClearStorageCommand}" />
+                      <Button Classes="btn btn-ghost btn-sm" Content="{Binding L[storageOpenFolder]}" Command="{Binding OpenStorageFolderCommand}" />
+                    </StackPanel>
                   </StackPanel>
                 </StackPanel>
 
@@ -744,7 +800,7 @@
                     </Border>
                   </StackPanel>
 
-                  <StackPanel Spacing="0">
+                  <StackPanel Spacing="0" IsVisible="{Binding IsWindowsHost}">
                     <TextBlock Text="{Binding L[ocrLanguagePack]}" Classes="section" />
                     <TextBlock Text="{Binding L[ocrLanguagePackDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
                     <Border Background="{DynamicResource SscPanelAltBg}"
@@ -939,7 +995,11 @@
                         <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2"
                               Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding L[aboutCheckUpdate]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
-                        <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutCheck]}" Command="{Binding CheckUpdatesCommand}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding UpdateStatusText}" Classes="caption" VerticalAlignment="Center" />
+                          <Button Classes="link" Content="{Binding L[updateOpenRelease]}" Command="{Binding OpenReleasePageCommand}" IsVisible="{Binding HasUpdate}" VerticalAlignment="Center" />
+                          <Button Classes="link" Content="{Binding L[aboutCheck]}" Command="{Binding CheckUpdatesCommand}" VerticalAlignment="Center" />
+                        </StackPanel>
                       </Grid>
                     </Border>
                   </StackPanel>

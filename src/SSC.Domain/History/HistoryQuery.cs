@@ -7,7 +7,8 @@ public sealed record HistoryQuery(
     CaptureKind? Kind = null,
     DateTimeOffset? Since = null,
     int Limit = 200,
-    int Offset = 0)
+    int Offset = 0,
+    bool? Favorite = null)
 {
     public HistoryQuery Normalize() => this with
     {

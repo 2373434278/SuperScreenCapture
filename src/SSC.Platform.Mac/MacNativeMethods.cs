@@ -137,6 +137,29 @@ internal static class MacNativeMethods
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void ssc_free_string(IntPtr value);
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void SscHotkeyCallback(uint id, IntPtr userData);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_hotkey_register(
+        uint id,
+        uint keyCode,
+        uint carbonModifiers,
+        SscHotkeyCallback callback,
+        IntPtr userData);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_hotkey_unregister(uint id);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void ssc_hotkey_unregister_all();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_autostart_status();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int ssc_autostart_set(int enabled);
+
     internal static string GetLastError()
     {
         var pointer = ssc_last_error();

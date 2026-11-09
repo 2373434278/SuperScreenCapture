@@ -79,6 +79,19 @@ int32_t ssc_ocr_image(
     char **out_json);
 void ssc_free_string(char *value);
 
+/* Global hotkeys. Callbacks are delivered on the main thread.
+   Returns 0 on success; -9878 means the shortcut is already in use. */
+typedef void (*ssc_hotkey_callback)(uint32_t id, void *user_data);
+
+int32_t ssc_hotkey_register(uint32_t id, uint32_t keycode, uint32_t carbon_modifiers,
+                            ssc_hotkey_callback callback, void *user_data);
+int32_t ssc_hotkey_unregister(uint32_t id);
+void ssc_hotkey_unregister_all(void);
+
+/* Auto start states: 0 disabled, 1 enabled, 2 requires approval, 3 unavailable, 4 failed. */
+int32_t ssc_autostart_status(void);
+int32_t ssc_autostart_set(int32_t enabled);
+
 #ifdef __cplusplus
 }
 #endif

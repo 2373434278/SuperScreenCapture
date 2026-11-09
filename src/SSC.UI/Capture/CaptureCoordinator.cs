@@ -4,12 +4,16 @@ using Avalonia.Threading;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
+using SSC.Application.Events;
 using SSC.Application.Scroll;
 using SSC.Application.Settings;
 using SSC.Application.Upload;
 using SSC.Domain.Capture;
 using SSC.Domain.Geometry;
+using SSC.Domain.History;
 using SSC.UI.Editing;
+using SSC.UI.QuickAccess;
+using SSC.UI.Upload;
 
 namespace SSC.UI.Capture;
 
@@ -30,6 +34,8 @@ public sealed class CaptureCoordinator
     private readonly UploadPipeline _uploads;
     private readonly IImageEncoder _encoder;
     private readonly IScrollStitcher _stitcher;
+    private readonly IHistoryRepository? _history;
+    private readonly IAppEventBus? _events;
     private bool _running;
 
     public CaptureCoordinator(
@@ -43,7 +49,9 @@ public sealed class CaptureCoordinator
         IOcrService ocrService,
         UploadPipeline uploads,
         IImageEncoder encoder,
-        IScrollStitcher stitcher)
+        IScrollStitcher stitcher,
+        IHistoryRepository? history = null,
+        IAppEventBus? events = null)
     {
         _capture = capture ?? throw new ArgumentNullException(nameof(capture));
         _permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
@@ -56,6 +64,73 @@ public sealed class CaptureCoordinator
         _uploads = uploads ?? throw new ArgumentNullException(nameof(uploads));
         _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
         _stitcher = stitcher ?? throw new ArgumentNullException(nameof(stitcher));
+        _history = history;
+        _events = events;
+    }
+
+    private AnnotationEditorWindow CreateEditor(
+        ScreenshotResult result,
+        CaptureFrame frame,
+        Func<Task>? retake = null) =>
+        new(
+            result,
+            frame,
+            _localizer,
+            _annotationRenderer,
+            _screenshots,
+            _clipboard,
+            _ocrService,
+            _uploads,
+            _settings,
+            _encoder,
+            retake);
+
+    private void ShowQuickAccess(ScreenshotResult result, CaptureFrame frame, Func<Task>? retake = null)
+    {
+        if (!_settings.Current.ShowQuickAccess)
+        {
+            return;
+        }
+
+        var actions = new QuickAccessActions(
+            Copy: () => _clipboard.CopyImageAsync(frame),
+            Edit: () => CreateEditor(result, frame, retake).Show(),
+            Pin: () => new PinWindow(frame, _localizer).Show(),
+            Upload: () => { _ = UploadFrameAsync(result, frame); },
+            Discard: () => Discard(result));
+
+        new QuickAccessWindow(result, frame, _localizer, _settings.Current.QuickAccessSeconds, actions).Show();
+    }
+
+    private async Task UploadFrameAsync(ScreenshotResult result, CaptureFrame frame)
+    {
+        try
+        {
+            var bytes = await _encoder.EncodeAsync(frame, "png", 95).ConfigureAwait(true);
+            var fileName = $"{Path.GetFileNameWithoutExtension(result.FilePath)}.png";
+            new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer).Show();
+        }
+        catch (Exception)
+        {
+            // Upload entry points surface their own failures in the dialog/window.
+        }
+    }
+
+    private void Discard(ScreenshotResult result)
+    {
+        try
+        {
+            _history?.Delete(result.Entry.Id);
+            if (File.Exists(result.FilePath))
+            {
+                File.Delete(result.FilePath);
+            }
+
+            _events?.Publish(new HistoryChanged(Guid.Empty));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+        }
     }
 
     /// <summary>进入区域框选模式。</summary>
@@ -232,20 +307,15 @@ public sealed class CaptureCoordinator
             }
 
             var editor = _settings.Current.OpenEditor
-                ? new AnnotationEditorWindow(
-                    saved,
-                    stitched,
-                    _localizer,
-                    _annotationRenderer,
-                    _screenshots,
-                    _clipboard,
-                    _ocrService,
-                    _uploads,
-                    _settings,
-                    _encoder)
+                ? CreateEditor(saved, stitched)
                 : null;
             editor?.Show();
             editor?.Activate();
+            if (editor is null)
+            {
+                ShowQuickAccess(saved, stitched);
+            }
+
             return new CaptureOutcome(true, _localizer["scrollSaved"], saved);
         }
         catch (OperationCanceledException)
@@ -300,19 +370,12 @@ public sealed class CaptureCoordinator
                 var result = await _screenshots.SaveAsync(frame, CaptureKind.Screenshot, cancellationToken).ConfigureAwait(true);
                 if (_settings.Current.OpenEditor)
                 {
-                    editor = new AnnotationEditorWindow(
-                        result,
-                        frame,
-                        _localizer,
-                        _annotationRenderer,
-                        _screenshots,
-                        _clipboard,
-                        _ocrService,
-                        _uploads,
-                        settings: _settings,
-                        encoder: _encoder,
-                        retake: () => CaptureFullScreenAsync());
+                    editor = CreateEditor(result, frame, () => CaptureFullScreenAsync());
                     editor.Show();
+                }
+                else
+                {
+                    ShowQuickAccess(result, frame, () => CaptureFullScreenAsync());
                 }
 
                 return new CaptureOutcome(true, _localizer["captureSaved"], result);
@@ -445,19 +508,12 @@ public sealed class CaptureCoordinator
                         : () => CaptureRegionAsync();
                     if (_settings.Current.OpenEditor)
                     {
-                        editor = new AnnotationEditorWindow(
-                            result,
-                            capturedFrame,
-                            _localizer,
-                            _annotationRenderer,
-                            _screenshots,
-                            _clipboard,
-                            _ocrService,
-                            _uploads,
-                            settings: _settings,
-                            encoder: _encoder,
-                            retake);
+                        editor = CreateEditor(result, capturedFrame, retake);
                         editor.Show();
+                    }
+                    else
+                    {
+                        ShowQuickAccess(result, capturedFrame, retake);
                     }
 
                     return new CaptureOutcome(true, _localizer["captureSaved"], result);

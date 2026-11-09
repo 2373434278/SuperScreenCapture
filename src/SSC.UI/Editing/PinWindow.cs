@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -6,6 +5,7 @@ using Avalonia.Media;
 using SSC.Application.Abstractions;
 using SSC.Domain.Capture;
 using SSC.UI.Capture;
+using SSC.UI.Services;
 
 namespace SSC.UI.Editing;
 
@@ -149,48 +149,4 @@ public sealed class PinWindow : Window
 
         return new SolidColorBrush(fallback);
     }
-}
-
-internal static class WindowCaptureExclusion
-{
-    private const uint WdaExcludeFromCapture = 0x11;
-
-    public static void Apply(Window window)
-    {
-        try
-        {
-            var handle = window.TryGetPlatformHandle();
-            if (handle is null)
-            {
-                return;
-            }
-
-            if (OperatingSystem.IsWindows() &&
-                string.Equals(handle.HandleDescriptor, "HWND", StringComparison.OrdinalIgnoreCase))
-            {
-                SetWindowDisplayAffinity(handle.Handle, WdaExcludeFromCapture);
-            }
-            else if (OperatingSystem.IsMacOS() &&
-                     string.Equals(handle.HandleDescriptor, "NSWindow", StringComparison.OrdinalIgnoreCase))
-            {
-                var selector = sel_registerName("setSharingType:");
-                objc_msgSend_IntPtr(handle.Handle, selector, 0);
-            }
-        }
-        catch (DllNotFoundException)
-        {
-        }
-        catch (EntryPointNotFoundException)
-        {
-        }
-    }
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity);
-
-    [DllImport("/usr/lib/libobjc.A.dylib", CharSet = CharSet.Ansi)]
-    private static extern IntPtr sel_registerName(string name);
-
-    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_IntPtr(IntPtr receiver, IntPtr selector, nint value);
 }

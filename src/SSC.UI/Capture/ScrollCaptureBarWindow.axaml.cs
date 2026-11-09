@@ -67,7 +67,7 @@ public partial class ScrollCaptureBarWindow : Window
     {
         base.OnOpened(e);
         PositionTopCenter();
-        Editing.WindowCaptureExclusion.Apply(this);
+        Services.WindowCaptureExclusion.Apply(this);
     }
 
     private void ApplyLocalization()

@@ -1,12 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using SSC.Application.Abstractions;
+using SSC.Application.Hotkeys;
 using SSC.Application.Recording;
 using SSC.Application.Settings;
+using SSC.Application.Updates;
 using SSC.Infrastructure.DependencyInjection;
 using SSC.Infrastructure.Logging;
 using SSC.Infrastructure.Paths;
 using SSC.Infrastructure.Persistence;
+using SSC.Infrastructure.Updates;
+using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
+using SSC.UI.ColorPicker;
 using SSC.UI.History;
 using SSC.UI.Recording;
 using SSC.UI.ViewModels;
@@ -35,8 +40,16 @@ internal static class Bootstrap
         services.AddMacPlatform();
 #endif
         services.AddSingleton<CaptureCoordinator>();
+        services.AddSingleton<ColorPickerCoordinator>();
         services.AddSingleton<RecordingSessionManager>();
         services.AddSingleton<RecordingCoordinator>();
+        services.AddSingleton<GifRecordingCoordinator>();
+        services.AddSingleton<HotkeyRouter>();
+        services.AddSingleton(sp => new HotkeyManager(
+            sp.GetRequiredService<IHotkeyService>(),
+            sp.GetRequiredService<PlatformDescriptor>().Kind,
+            sp.GetRequiredService<HotkeyRouter>()));
+        services.AddSingleton<IUpdateChecker, GitHubUpdateChecker>();
         services.AddSingleton<HistoryWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();

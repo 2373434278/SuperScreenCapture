@@ -98,7 +98,7 @@ public sealed class MainWindowTests
 
         viewModel.SelectTabCommand.Execute("hotkeys");
         Assert.True(viewModel.IsHotkeysTab);
-        Assert.Equal(6, viewModel.Hotkeys.Count);
+        Assert.Equal(HotkeyCatalog.Actions.Count, viewModel.Hotkeys.Count);
 
         viewModel.Hotkeys[0].Gesture = viewModel.Hotkeys[1].Gesture;
         viewModel.SaveSettingsCommand.Execute(null);

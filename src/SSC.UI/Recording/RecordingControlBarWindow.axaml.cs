@@ -94,7 +94,7 @@ public partial class RecordingControlBarWindow : Window
     {
         base.OnOpened(e);
         PositionTopCenter();
-        SSC.UI.Editing.WindowCaptureExclusion.Apply(this);
+        SSC.UI.Services.WindowCaptureExclusion.Apply(this);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

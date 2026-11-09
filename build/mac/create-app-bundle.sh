@@ -22,6 +22,7 @@ cp "build/mac/Info.plist" "${output_dir}/Contents/Info.plist"
 
 mkdir -p "${output_dir}/Contents/Resources"
 cp LICENSE NOTICE "${output_dir}/Contents/Resources/"
+cp "build/mac/AppIcon.icns" "${output_dir}/Contents/Resources/AppIcon.icns"
 if [[ -f "build/third-party-notices.txt" ]]; then
   cp "build/third-party-notices.txt" "${output_dir}/Contents/Resources/THIRD-PARTY-NOTICES.txt"
 fi

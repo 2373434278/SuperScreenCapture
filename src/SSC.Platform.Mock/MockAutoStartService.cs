@@ -4,7 +4,21 @@ namespace SSC.Platform.Mock;
 
 public sealed class MockAutoStartService : IAutoStartService
 {
-    public bool IsEnabled { get; private set; }
+    public AutoStartState State { get; set; } = AutoStartState.Disabled;
 
-    public void SetEnabled(bool enabled) => IsEnabled = enabled;
+    public bool FailNextChange { get; set; }
+
+    public AutoStartStatus GetStatus() => new(State);
+
+    public AutoStartChangeResult SetEnabled(bool enabled)
+    {
+        if (FailNextChange)
+        {
+            FailNextChange = false;
+            return new AutoStartChangeResult(false, State, "mock failure");
+        }
+
+        State = enabled ? AutoStartState.Enabled : AutoStartState.Disabled;
+        return new AutoStartChangeResult(true, State);
+    }
 }

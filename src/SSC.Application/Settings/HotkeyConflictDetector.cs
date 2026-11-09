@@ -1,3 +1,5 @@
+using SSC.Application.Hotkeys;
+
 namespace SSC.Application.Settings;
 
 public sealed record HotkeyConflict(string FirstAction, string SecondAction, string Gesture);
@@ -9,7 +11,8 @@ public static class HotkeyConflictDetector
         ArgumentNullException.ThrowIfNull(bindings);
 
         var conflicts = new List<HotkeyConflict>();
-        var seen = new Dictionary<string, (string Action, string Gesture)>(StringComparer.OrdinalIgnoreCase);
+        var seen = new Dictionary<HotkeyGesture, (string Action, string Gesture)>();
+        var seenRaw = new Dictionary<string, (string Action, string Gesture)>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var action in HotkeyCatalog.Actions)
         {
@@ -19,13 +22,24 @@ public static class HotkeyConflictDetector
             }
 
             var gesture = raw.Trim();
-            if (seen.TryGetValue(gesture, out var first))
+            var hasCanonical = HotkeyGesture.TryParse(gesture, out var parsed, out _);
+            var duplicate = hasCanonical
+                ? seen.TryGetValue(parsed, out var canonicalFirst) ? canonicalFirst : default
+                : seenRaw.TryGetValue(gesture, out var rawFirst) ? rawFirst : default;
+
+            if (duplicate.Action is not null)
             {
-                conflicts.Add(new HotkeyConflict(first.Action, action.Key, gesture));
+                conflicts.Add(new HotkeyConflict(duplicate.Action, action.Key, gesture));
+                continue;
+            }
+
+            if (hasCanonical)
+            {
+                seen[parsed] = (action.Key, gesture);
             }
             else
             {
-                seen[gesture] = (action.Key, gesture);
+                seenRaw[gesture] = (action.Key, gesture);
             }
         }
 

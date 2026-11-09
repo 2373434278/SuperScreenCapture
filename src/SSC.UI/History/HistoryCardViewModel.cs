@@ -1,4 +1,5 @@
 using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
 using SSC.Application.Abstractions;
 using SSC.Domain.Capture;
 using SSC.Domain.History;
@@ -8,7 +9,7 @@ namespace SSC.UI.History;
 /// <summary>
 /// 历史记录卡片的展示模型，负责把领域实体翻译成界面需要的文案与缩略图。
 /// </summary>
-public sealed class HistoryCardViewModel : IDisposable
+public sealed class HistoryCardViewModel : ObservableObject, IDisposable
 {
     public HistoryCardViewModel(HistoryEntry entry, ILocalizer localizer)
     {
@@ -21,7 +22,7 @@ public sealed class HistoryCardViewModel : IDisposable
         };
     }
 
-    public HistoryEntry Entry { get; }
+    public HistoryEntry Entry { get; private set; }
 
     public string Title => Entry.Title;
 
@@ -32,6 +33,26 @@ public sealed class HistoryCardViewModel : IDisposable
     public bool IsAnimated => Entry.Kind == CaptureKind.AnimatedImage;
 
     public bool IsImage => Entry.Kind is CaptureKind.Screenshot or CaptureKind.AnimatedImage;
+
+    /// <summary>GIF 只能加载首帧，因此复制/编辑/OCR/上传仅对静态截图开放。</summary>
+    public bool CanEditFrame => Entry.Kind == CaptureKind.Screenshot;
+
+    public bool IsFavorite => Entry.IsFavorite;
+
+    public bool IsNotFavorite => !Entry.IsFavorite;
+
+    public void ApplyFavorite(bool isFavorite)
+    {
+        Entry = Entry with { IsFavorite = isFavorite };
+        OnPropertyChanged(nameof(IsFavorite));
+        OnPropertyChanged(nameof(IsNotFavorite));
+    }
+
+    public void ApplyTags(IEnumerable<string> tags)
+    {
+        Entry = Entry with { Tags = HistoryEntry.NormalizeTags(tags) };
+        OnPropertyChanged(nameof(TagsText));
+    }
 
     public string Meta
     {

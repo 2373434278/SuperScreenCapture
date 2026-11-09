@@ -8,7 +8,8 @@ public sealed class DatabaseMigrator
     private static readonly Migration[] Migrations =
     {
         new Migration(1, "initial-schema", ApplyInitialSchema),
-        new Migration(2, "history-fts", ApplyHistoryFts)
+        new Migration(2, "history-fts", ApplyHistoryFts),
+        new Migration(3, "history-favorite", ApplyHistoryFavorite)
     };
 
     private readonly SqliteConnectionFactory _factory;
@@ -117,6 +118,19 @@ public sealed class DatabaseMigrator
     }
 
     private sealed record Migration(int Version, string Name, Action<SqliteConnection, SqliteTransaction> Apply);
+
+    private static void ApplyHistoryFavorite(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            ALTER TABLE history_entries ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0;
+            CREATE INDEX IF NOT EXISTS ix_history_entries_favorite
+                ON history_entries(is_favorite, created_at DESC);
+            """;
+        command.ExecuteNonQuery();
+    }
 
     private static void ApplyHistoryFts(SqliteConnection connection, SqliteTransaction transaction)
     {

@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using SSC.Application.Abstractions;
@@ -44,6 +47,7 @@ public partial class HistoryWindow : Window
     private CaptureKind? _kind;
     private DateTimeOffset? _since;
     private bool _gridView = true;
+    private bool _favoritesOnly;
     private int _refreshVersion;
 
     /// <summary>由依赖注入构造历史窗口。</summary>
@@ -119,6 +123,8 @@ public partial class HistoryWindow : Window
         ScreenshotFilter.Click += (_, _) => SetKind(CaptureKind.Screenshot);
         RecordingFilter.Click += (_, _) => SetKind(CaptureKind.Recording);
         GifFilter.Click += (_, _) => SetKind(CaptureKind.AnimatedImage);
+        FavoriteFilter.Click += (_, _) => ToggleFavoritesOnly();
+        DetailTagInput.KeyDown += OnTagInputKeyDown;
         TimeFilter.SelectionChanged += (_, _) => UpdateSince();
         GridViewButton.Click += (_, _) => SetView(grid: true);
         ListViewButton.Click += (_, _) => SetView(grid: false);
@@ -144,6 +150,8 @@ public partial class HistoryWindow : Window
         ScreenshotFilter.Content = _localizer["historyScreenshots"];
         RecordingFilter.Content = _localizer["historyRecordings"];
         GifFilter.Content = _localizer["historyGifs"];
+        FavoriteFilter.Content = _localizer["historyFavorites"];
+        DetailTagInput.PlaceholderText = _localizer["historyTagPlaceholder"];
         ToolTip.SetTip(GridViewButton, _localizer["historyGrid"]);
         ToolTip.SetTip(ListViewButton, _localizer["historyList"]);
 
@@ -188,6 +196,13 @@ public partial class HistoryWindow : Window
         _ = RefreshAsync();
     }
 
+    private void ToggleFavoritesOnly()
+    {
+        _favoritesOnly = !_favoritesOnly;
+        SetClass(FavoriteFilter, "active", _favoritesOnly);
+        _ = RefreshAsync();
+    }
+
     private void UpdateSince()
     {
         _since = TimeFilter.SelectedIndex switch
@@ -219,7 +234,7 @@ public partial class HistoryWindow : Window
 
         try
         {
-            var query = new HistoryQuery(SearchBox.Text, _kind, _since, 200, 0);
+            var query = new HistoryQuery(SearchBox.Text, _kind, _since, 200, 0, _favoritesOnly ? true : null);
             var entries = await Task.Run(() => _repository.Query(query), cancellationToken);
             var count = await Task.Run(() => _repository.Count(query), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
@@ -322,20 +337,115 @@ public partial class HistoryWindow : Window
         DetailResolution.Text = card.ResolutionText;
         DetailDuration.Text = card.HasDuration ? card.DurationText : "—";
         DetailCreated.Text = card.CreatedText;
-        DetailTags.Text = string.IsNullOrWhiteSpace(card.TagsText) ? "—" : card.TagsText;
-        DetailTagChip.Text = card.TagsText;
-        DetailTagChip.IsVisible = !string.IsNullOrWhiteSpace(card.TagsText);
         DetailImage.Source = card.Thumbnail;
-        DetailCopy.IsEnabled = card.IsImage;
-        DetailEdit.IsEnabled = card.IsImage;
+        DetailTagInput.Text = string.Empty;
+        RefreshTagChips();
+        DetailCopy.IsEnabled = card.CanEditFrame;
+        DetailEdit.IsEnabled = card.CanEditFrame;
         DetailPin.IsEnabled = card.IsImage;
-        DetailUpload.IsEnabled = card.IsImage;
+        DetailUpload.IsEnabled = card.CanEditFrame;
+    }
+
+    private void RefreshTagChips()
+    {
+        DetailTagChips.Children.Clear();
+        if (_selected is null)
+        {
+            return;
+        }
+
+        foreach (var tag in _selected.Entry.Tags)
+        {
+            var label = new TextBlock
+            {
+                Text = tag,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            var remove = new Button
+            {
+                Content = "×",
+                Tag = tag,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            remove.Classes.Add("tag-remove");
+            remove.Click += OnRemoveTag;
+
+            var panel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4
+            };
+            panel.Children.Add(label);
+            panel.Children.Add(remove);
+
+            var chip = new Border
+            {
+                Child = panel,
+                Margin = new Thickness(0, 0, 4, 4)
+            };
+            chip.Classes.Add("chip");
+            DetailTagChips.Children.Add(chip);
+        }
+    }
+
+    private void OnTagInputKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.OemComma)
+        {
+            e.Handled = true;
+            CommitTag(DetailTagInput.Text);
+            return;
+        }
+
+        if (e.Key == Key.Back && string.IsNullOrEmpty(DetailTagInput.Text) && _selected is not null)
+        {
+            var remaining = _selected.Entry.Tags.Take(Math.Max(0, _selected.Entry.Tags.Count - 1));
+            ApplyTags(remaining);
+            e.Handled = true;
+        }
+    }
+
+    private void CommitTag(string? text)
+    {
+        var tag = text?.Trim();
+        if (string.IsNullOrWhiteSpace(tag) || _selected is null)
+        {
+            return;
+        }
+
+        ApplyTags(_selected.Entry.Tags.Concat(new[] { tag }));
+        DetailTagInput.Text = string.Empty;
+    }
+
+    private void OnRemoveTag(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string tag } && _selected is not null)
+        {
+            ApplyTags(_selected.Entry.Tags.Where(item =>
+                !string.Equals(item, tag, StringComparison.OrdinalIgnoreCase)));
+        }
+    }
+
+    private void ApplyTags(IEnumerable<string> tags)
+    {
+        if (_selected is null)
+        {
+            return;
+        }
+
+        var normalized = HistoryEntry.NormalizeTags(tags);
+        _repository.SetTags(_selected.Entry.Id, normalized);
+        _selected.ApplyTags(normalized);
+        RefreshTagChips();
+        StatusText.Text = _localizer["historyTagsSaved"];
     }
 
     private void CloseDrawer()
     {
         DetailDrawer.IsVisible = false;
         DetailImage.Source = null;
+        DetailTagChips.Children.Clear();
+        DetailTagInput.Text = string.Empty;
         _selected = null;
     }
 
@@ -419,6 +529,11 @@ public partial class HistoryWindow : Window
                 break;
             case "Upload":
                 await UploadAsync(entry);
+                break;
+            case "Favorite":
+                _repository.SetFavorite(entry.Id, !entry.IsFavorite);
+                card.ApplyFavorite(!entry.IsFavorite);
+                StatusText.Text = _localizer["historyFavoriteSaved"];
                 break;
             case "Delete":
                 ShowDeleteModal(card);

@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SSC.Application.Abstractions;
+using SSC.Application.Hotkeys;
 using SSC.Application.Recording;
 using SSC.Application.Settings;
 using SSC.Domain.Recording;
@@ -17,6 +18,9 @@ using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
 using AppInfo = SSC.Application.AppInfo;
+#if SSC_WINDOWS
+using SSC.Platform.Windows;
+#endif
 
 namespace SSC.App;
 
@@ -93,9 +97,17 @@ public partial class App : Avalonia.Application
                 CaptureScroll,
                 StartRecording,
                 StartFullScreenRecording,
+                StartGif,
                 ShowHistory,
+                PickColor,
                 Quit);
-            _trayMenu = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, trayActions);
+            _trayMenu = TrayIconFactory.Create(
+                this,
+                LoadWindowIcon(),
+                localizer,
+                trayActions,
+                settings.CaptureDelaySeconds,
+                settings.Hotkeys);
         }
         catch (Exception exception)
         {
@@ -103,7 +115,26 @@ public partial class App : Avalonia.Application
         }
 
         localizer.LanguageChanged += OnLanguageChanged;
+        settingsService.Changed += OnSettingsChanged;
         desktop.Exit += (_, _) => Cleanup();
+
+        var hotkeyRouter = _services.GetRequiredService<HotkeyRouter>();
+        hotkeyRouter.Handler = HandleHotkeyAction;
+        var hotkeyResult = _services.GetRequiredService<HotkeyManager>().Apply(settings.Hotkeys);
+        if (!hotkeyResult.Success)
+        {
+            Log.Warning(
+                "Some global hotkeys could not be registered. invalid={Invalid} failures={Failures}",
+                string.Join(",", hotkeyResult.InvalidActionKeys),
+                string.Join(",", hotkeyResult.Failures.Select(failure => $"{failure.ActionKey}:{failure.Error}")));
+        }
+
+#if SSC_WINDOWS
+        if (settings.LaunchAtLogin)
+        {
+            WindowsAutoStartService.EnsureRegistered();
+        }
+#endif
 
         var arguments = Environment.GetCommandLineArgs();
         var selfTest = arguments.Contains("--capture-self-test", StringComparer.OrdinalIgnoreCase);
@@ -252,7 +283,24 @@ public partial class App : Avalonia.Application
             return;
         }
 
-        TrayIconFactory.Update(_trayMenu, _services.GetRequiredService<ILocalizer>());
+        TrayIconFactory.Update(
+            _trayMenu,
+            _services.GetRequiredService<ILocalizer>(),
+            _services.GetRequiredService<SettingsService>().Current.CaptureDelaySeconds);
+    }
+
+    private void OnSettingsChanged(object? sender, AppSettings settings)
+    {
+        if (_trayMenu is null || _services is null)
+        {
+            return;
+        }
+
+        TrayIconFactory.Update(
+            _trayMenu,
+            _services.GetRequiredService<ILocalizer>(),
+            settings.CaptureDelaySeconds);
+        _trayMenu.ApplyGestures(settings.Hotkeys);
     }
 
     private void ShowMainWindow()
@@ -290,7 +338,9 @@ public partial class App : Avalonia.Application
         await RunCaptureAsync(coordinator => coordinator.CaptureFullScreenAsync());
 
     private async void CaptureDelayed() =>
-        await RunCaptureAsync(coordinator => coordinator.CaptureDelayedAsync(TimeSpan.FromSeconds(3)));
+        await RunCaptureAsync(coordinator => coordinator.CaptureDelayedAsync(
+            TimeSpan.FromSeconds(
+                _services?.GetRequiredService<SettingsService>().Current.CaptureDelaySeconds ?? 3)));
 
     private async void CaptureWindow() =>
         await RunCaptureAsync(coordinator => coordinator.CaptureWindowSelectionAsync());
@@ -303,6 +353,104 @@ public partial class App : Avalonia.Application
 
     private async void StartFullScreenRecording() =>
         await RunRecordingAsync(coordinator => coordinator.StartFullScreenRecordingAsync());
+
+    private void HandleHotkeyAction(string actionKey)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            switch (actionKey)
+            {
+                case "captureRegion":
+                    CaptureRegion();
+                    break;
+                case "captureFull":
+                    CaptureFull();
+                    break;
+                case "captureWindow":
+                    CaptureWindow();
+                    break;
+                case "captureDelay":
+                    CaptureDelayed();
+                    break;
+                case "record":
+                    StartRecording();
+                    break;
+                case "recordGif":
+                    StartGif();
+                    break;
+                case "history":
+                    ShowHistory();
+                    break;
+                case "colorPicker":
+                    PickColor();
+                    break;
+                case "ocr":
+                    _services?.GetRequiredService<MainWindowViewModel>().OcrLatestCommand.Execute(null);
+                    break;
+                default:
+                    Log.Information("Hotkey action {Action} has no handler yet.", actionKey);
+                    break;
+            }
+        });
+    }
+
+    private void StartGif() => _ = StartGifAsync();
+
+    private async Task StartGifAsync()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        var viewModel = _services.GetRequiredService<MainWindowViewModel>();
+        try
+        {
+            var outcome = await _services.GetRequiredService<GifRecordingCoordinator>().StartAsync();
+            viewModel.ShowStatus(outcome.Message);
+            Log.Information("GIF recording success={Success} path={Path}", outcome.Success, outcome.FilePath);
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "GIF recording failed.");
+            viewModel.ShowStatus(exception.Message);
+        }
+    }
+
+    private void PickColor() => _ = PickColorAsync();
+
+    private async Task PickColorAsync()
+    {
+        if (_services is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var coordinator = _services.GetRequiredService<SSC.UI.ColorPicker.ColorPickerCoordinator>();
+            var hex = await coordinator.PickAsync();
+            if (string.IsNullOrWhiteSpace(hex))
+            {
+                return;
+            }
+
+            if (_mainWindow?.Clipboard is { } clipboard)
+            {
+                var transfer = new Avalonia.Input.DataTransfer();
+                transfer.Add(Avalonia.Input.DataTransferItem.CreateText(hex));
+                await clipboard.SetDataAsync(transfer);
+            }
+
+            var localizer = _services.GetRequiredService<ILocalizer>();
+            _services.GetRequiredService<MainWindowViewModel>().ShowStatus(
+                string.Format(localizer["colorPickerCopied"], hex));
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "Color picker failed.");
+        }
+    }
 
     private async Task RunRecordingAsync(Func<RecordingCoordinator, Task<RecordingOutcome>> action)
     {

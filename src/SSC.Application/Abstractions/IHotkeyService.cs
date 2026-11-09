@@ -1,8 +1,10 @@
+using SSC.Application.Hotkeys;
+
 namespace SSC.Application.Abstractions;
 
-public interface IHotkeyService
+public interface IHotkeyService : IDisposable
 {
-    bool Register(string id, string gesture, Action callback);
+    HotkeyRegistrationResult Register(string id, HotkeyGesture gesture, Action callback);
 
     bool Unregister(string id);
 

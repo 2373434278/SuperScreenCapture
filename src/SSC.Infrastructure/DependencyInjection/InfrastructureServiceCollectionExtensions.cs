@@ -6,6 +6,8 @@ using SSC.Application.Events;
 using SSC.Application.Ocr;
 using SSC.Application.Scroll;
 using SSC.Application.Settings;
+using SSC.Application.Storage;
+using SSC.Application.Updates;
 using SSC.Application.Upload;
 using SSC.Infrastructure.Imaging;
 using SSC.Infrastructure.Localization;
@@ -49,6 +51,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<UploadPipeline>();
         services.AddSingleton<CaptureFileNamer>();
         services.AddSingleton<ScreenshotService>();
+        services.AddSingleton<IStorageMaintenance, FileSystemStorageMaintenance>();
 
         return services;
     }

@@ -14,6 +14,24 @@ public interface IHistoryRepository
 
     void Delete(Guid id);
 
+    void SetFavorite(Guid id, bool isFavorite)
+    {
+        var entry = Get(id);
+        if (entry is not null)
+        {
+            Update(entry with { IsFavorite = isFavorite });
+        }
+    }
+
+    void SetTags(Guid id, IEnumerable<string> tags)
+    {
+        var entry = Get(id);
+        if (entry is not null)
+        {
+            Update(entry with { Tags = HistoryEntry.NormalizeTags(tags) });
+        }
+    }
+
     int Count();
 
     IReadOnlyList<HistoryEntry> Query(HistoryQuery query)
@@ -22,6 +40,7 @@ public interface IHistoryRepository
         var entries = List(10_000, 0)
             .Where(entry => normalized.Kind is null || entry.Kind == normalized.Kind)
             .Where(entry => normalized.Since is null || entry.CreatedAt >= normalized.Since)
+            .Where(entry => normalized.Favorite is null || entry.IsFavorite == normalized.Favorite)
             .Where(entry => normalized.Search is null ||
                             entry.Title.Contains(normalized.Search, StringComparison.OrdinalIgnoreCase) ||
                             entry.OcrText.Contains(normalized.Search, StringComparison.OrdinalIgnoreCase) ||

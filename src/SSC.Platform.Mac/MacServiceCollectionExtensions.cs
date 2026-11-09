@@ -19,7 +19,7 @@ public static class MacServiceCollectionExtensions
             Camera: false,
             SystemAudio: false,
             Ocr: false,
-            GlobalHotkeys: false));
+            GlobalHotkeys: true));
         services.AddSingleton<IScreenCaptureService, MacScreenCaptureService>();
         services.AddSingleton<IPermissionService, MacPermissionService>();
         services.AddSingleton<IHotkeyService, MacHotkeyService>();

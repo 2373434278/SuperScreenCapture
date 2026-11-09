@@ -1,14 +1,19 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SSC.Application;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
+using SSC.Application.Hotkeys;
 using SSC.Application.Settings;
+using SSC.Application.Storage;
+using SSC.Application.Updates;
 using SSC.Application.Upload;
 using SSC.Domain.Capture;
 using SSC.Domain.History;
@@ -33,6 +38,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly SettingsService _settingsService;
     private readonly ILocalizer _localizer;
     private readonly IAutoStartService _autoStart;
+    private readonly HotkeyManager? _hotkeys;
+    private readonly IUpdateChecker? _updates;
+    private readonly IStorageMaintenance? _storage;
     private readonly PlatformDescriptor _platform;
     private readonly CaptureCoordinator? _captureCoordinator;
     private readonly RecordingCoordinator? _recordingCoordinator;
@@ -48,6 +56,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private AppSettings _draft;
     private string _activeTab = "general";
     private bool _disposed;
+    private AutoStartState _autoStartState = AutoStartState.Disabled;
+    private bool _isCheckingUpdates;
+    private bool _hasUpdate;
+    private string? _latestReleaseUrl;
+    private string? _updateStatusKey;
+    private string? _updateStatusArgument;
+    private StorageUsage? _storageUsage;
+    private bool _isCleanupArmed;
+    private bool _isClearArmed;
+    private DispatcherTimer? _storageArmTimer;
 
     /// <summary>由依赖注入构造设置视图模型。</summary>
     public MainWindowViewModel(
@@ -65,11 +83,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IClipboardService? clipboard = null,
         IOcrService? ocr = null,
         UploadPipeline? uploads = null,
-        IImageEncoder? imageEncoder = null)
+        IImageEncoder? imageEncoder = null,
+        HotkeyManager? hotkeys = null,
+        IUpdateChecker? updates = null,
+        IStorageMaintenance? storage = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
         _autoStart = autoStart ?? throw new ArgumentNullException(nameof(autoStart));
+        _hotkeys = hotkeys;
+        _updates = updates;
+        _storage = storage;
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _captureCoordinator = captureCoordinator;
         _recordingCoordinator = recordingCoordinator;
@@ -84,6 +108,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _imageEncoder = imageEncoder;
 
         _draft = _settingsService.Current;
+        var autoStartStatus = _autoStart.GetStatus();
+        _autoStartState = autoStartStatus.State;
+        _draft.LaunchAtLogin = autoStartStatus.State is AutoStartState.Enabled or AutoStartState.RequiresApproval;
         _localizer.SetLanguage(_draft.Language);
         _localizer.LanguageChanged += OnLanguageChanged;
         ApplyTheme(_draft.Theme);
@@ -265,11 +292,180 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>
-    /// 自动保存目前恒为开启：截图必须先落盘进入历史记录，才能继续标注。
-    /// 因此原型中的开关在真实界面里以只读状态展示。
-    /// </summary>
-    public bool AutoSave => true;
+    /// <summary>延时截图可选秒数，下拉框按索引绑定。</summary>
+    public static int[] CaptureDelayOptions { get; } = { 1, 3, 5, 10 };
+
+    public int CaptureDelaySeconds
+    {
+        get => _draft.CaptureDelaySeconds;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 30);
+            if (_draft.CaptureDelaySeconds == clamped)
+            {
+                return;
+            }
+
+            _draft.CaptureDelaySeconds = clamped;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CaptureDelayIndex));
+        }
+    }
+
+    public int CaptureDelayIndex
+    {
+        get
+        {
+            var index = Array.IndexOf(CaptureDelayOptions, _draft.CaptureDelaySeconds);
+            return index >= 0 ? index : 1;
+        }
+        set
+        {
+            if (value >= 0 && value < CaptureDelayOptions.Length)
+            {
+                CaptureDelaySeconds = CaptureDelayOptions[value];
+            }
+        }
+    }
+
+    public bool IsWindowsHost => _platform.Kind == PlatformKind.Windows;
+
+    public bool CanLaunchAtLogin => _autoStartState != AutoStartState.Unavailable;
+
+    public string? AutoStartStatusText => _autoStartState switch
+    {
+        AutoStartState.RequiresApproval => L["autoStartNeedsApproval"],
+        AutoStartState.Unavailable => L["autoStartUnavailable"],
+        _ => null
+    };
+
+    public bool HasAutoStartStatus => AutoStartStatusText is not null;
+
+    public bool IsStableChannel => _draft.UpdateChannel == "stable";
+
+    public bool IsPreviewChannel => _draft.UpdateChannel == "preview";
+
+    public int UpdateChannelIndex
+    {
+        get => IsPreviewChannel ? 1 : 0;
+        set
+        {
+            var channel = value == 1 ? "preview" : "stable";
+            if (_draft.UpdateChannel == channel)
+            {
+                return;
+            }
+
+            _draft.UpdateChannel = channel;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsStableChannel));
+            OnPropertyChanged(nameof(IsPreviewChannel));
+        }
+    }
+
+    public bool IsCheckingUpdates
+    {
+        get => _isCheckingUpdates;
+        private set
+        {
+            if (_isCheckingUpdates == value)
+            {
+                return;
+            }
+
+            _isCheckingUpdates = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool HasUpdate
+    {
+        get => _hasUpdate;
+        private set
+        {
+            if (_hasUpdate == value)
+            {
+                return;
+            }
+
+            _hasUpdate = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string? UpdateStatusText => _updateStatusKey is null
+        ? null
+        : _updateStatusArgument is null
+            ? L[_updateStatusKey]
+            : string.Format(CultureInfo.CurrentCulture, L[_updateStatusKey], _updateStatusArgument);
+
+    // ---------------------------------------------------------------- 存储
+
+    public static int[] RetentionOptions { get; } = { 0, 7, 30, 90 };
+
+    public string StorageSummaryText => _storageUsage is null
+        ? L["storageCalculating"]
+        : string.Format(
+            CultureInfo.CurrentCulture,
+            L["storageSummary"],
+            FormatBytes(_storageUsage.TotalBytes),
+            _storageUsage.EntryCount);
+
+    public string StorageDetailText => _storageUsage is null
+        ? string.Empty
+        : string.Format(
+            CultureInfo.CurrentCulture,
+            L["storageBreakdown"],
+            FormatBytes(_storageUsage.CaptureBytes),
+            FormatBytes(_storageUsage.DatabaseBytes),
+            FormatBytes(_storageUsage.BlobBytes + _storageUsage.LogBytes),
+            _storageUsage.FavoriteCount);
+
+    public int RetentionIndex
+    {
+        get
+        {
+            var index = Array.IndexOf(RetentionOptions, _draft.HistoryRetentionDays);
+            return index >= 0 ? index : 0;
+        }
+        set
+        {
+            if (value < 0 || value >= RetentionOptions.Length)
+            {
+                return;
+            }
+
+            var days = RetentionOptions[value];
+            if (_draft.HistoryRetentionDays == days)
+            {
+                return;
+            }
+
+            _draft.HistoryRetentionDays = days;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool KeepFavoritesOnCleanup
+    {
+        get => _keepFavoritesOnCleanup;
+        set
+        {
+            if (_keepFavoritesOnCleanup == value)
+            {
+                return;
+            }
+
+            _keepFavoritesOnCleanup = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string CleanupButtonText => _isCleanupArmed ? L["storageCleanupConfirm"] : L["storageCleanup"];
+
+    public string ClearButtonText => _isClearArmed ? L["storageClearConfirm"] : L["storageClear"];
+
+    private bool _keepFavoritesOnCleanup = true;
 
     public bool OpenEditor
     {
@@ -282,6 +478,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
 
             _draft.OpenEditor = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool ShowQuickAccess
+    {
+        get => _draft.ShowQuickAccess;
+        set
+        {
+            if (_draft.ShowQuickAccess == value)
+            {
+                return;
+            }
+
+            _draft.ShowQuickAccess = value;
             OnPropertyChanged();
         }
     }
@@ -631,6 +842,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         _activeTab = tab;
         NotifyTabProperties();
+        if (tab == "output")
+        {
+            _ = RefreshStorageAsync();
+        }
     }
 
     [RelayCommand]
@@ -876,8 +1091,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 校验快捷键、持久化草稿并应用系统级副作用（开机自启）。
-    /// 若检测到快捷键冲突，则中止保存并把错误写回对应行。
+    /// 校验快捷键、注册到系统、持久化草稿并应用开机自启。
+    /// 任一环节失败都会把原因写回对应行并中止保存，避免"显示已保存但实际不生效"。
     /// </summary>
     [RelayCommand]
     private void SaveSettings()
@@ -901,22 +1116,243 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var apply = _hotkeys?.Apply(gestures);
+        if (apply is { Success: false })
+        {
+            MarkHotkeyFailures(apply);
+            StatusMessage = L["statusConflicts"];
+            return;
+        }
+
         try
         {
             _settingsService.Save(_draft);
-            _autoStart.SetEnabled(_draft.LaunchAtLogin);
-            StatusMessage = L["statusSaved"];
         }
         catch (SettingsValidationException exception)
         {
             MarkConflicts(exception.Conflicts);
             StatusMessage = L["statusConflicts"];
+            return;
+        }
+
+        var autoStartResult = _autoStart.SetEnabled(_draft.LaunchAtLogin);
+        _autoStartState = autoStartResult.State;
+        OnPropertyChanged(nameof(CanLaunchAtLogin));
+        OnPropertyChanged(nameof(AutoStartStatusText));
+
+        if (!autoStartResult.Success)
+        {
+            if (_autoStartState == AutoStartState.Unavailable)
+            {
+                _draft.LaunchAtLogin = false;
+                OnPropertyChanged(nameof(LaunchAtLogin));
+            }
+
+            StatusMessage = string.IsNullOrWhiteSpace(autoStartResult.Error)
+                ? L["autoStartFailed"]
+                : $"{L["autoStartFailed"]}: {autoStartResult.Error}";
+            return;
+        }
+
+        StatusMessage = L["statusSaved"];
+    }
+
+    [RelayCommand]
+    private async Task CheckUpdatesAsync()
+    {
+        if (_isCheckingUpdates)
+        {
+            return;
+        }
+
+        if (_updates is null)
+        {
+            SetUpdateStatus("aboutUpToDate");
+            return;
+        }
+
+        IsCheckingUpdates = true;
+        SetUpdateStatus("updateChecking");
+        try
+        {
+            var result = await _updates
+                .CheckAsync(_draft.UpdateChannel, force: true)
+                .ConfigureAwait(true);
+
+            HasUpdate = result.State == UpdateCheckState.UpdateAvailable;
+            _latestReleaseUrl = result.ReleaseUrl;
+            OnPropertyChanged(nameof(HasUpdate));
+
+            switch (result.State)
+            {
+                case UpdateCheckState.UpdateAvailable:
+                    SetUpdateStatus("updateAvailable", result.Latest?.Display ?? string.Empty);
+                    break;
+                case UpdateCheckState.UpToDate:
+                    SetUpdateStatus("aboutUpToDate");
+                    break;
+                case UpdateCheckState.Unreachable:
+                    SetUpdateStatus("updateOffline");
+                    break;
+                default:
+                    SetUpdateStatus("updateFailed");
+                    break;
+            }
+
+            StatusMessage = UpdateStatusText ?? L["statusReady"];
+        }
+        finally
+        {
+            IsCheckingUpdates = false;
         }
     }
 
-    /// <summary>“检查更新”入口：当前版本直接提示已是最新。</summary>
     [RelayCommand]
-    private void CheckUpdates() => StatusMessage = L["aboutUpToDate"];
+    private void OpenReleasePage()
+    {
+        var url = string.IsNullOrWhiteSpace(_latestReleaseUrl)
+            ? "https://github.com/2373434278/SuperScreenCapture/releases"
+            : _latestReleaseUrl;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = $"{L["updateFailed"]}: {exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshStorageAsync()
+    {
+        if (_storage is null)
+        {
+            StatusMessage = L["storageUnavailable"];
+            return;
+        }
+
+        try
+        {
+            _storageUsage = await Task.Run(_storage.GetUsage).ConfigureAwait(true);
+            OnPropertyChanged(nameof(StorageSummaryText));
+            OnPropertyChanged(nameof(StorageDetailText));
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CleanupStorageAsync()
+    {
+        if (_storage is null)
+        {
+            StatusMessage = L["storageUnavailable"];
+            return;
+        }
+
+        if (!_isCleanupArmed)
+        {
+            ArmStorageAction(cleanup: true);
+            return;
+        }
+
+        if (_draft.HistoryRetentionDays <= 0)
+        {
+            StatusMessage = L["storageNoRetention"];
+            return;
+        }
+
+        ResetStorageArmed();
+        var cutoff = DateTimeOffset.Now.AddDays(-_draft.HistoryRetentionDays);
+        var result = await _storage
+            .DeleteOlderThanAsync(cutoff, _keepFavoritesOnCleanup)
+            .ConfigureAwait(true);
+        StatusMessage = result.DeletedEntries == 0
+            ? L["storageNothingToClean"]
+            : string.Format(CultureInfo.CurrentCulture, L["storageCleaned"], result.DeletedEntries, FormatBytes(result.ReclaimedBytes));
+        await RefreshStorageAsync().ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ClearStorageAsync()
+    {
+        if (_storage is null)
+        {
+            StatusMessage = L["storageUnavailable"];
+            return;
+        }
+
+        if (!_isClearArmed)
+        {
+            ArmStorageAction(cleanup: false);
+            return;
+        }
+
+        ResetStorageArmed();
+        var result = await _storage.ClearAsync(_keepFavoritesOnCleanup).ConfigureAwait(true);
+        StatusMessage = result.DeletedEntries == 0
+            ? L["storageNothingToClean"]
+            : string.Format(CultureInfo.CurrentCulture, L["storageCleaned"], result.DeletedEntries, FormatBytes(result.ReclaimedBytes));
+        await RefreshStorageAsync().ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private void OpenStorageFolder()
+    {
+        if (_storage is null)
+        {
+            StatusMessage = L["storageUnavailable"];
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(_storage.DataDirectory) { UseShellExecute = true });
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+        }
+    }
+
+    private void ArmStorageAction(bool cleanup)
+    {
+        _isCleanupArmed = cleanup;
+        _isClearArmed = !cleanup;
+        NotifyStorageButtons();
+
+        _storageArmTimer?.Stop();
+        _storageArmTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+        _storageArmTimer.Tick += (_, _) => ResetStorageArmed();
+        _storageArmTimer.Start();
+    }
+
+    private void ResetStorageArmed()
+    {
+        _storageArmTimer?.Stop();
+        _storageArmTimer = null;
+        _isCleanupArmed = false;
+        _isClearArmed = false;
+        NotifyStorageButtons();
+    }
+
+    private void NotifyStorageButtons()
+    {
+        OnPropertyChanged(nameof(CleanupButtonText));
+        OnPropertyChanged(nameof(ClearButtonText));
+    }
+
+    private static string FormatBytes(long bytes) => bytes switch
+    {
+        >= 1024L * 1024 * 1024 => $"{bytes / 1024d / 1024d / 1024d:0.0} GB",
+        >= 1024 * 1024 => $"{bytes / 1024d / 1024d:0.0} MB",
+        >= 1024 => $"{bytes / 1024d:0} KB",
+        _ => $"{bytes} B"
+    };
 
     public void ShowStatus(string message) => StatusMessage = message;
 
@@ -931,6 +1367,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         _disposed = true;
+        _storageArmTimer?.Stop();
         _localizer.LanguageChanged -= OnLanguageChanged;
     }
 
@@ -949,6 +1386,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HeaderSubtitle));
         OnPropertyChanged(nameof(RecordingCodec));
         OnPropertyChanged(nameof(FileNamePreview));
+        OnPropertyChanged(nameof(AutoStartStatusText));
+        OnPropertyChanged(nameof(UpdateStatusText));
+        OnPropertyChanged(nameof(StorageSummaryText));
+        OnPropertyChanged(nameof(StorageDetailText));
+        NotifyStorageButtons();
         StatusMessage = L["statusReady"];
     }
 
@@ -967,7 +1409,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 action.Key,
                 action.LabelKey,
                 L[action.LabelKey],
-                gesture));
+                gesture,
+                L["hotkeyPressPrompt"]));
         }
     }
 
@@ -996,6 +1439,41 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     L[firstAction.LabelKey]);
             }
         }
+    }
+
+    private void MarkHotkeyFailures(HotkeyApplyResult result)
+    {
+        foreach (var actionKey in result.InvalidActionKeys)
+        {
+            var row = Hotkeys.FirstOrDefault(item => item.ActionKey == actionKey);
+            if (row is not null)
+            {
+                row.ErrorMessage = L["hotkeyInvalid"];
+            }
+        }
+
+        foreach (var failure in result.Failures)
+        {
+            var row = Hotkeys.FirstOrDefault(item => item.ActionKey == failure.ActionKey);
+            if (row is null)
+            {
+                continue;
+            }
+
+            row.ErrorMessage = failure.Error switch
+            {
+                HotkeyRegistrationError.AlreadyInUse => L["hotkeyInUse"],
+                HotkeyRegistrationError.Unsupported => L["hotkeyUnavailable"],
+                _ => string.IsNullOrWhiteSpace(failure.Detail) ? L["hotkeyUnavailable"] : failure.Detail
+            };
+        }
+    }
+
+    private void SetUpdateStatus(string? key, string? argument = null)
+    {
+        _updateStatusKey = key;
+        _updateStatusArgument = argument;
+        OnPropertyChanged(nameof(UpdateStatusText));
     }
 
     private bool IsProviderSelected(string provider) =>

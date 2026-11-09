@@ -15,7 +15,10 @@ public static class HotkeyCatalog
         new HotkeyAction("captureRegion", "hotkeyCaptureRegion", "⌘⇧2", "Ctrl+Shift+2"),
         new HotkeyAction("captureFull", "hotkeyCaptureFull", "⌘⇧3", "Ctrl+Shift+3"),
         new HotkeyAction("captureWindow", "hotkeyCaptureWindow", "⌘⇧4", "Ctrl+Shift+4"),
+        new HotkeyAction("captureDelay", "hotkeyCaptureDelay", "⌘⇧5", "Ctrl+Shift+5"),
         new HotkeyAction("record", "hotkeyRecord", "⌘⇧6", "Ctrl+Shift+6"),
+        new HotkeyAction("recordGif", "hotkeyRecordGif", "⌘⇧G", "Ctrl+Shift+G"),
+        new HotkeyAction("colorPicker", "hotkeyColorPicker", "⌘⇧P", "Ctrl+Shift+P"),
         new HotkeyAction("history", "hotkeyHistory", "⌘⇧H", "Ctrl+Shift+H"),
         new HotkeyAction("ocr", "hotkeyOcr", "⌘⇧O", "Ctrl+Shift+O")
     };

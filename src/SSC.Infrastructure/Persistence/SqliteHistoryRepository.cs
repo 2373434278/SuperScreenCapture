@@ -24,7 +24,7 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text
+            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text, is_favorite
             FROM history_entries
             ORDER BY created_at DESC
             LIMIT $limit OFFSET $offset;
@@ -51,13 +51,13 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
 
         command.CommandText = useMatch
             ? """
-              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text
+              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text, e.is_favorite
               FROM history_fts f
               JOIN history_entries e ON e.id = f.id
               WHERE history_fts MATCH $match
               """
             : """
-              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text
+              SELECT e.id, e.kind, e.title, e.file_path, e.created_at, e.width, e.height, e.duration_ms, e.tags_json, e.ocr_text, e.is_favorite
               FROM history_entries e
               WHERE 1 = 1
               """;
@@ -79,6 +79,12 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
             command.Parameters.AddWithValue(
                 "$since",
                 normalized.Since.Value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+        }
+
+        if (normalized.Favorite is not null)
+        {
+            command.CommandText += " AND e.is_favorite = $favorite";
+            command.Parameters.AddWithValue("$favorite", normalized.Favorite.Value ? 1 : 0);
         }
 
         command.CommandText += " ORDER BY e.created_at DESC LIMIT $limit OFFSET $offset;";
@@ -130,6 +136,12 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
                 normalized.Since.Value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
         }
 
+        if (normalized.Favorite is not null)
+        {
+            command.CommandText += " AND e.is_favorite = $favorite";
+            command.Parameters.AddWithValue("$favorite", normalized.Favorite.Value ? 1 : 0);
+        }
+
         return Convert.ToInt32(command.ExecuteScalar(), CultureInfo.InvariantCulture);
     }
 
@@ -139,7 +151,7 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text
+            SELECT id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text, is_favorite
             FROM history_entries
             WHERE id = $id
             LIMIT 1;
@@ -159,9 +171,9 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         command.CommandText =
             """
             INSERT INTO history_entries
-                (id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text)
+                (id, kind, title, file_path, created_at, width, height, duration_ms, tags_json, ocr_text, is_favorite)
             VALUES
-                ($id, $kind, $title, $filePath, $createdAt, $width, $height, $durationMs, $tagsJson, $ocrText);
+                ($id, $kind, $title, $filePath, $createdAt, $width, $height, $durationMs, $tagsJson, $ocrText, $isFavorite);
             """;
         Bind(command, entry);
         command.ExecuteNonQuery();
@@ -184,7 +196,8 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
                 height = $height,
                 duration_ms = $durationMs,
                 tags_json = $tagsJson,
-                ocr_text = $ocrText
+                ocr_text = $ocrText,
+                is_favorite = $isFavorite
             WHERE id = $id;
             """;
         Bind(command, entry);
@@ -196,6 +209,26 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         using var connection = _factory.Create();
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM history_entries WHERE id = $id;";
+        command.Parameters.AddWithValue("$id", id.ToString("D"));
+        command.ExecuteNonQuery();
+    }
+
+    public void SetFavorite(Guid id, bool isFavorite)
+    {
+        using var connection = _factory.Create();
+        using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE history_entries SET is_favorite = $favorite WHERE id = $id;";
+        command.Parameters.AddWithValue("$favorite", isFavorite ? 1 : 0);
+        command.Parameters.AddWithValue("$id", id.ToString("D"));
+        command.ExecuteNonQuery();
+    }
+
+    public void SetTags(Guid id, IEnumerable<string> tags)
+    {
+        using var connection = _factory.Create();
+        using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE history_entries SET tags_json = $tagsJson WHERE id = $id;";
+        command.Parameters.AddWithValue("$tagsJson", JsonSerializer.Serialize(HistoryEntry.NormalizeTags(tags)));
         command.Parameters.AddWithValue("$id", id.ToString("D"));
         command.ExecuteNonQuery();
     }
@@ -222,6 +255,7 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
             entry.Duration is null ? DBNull.Value : (long)entry.Duration.Value.TotalMilliseconds);
         command.Parameters.AddWithValue("$tagsJson", JsonSerializer.Serialize(entry.Tags));
         command.Parameters.AddWithValue("$ocrText", entry.OcrText);
+        command.Parameters.AddWithValue("$isFavorite", entry.IsFavorite ? 1 : 0);
     }
 
     private static HistoryEntry Map(Microsoft.Data.Sqlite.SqliteDataReader reader) => new()
@@ -238,7 +272,8 @@ public sealed class SqliteHistoryRepository : IHistoryRepository
         Height = reader.GetInt32(6),
         Duration = reader.IsDBNull(7) ? null : TimeSpan.FromMilliseconds(reader.GetInt64(7)),
         Tags = JsonSerializer.Deserialize<string[]>(reader.GetString(8)) ?? Array.Empty<string>(),
-        OcrText = reader.GetString(9)
+        OcrText = reader.GetString(9),
+        IsFavorite = reader.GetInt32(10) != 0
     };
 
     private static string BuildMatch(string search)
