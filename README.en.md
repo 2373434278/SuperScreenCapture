@@ -165,6 +165,7 @@ native/mac/SSCMacKit (Swift, C ABI) ← SSC.Platform.Mac
 - Window recording on Windows uses WGC; unpackaged apps may show the system capture border. Full-screen recording prefers DXGI Desktop Duplication.
 - Windows OCR requires the corresponding language pack.
 - Scrolling capture targets manually scrolled, mostly static content. When matching fails the app reports it and keeps the collected frames.
+- GIF frame rate is limited by how fast frames can be captured; high rates or large regions may drop frames.
 - Unsigned builds require the manual Gatekeeper/SmartScreen steps above.
 
 ## License
