@@ -18,6 +18,20 @@ public sealed class SettingsService
     private readonly PlatformDescriptor _platform;
     private AppSettings _current;
 
+    /// <summary>
+    /// 旧版默认快捷键（热键尚未真正生效时写入的）在 macOS 上与系统截图冲突，
+    /// 升级时把"从未改过"的旧默认值替换成新的 ⌥⌘ 组合。
+    /// </summary>
+    private static readonly Dictionary<string, string[]> LegacyDefaultGestures =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["captureFull"] = new[] { "⌘⇧3", "Ctrl+Shift+3" },
+            ["captureWindow"] = new[] { "⌘⇧4", "Ctrl+Shift+4" },
+            ["record"] = new[] { "⌘⇧6", "Ctrl+Shift+6" },
+            ["history"] = new[] { "⌘⇧H", "Ctrl+Shift+H" },
+            ["ocr"] = new[] { "⌘⇧O", "Ctrl+Shift+O" }
+        };
+
     public SettingsService(
         ISettingsRepository repository,
         IAppPaths paths,
@@ -148,9 +162,16 @@ public sealed class SettingsService
             var gesture = settings.Hotkeys.TryGetValue(action.Key, out var stored)
                 && !string.IsNullOrWhiteSpace(stored)
                     ? stored.Trim()
-                    : HotkeyCatalog.GetDefaultGesture(action, _platform.Kind);
+                    : null;
 
-            hotkeys[action.Key] = gesture;
+            if (gesture is not null &&
+                LegacyDefaultGestures.TryGetValue(action.Key, out var legacy) &&
+                legacy.Contains(gesture, StringComparer.OrdinalIgnoreCase))
+            {
+                gesture = null;
+            }
+
+            hotkeys[action.Key] = gesture ?? HotkeyCatalog.GetDefaultGesture(action, _platform.Kind);
         }
 
         settings.Hotkeys = hotkeys;

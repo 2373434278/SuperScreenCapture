@@ -20,11 +20,14 @@ SuperScreenCapture is an Apache-2.0 open-source screenshot and screen recording 
 
 - Capture: full screen, region, window and delayed capture; frozen desktop overlay; multi-monitor and HiDPI; negative-origin virtual desktops; crosshair with live size HUD; magnifier and pixel color picker.
 - Annotate: rectangle, ellipse, arrow, pen, text, highlight, mosaic, blur, counter and crop; color, stroke width, font size and strength; undo/redo.
-- Output: copy to clipboard; save as PNG, JPG or WebP; pin to screen.
+- Output: copy to clipboard; save as PNG, JPG or WebP; pin to screen; quick-access thumbnail with copy/annotate/pin/upload/discard.
+- Color picker: full-screen sampling with HEX/RGB/HSL readouts, recent colors and click-to-copy.
 - Scrolling capture: manual scroll and frame stitching with safe fallback.
 - OCR: macOS Vision and Windows Media OCR; linked overlay/text selection with copy all, copy selection or copy by line.
 - Recording: region or full screen, MP4 / H.264 / AAC; microphone mix; pause and resume; camera picture-in-picture (position, size, mirror, corner radius); the control bar stays out of frame.
-- History: SQLite + FTS5 full-text search across titles, tags and OCR text; type/time filters; grid and list views; copy, edit, pin, upload and delete.
+- GIF: region recording to animated GIF89a with configurable frame rate, duration and size cap.
+- History: SQLite + FTS5 full-text search across titles, tags and OCR text; type/time filters; grid and list views; favorites, tag editing, copy, edit, pin, upload and delete.
+- Storage: inspect capture/database/cache usage, clean up old items and keep favorites.
 - Upload: Imgur, Amazon S3 and custom HTTP; disabled by default; retry, cancel, and copy/open/delete remote links.
 - System integration: global hotkeys, tray menu, launch at login, close to tray and single instance.
 - Permissions: guided macOS screen recording, microphone and camera consent; no extra prompts on Windows.
@@ -63,11 +66,16 @@ The app lives in the tray. Default hotkeys:
 | Action | macOS | Windows |
 | --- | --- | --- |
 | Region capture | ⌘⇧2 | Ctrl+Shift+2 |
-| Full-screen capture | ⌘⇧3 | Ctrl+Shift+3 |
-| Window capture | ⌘⇧4 | Ctrl+Shift+4 |
-| Start/stop recording | ⌘⇧6 | Ctrl+Shift+6 |
-| History | ⌘⇧H | Ctrl+Shift+H |
-| OCR | ⌘⇧O | Ctrl+Shift+O |
+| Full-screen capture | ⌥⌘1 | Ctrl+Alt+1 |
+| Window capture | ⌥⌘2 | Ctrl+Alt+2 |
+| Delayed capture | ⌥⌘3 | Ctrl+Alt+3 |
+| Start/stop recording | ⌥⌘4 | Ctrl+Alt+4 |
+| Record GIF | ⌥⌘G | Ctrl+Alt+G |
+| Color picker | ⌥⌘P | Ctrl+Alt+P |
+| History | ⌥⌘H | Ctrl+Alt+H |
+| OCR | ⌥⌘O | Ctrl+Alt+O |
+
+macOS reserves ⌘⇧3/4/5/6 for system screenshots, so the defaults use ⌥⌘ chords; legacy defaults migrate automatically on upgrade.
 
 Hotkeys can be recorded and changed in Settings → Hotkeys; conflicts are reported immediately.
 

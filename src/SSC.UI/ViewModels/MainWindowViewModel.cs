@@ -497,6 +497,59 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    public static int[] GifFpsOptions { get; } = { 5, 10, 15 };
+
+    public static int[] GifDurationOptions { get; } = { 5, 10, 20, 30, 60 };
+
+    public static int[] GifDimensionOptions { get; } = { 480, 640, 960, 0 };
+
+    public int GifFpsIndex
+    {
+        get => Math.Max(0, Array.IndexOf(GifFpsOptions, _draft.GifFps));
+        set
+        {
+            if (value < 0 || value >= GifFpsOptions.Length || _draft.GifFps == GifFpsOptions[value])
+            {
+                return;
+            }
+
+            _draft.GifFps = GifFpsOptions[value];
+            OnPropertyChanged();
+        }
+    }
+
+    public int GifDurationIndex
+    {
+        get => Math.Max(0, Array.IndexOf(GifDurationOptions, _draft.GifMaxDurationSeconds));
+        set
+        {
+            if (value < 0 || value >= GifDurationOptions.Length ||
+                _draft.GifMaxDurationSeconds == GifDurationOptions[value])
+            {
+                return;
+            }
+
+            _draft.GifMaxDurationSeconds = GifDurationOptions[value];
+            OnPropertyChanged();
+        }
+    }
+
+    public int GifDimensionIndex
+    {
+        get => Math.Max(0, Array.IndexOf(GifDimensionOptions, _draft.GifMaxDimension));
+        set
+        {
+            if (value < 0 || value >= GifDimensionOptions.Length ||
+                _draft.GifMaxDimension == GifDimensionOptions[value])
+            {
+                return;
+            }
+
+            _draft.GifMaxDimension = GifDimensionOptions[value];
+            OnPropertyChanged();
+        }
+    }
+
     // ---------------------------------------------------------------- 录制
 
     public int RecordingFps

@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:history="using:SSC.UI.History"
         x:Class="SSC.UI.History.HistoryWindow"
         Title="SuperScreenCapture"
         Width="1180"
@@ -303,7 +304,7 @@
                   </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
-                  <DataTemplate>
+                  <DataTemplate x:DataType="history:HistoryCardViewModel">
                     <Border Classes="hcard">
                       <Grid RowDefinitions="Auto,Auto">
                         <Border Height="141" Background="#0B0F16" ClipToBounds="True">
@@ -360,7 +361,7 @@
 
               <ListBox x:Name="ListResults" Classes="history" SelectionMode="Single" IsVisible="False" ItemContainerTheme="{StaticResource HistoryItemTheme}">
                 <ListBox.ItemTemplate>
-                  <DataTemplate>
+                  <DataTemplate x:DataType="history:HistoryCardViewModel">
                     <Border Classes="hrow">
                       <Grid ColumnDefinitions="118,*,Auto">
                         <Border Width="118" Height="74" CornerRadius="8" ClipToBounds="True" Background="#0B0F16">

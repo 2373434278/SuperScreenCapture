@@ -356,6 +356,7 @@ public partial class App : Avalonia.Application
 
     private void HandleHotkeyAction(string actionKey)
     {
+        Log.Information("Hotkey action {Action} invoked.", actionKey);
         Dispatcher.UIThread.Post(() =>
         {
             switch (actionKey)

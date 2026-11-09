@@ -404,5 +404,10 @@
   "gifStop": "停止",
   "gifSaved": "GIF 已保存：{0}",
   "gifFailed": "GIF 录制失败",
-  "gifTooShort": "录制时间太短，已丢弃"
+  "gifTooShort": "录制时间太短，已丢弃",
+  "gifSettings": "GIF 动图",
+  "gifFps": "帧率",
+  "gifMaxDuration": "最长时长",
+  "gifMaxWidth": "最大尺寸",
+  "gifOriginalSize": "原始尺寸"
 }

@@ -404,5 +404,10 @@
   "gifStop": "Stop",
   "gifSaved": "GIF saved: {0}",
   "gifFailed": "GIF recording failed",
-  "gifTooShort": "Recording was too short"
+  "gifTooShort": "Recording was too short",
+  "gifSettings": "GIF",
+  "gifFps": "Frame rate",
+  "gifMaxDuration": "Max duration",
+  "gifMaxWidth": "Max size",
+  "gifOriginalSize": "Original size"
 }

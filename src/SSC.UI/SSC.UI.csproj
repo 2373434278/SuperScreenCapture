@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>SSC.UI</RootNamespace>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../SSC.Application/SSC.Application.csproj" />

@@ -3,6 +3,7 @@
         xmlns:vm="using:SSC.UI.ViewModels"
         xmlns:controls="using:SSC.UI.Controls"
         x:Class="SSC.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
         Width="1320"
         Height="820"
@@ -745,23 +746,37 @@
                   </StackPanel>
 
                   <StackPanel Spacing="0">
-                    <TextBlock Text="{Binding L[recordingCameraSection]}" Classes="section" />
+                    <TextBlock Text="{Binding L[gifSettings]}" Classes="section" />
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
-                        <TextBlock Text="{Binding L[recordingCameraDevice]}" Classes="set-label" VerticalAlignment="Center" />
-                        <ComboBox Grid.Column="1" Width="220" Classes="input" SelectedIndex="0">
-                          <ComboBoxItem Content="{Binding L[recordingDefaultDevice]}" />
+                        <TextBlock Text="{Binding L[gifFps]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="{Binding GifFpsIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="5 fps" />
+                          <ComboBoxItem Content="10 fps" />
+                          <ComboBoxItem Content="15 fps" />
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                    <Border Classes="set-row" Padding="0">
+                      <Grid ColumnDefinitions="*,Auto" MinHeight="50">
+                        <TextBlock Text="{Binding L[gifMaxDuration]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="{Binding GifDurationIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="5 s" />
+                          <ComboBoxItem Content="10 s" />
+                          <ComboBoxItem Content="20 s" />
+                          <ComboBoxItem Content="30 s" />
+                          <ComboBoxItem Content="60 s" />
                         </ComboBox>
                       </Grid>
                     </Border>
                     <Border Classes="set-row" Padding="0" BorderThickness="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
-                        <TextBlock Text="{Binding L[recordingPipPosition]}" Classes="set-label" VerticalAlignment="Center" />
-                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="0">
-                          <ComboBoxItem Content="{Binding L[pipBottomRight]}" />
-                          <ComboBoxItem Content="{Binding L[pipBottomLeft]}" />
-                          <ComboBoxItem Content="{Binding L[pipTopRight]}" />
-                          <ComboBoxItem Content="{Binding L[pipTopLeft]}" />
+                        <TextBlock Text="{Binding L[gifMaxWidth]}" Classes="set-label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="150" Classes="input" SelectedIndex="{Binding GifDimensionIndex, Mode=TwoWay}">
+                          <ComboBoxItem Content="480 px" />
+                          <ComboBoxItem Content="640 px" />
+                          <ComboBoxItem Content="960 px" />
+                          <ComboBoxItem Content="{Binding L[gifOriginalSize]}" />
                         </ComboBox>
                       </Grid>
                     </Border>
