@@ -16,7 +16,8 @@ public func ssc_autostart_status() -> Int32 {
         case .requiresApproval:
             return 2
         case .notFound:
-            return 3
+            // 未注册时可能返回 notFound；仍允许随后 register()。
+            return 0
         @unknown default:
             return 3
         }
