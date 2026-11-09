@@ -6,11 +6,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SSC.Application;
 using SSC.Application.Abstractions;
+using SSC.Application.Capture;
+using SSC.Application.Editing;
 using SSC.Application.Settings;
+using SSC.Application.Upload;
+using SSC.Domain.Capture;
+using SSC.Domain.History;
 using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
+using SSC.UI.Editing;
 using SSC.UI.History;
+using SSC.UI.Ocr;
 using SSC.UI.Recording;
+using SSC.UI.Upload;
 
 namespace SSC.UI.ViewModels;
 
@@ -29,6 +37,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly CaptureCoordinator? _captureCoordinator;
     private readonly RecordingCoordinator? _recordingCoordinator;
     private readonly HistoryWindow? _historyWindow;
+    private readonly IHistoryRepository? _historyRepository;
+    private readonly ICaptureFrameLoader? _frameLoader;
+    private readonly IAnnotationRenderer? _annotationRenderer;
+    private readonly ScreenshotService? _screenshots;
+    private readonly IClipboardService? _clipboard;
+    private readonly IOcrService? _ocr;
+    private readonly UploadPipeline? _uploads;
+    private readonly IImageEncoder? _imageEncoder;
     private AppSettings _draft;
     private string _activeTab = "general";
     private bool _disposed;
@@ -41,7 +57,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         PlatformDescriptor platform,
         CaptureCoordinator? captureCoordinator = null,
         RecordingCoordinator? recordingCoordinator = null,
-        HistoryWindow? historyWindow = null)
+        HistoryWindow? historyWindow = null,
+        IHistoryRepository? historyRepository = null,
+        ICaptureFrameLoader? frameLoader = null,
+        IAnnotationRenderer? annotationRenderer = null,
+        ScreenshotService? screenshots = null,
+        IClipboardService? clipboard = null,
+        IOcrService? ocr = null,
+        UploadPipeline? uploads = null,
+        IImageEncoder? imageEncoder = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
@@ -50,6 +74,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _captureCoordinator = captureCoordinator;
         _recordingCoordinator = recordingCoordinator;
         _historyWindow = historyWindow;
+        _historyRepository = historyRepository;
+        _frameLoader = frameLoader;
+        _annotationRenderer = annotationRenderer;
+        _screenshots = screenshots;
+        _clipboard = clipboard;
+        _ocr = ocr;
+        _uploads = uploads;
+        _imageEncoder = imageEncoder;
 
         _draft = _settingsService.Current;
         _localizer.SetLanguage(_draft.Language);
@@ -94,9 +126,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsEnglish => L.Language == "en";
 
-    public bool IsMacOS => _platform.Kind is PlatformKind.MacOS or PlatformKind.Mock;
-
-    public bool IsWindows => _platform.Kind == PlatformKind.Windows;
+    /// <summary>按运行平台自动识别的系统名称，取代原型里的 macOS/Windows 手动切换。</summary>
+    public string PlatformLabel => _platform.Kind switch
+    {
+        PlatformKind.MacOS => "macOS",
+        PlatformKind.Windows => "Windows",
+        _ => _platform.DisplayName
+    };
 
     public bool IsDarkTheme => _draft.Theme == "dark";
 
@@ -704,6 +740,124 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _historyWindow.Show();
         _historyWindow.Activate();
     }
+
+    /// <summary>用最近一张截图打开标注编辑器。</summary>
+    [RelayCommand]
+    private async Task AnnotateLatestAsync()
+    {
+        var entry = FindLatestScreenshot();
+        if (entry is null)
+        {
+            StatusMessage = L["noRecentCapture"];
+            return;
+        }
+
+        if (_frameLoader is null || _annotationRenderer is null || _screenshots is null || _clipboard is null)
+        {
+            StatusMessage = L["statusUnavailable"];
+            return;
+        }
+
+        var frame = await _frameLoader.LoadAsync(entry.FilePath);
+        if (frame is null)
+        {
+            StatusMessage = L["historyLoadFailed"];
+            return;
+        }
+
+        var result = new ScreenshotResult(entry, Array.Empty<byte>(), entry.FilePath);
+        new AnnotationEditorWindow(
+            result,
+            frame,
+            L,
+            _annotationRenderer,
+            _screenshots,
+            _clipboard,
+            _ocr,
+            _uploads,
+            _settingsService,
+            _imageEncoder).Show();
+        StatusMessage = L["statusReady"];
+    }
+
+    /// <summary>对最近一张截图执行 OCR 并展示结果。</summary>
+    [RelayCommand]
+    private async Task OcrLatestAsync()
+    {
+        var entry = FindLatestScreenshot();
+        if (entry is null)
+        {
+            StatusMessage = L["noRecentCapture"];
+            return;
+        }
+
+        if (_frameLoader is null || _ocr is null)
+        {
+            StatusMessage = L["statusUnavailable"];
+            return;
+        }
+
+        var frame = await _frameLoader.LoadAsync(entry.FilePath);
+        if (frame is null)
+        {
+            StatusMessage = L["historyLoadFailed"];
+            return;
+        }
+
+        try
+        {
+            StatusMessage = L["ocrRecognizing"];
+            var result = await _ocr.RecognizeAsync(frame);
+            new OcrResultWindow(frame, result, _ocr, L).Show();
+            StatusMessage = L["statusReady"];
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = $"{L["ocrFailed"]}: {exception.Message}";
+        }
+    }
+
+    /// <summary>用最近一张截图打开上传对话框。</summary>
+    [RelayCommand]
+    private async Task UploadLatestAsync()
+    {
+        var entry = FindLatestScreenshot();
+        if (entry is null)
+        {
+            StatusMessage = L["noRecentCapture"];
+            return;
+        }
+
+        if (_frameLoader is null || _uploads is null || _imageEncoder is null)
+        {
+            StatusMessage = L["statusUnavailable"];
+            return;
+        }
+
+        var frame = await _frameLoader.LoadAsync(entry.FilePath);
+        if (frame is null)
+        {
+            StatusMessage = L["historyLoadFailed"];
+            return;
+        }
+
+        try
+        {
+            var bytes = await _imageEncoder.EncodeAsync(frame, "png", 95);
+            var fileName = $"{Path.GetFileNameWithoutExtension(entry.FilePath)}.png";
+            new UploadDialogWindow(bytes, fileName, _uploads, _settingsService, L).Show();
+            StatusMessage = L["statusReady"];
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = $"{L["uploadFailed"]}: {exception.Message}";
+        }
+    }
+
+    private HistoryEntry? FindLatestScreenshot() =>
+        _historyRepository
+            ?.Query(new HistoryQuery(Kind: CaptureKind.Screenshot, Limit: 1))
+            .FirstOrDefault();
 
     [RelayCommand]
     private void RestoreHotkeys()

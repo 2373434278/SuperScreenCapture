@@ -25,8 +25,7 @@ public partial class App : Avalonia.Application
     private ServiceProvider? _services;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private MainWindow? _mainWindow;
-    private TrayIcon? _trayIcon;
-    private TrayActions? _trayActions;
+    private TrayMenu? _trayMenu;
     private bool _isQuitting;
     private bool _allowClose;
 
@@ -85,7 +84,7 @@ public partial class App : Avalonia.Application
 
         try
         {
-            _trayActions = new TrayActions(
+            var trayActions = new TrayActions(
                 ShowMainWindow,
                 CaptureRegion,
                 CaptureFull,
@@ -95,9 +94,8 @@ public partial class App : Avalonia.Application
                 StartRecording,
                 StartFullScreenRecording,
                 ShowHistory,
-                NotifyComingSoon,
                 Quit);
-            _trayIcon = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, _trayActions);
+            _trayMenu = TrayIconFactory.Create(this, LoadWindowIcon(), localizer, trayActions);
         }
         catch (Exception exception)
         {
@@ -249,18 +247,12 @@ public partial class App : Avalonia.Application
 
     private void OnLanguageChanged(object? sender, string language)
     {
-        if (_trayIcon is null || _services is null)
+        if (_trayMenu is null || _services is null)
         {
             return;
         }
 
-        if (_trayActions is not null)
-        {
-            TrayIconFactory.Update(
-                _trayIcon,
-                _services.GetRequiredService<ILocalizer>(),
-                _trayActions);
-        }
+        TrayIconFactory.Update(_trayMenu, _services.GetRequiredService<ILocalizer>());
     }
 
     private void ShowMainWindow()
@@ -289,12 +281,6 @@ public partial class App : Avalonia.Application
         var window = _services.GetRequiredService<HistoryWindow>();
         window.Show();
         window.Activate();
-    }
-
-    private void NotifyComingSoon()
-    {
-        ShowMainWindow();
-        _services?.GetRequiredService<MainWindowViewModel>().ShowComingSoon();
     }
 
     private async void CaptureRegion() =>
@@ -381,8 +367,8 @@ public partial class App : Avalonia.Application
 
     private void Cleanup()
     {
-        _trayIcon?.Dispose();
-        _trayIcon = null;
+        _trayMenu?.Icon.Dispose();
+        _trayMenu = null;
 
         if (_services is not null)
         {

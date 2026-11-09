@@ -30,6 +30,9 @@ public partial class MainWindow : Window
 
     private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
 
+    /// <summary>顶栏“托盘”按钮：隐藏窗口，由菜单栏托盘图标继续驻留。</summary>
+    private void OnHideToTray(object? sender, RoutedEventArgs e) => Hide();
+
     /// <summary>打开系统目录选择器并写回“保存目录”。</summary>
     private async void OnBrowseSaveDirectory(object? sender, RoutedEventArgs e)
     {

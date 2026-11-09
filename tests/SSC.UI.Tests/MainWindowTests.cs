@@ -3,6 +3,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media.Imaging;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
+using SSC.Domain.History;
 using SSC.Infrastructure.Localization;
 using SSC.Platform.Abstractions;
 using SSC.Platform.Mock;
@@ -113,6 +114,61 @@ public sealed class MainWindowTests
         {
             frame!.Save(stream, new PngBitmapEncoderOptions());
         }
+    }
+
+    [AvaloniaFact]
+    public async Task AnnotateWithoutHistory_ShowsNoRecentCaptureHint()
+    {
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "15.0");
+        var settings = new SettingsService(new InMemorySettingsRepository(), new FakeAppPaths(), platform);
+        var localizer = new JsonLocalizer();
+        var viewModel = new MainWindowViewModel(
+            settings,
+            localizer,
+            new MockAutoStartService(),
+            platform,
+            historyRepository: new EmptyHistoryRepository());
+
+        Assert.Equal("macOS", viewModel.PlatformLabel);
+
+        await viewModel.AnnotateLatestCommand.ExecuteAsync(null);
+
+        Assert.Equal(localizer["noRecentCapture"], viewModel.StatusMessage);
+    }
+
+    [AvaloniaFact]
+    public void PlatformLabel_FollowsRunningOperatingSystem()
+    {
+        var platform = new PlatformDescriptor(PlatformKind.Windows, "Windows", "10.0.19041");
+        var settings = new SettingsService(new InMemorySettingsRepository(), new FakeAppPaths(), platform);
+        var viewModel = new MainWindowViewModel(
+            settings,
+            new JsonLocalizer(),
+            new MockAutoStartService(),
+            platform);
+
+        Assert.Equal("Windows", viewModel.PlatformLabel);
+    }
+
+    private sealed class EmptyHistoryRepository : IHistoryRepository
+    {
+        public IReadOnlyList<HistoryEntry> List(int limit = 100, int offset = 0) => Array.Empty<HistoryEntry>();
+
+        public HistoryEntry? Get(Guid id) => null;
+
+        public void Add(HistoryEntry entry)
+        {
+        }
+
+        public void Update(HistoryEntry entry)
+        {
+        }
+
+        public void Delete(Guid id)
+        {
+        }
+
+        public int Count() => 0;
     }
 
     private sealed class InMemorySettingsRepository : ISettingsRepository
