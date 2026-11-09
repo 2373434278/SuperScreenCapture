@@ -1,3 +1,4 @@
+using System.Text.Json;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Platform.Abstractions;
@@ -19,6 +20,37 @@ public sealed class SettingsServiceTests
         Assert.Equal("dark", service.Current.Theme);
         Assert.Equal("⌘⇧2", service.Current.Hotkeys["captureRegion"]);
         Assert.Equal("/tmp/ssc/screenshots", service.Current.SaveDirectory);
+    }
+
+    [Fact]
+    public void LegacyDefaultHotkeys_MigrateToNonReservedChords()
+    {
+        var repository = new FakeSettingsRepository();
+        var legacy = new AppSettings
+        {
+            SaveDirectory = "/tmp/ssc/screenshots",
+            Hotkeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["captureRegion"] = "⌘⇧2",
+                ["captureFull"] = "⌘⇧3",
+                ["captureWindow"] = "⌘⇧4",
+                ["record"] = "⌘⇧6",
+                ["history"] = "⌘⇧H",
+                ["ocr"] = "⌘⇧O"
+            }
+        };
+        repository.Write(
+            SettingsService.StorageKey,
+            JsonSerializer.Serialize(legacy, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+
+        var service = CreateService(repository);
+
+        Assert.Equal("⌘⇧2", service.Current.Hotkeys["captureRegion"]);
+        Assert.Equal("⌥⌘1", service.Current.Hotkeys["captureFull"]);
+        Assert.Equal("⌥⌘2", service.Current.Hotkeys["captureWindow"]);
+        Assert.Equal("⌥⌘4", service.Current.Hotkeys["record"]);
+        Assert.Equal("⌥⌘H", service.Current.Hotkeys["history"]);
+        Assert.Equal("⌥⌘O", service.Current.Hotkeys["ocr"]);
     }
 
     [Fact]
