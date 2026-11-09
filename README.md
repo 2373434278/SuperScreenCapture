@@ -125,8 +125,8 @@ Windows 打包：
 
 ```powershell
 dotnet publish src/SSC.App/SSC.App.csproj -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained true -o artifacts/win-x64
-./build/windows/package-portable.ps1 -PublishDir artifacts/win-x64 -OutputDir artifacts/packages -Rid win-x64 -Version 1.0.0
-./build/windows/package-velopack.ps1 -PublishDir artifacts/win-x64 -OutputDir artifacts/packages -Version 1.0.0
+./build/windows/package-portable.ps1 -PublishDir artifacts/win-x64 -OutputDir artifacts/packages -Rid win-x64 -Version 1.1.0
+./build/windows/package-velopack.ps1 -PublishDir artifacts/win-x64 -OutputDir artifacts/packages -Version 1.1.0
 ```
 
 ### 发布签名
