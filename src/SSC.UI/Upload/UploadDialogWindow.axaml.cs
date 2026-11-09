@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using SSC.UI.Motion;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
@@ -44,6 +45,7 @@ public partial class UploadDialogWindow : Window
         _upload = settings.Current.Upload.Clone();
 
         InitializeComponent();
+        WindowingMotion.FadeIn(this);
         _preview = TryCreatePreview(data);
         PreviewImage.Source = _preview;
         ApplyLocalization();

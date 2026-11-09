@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using SSC.UI.Motion;
 using SSC.UI.ViewModels;
 
 namespace SSC.UI.Views;
@@ -20,12 +21,34 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        WindowingMotion.FadeIn(this);
     }
+
+    private bool _tabFadeQueued;
 
     public MainWindow(MainWindowViewModel viewModel)
         : this()
     {
         DataContext = viewModel;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not ("IsGeneralTab" or "IsHotkeysTab" or "IsOutputTab" or
+            "IsRecordingTab" or "IsOcrTab" or "IsUploadTab" or "IsAboutTab") || _tabFadeQueued)
+        {
+            return;
+        }
+
+        _tabFadeQueued = true;
+        Avalonia.Threading.Dispatcher.UIThread.Post(
+            () =>
+            {
+                _tabFadeQueued = false;
+                WindowingMotion.FadeIn(TabHost);
+            },
+            Avalonia.Threading.DispatcherPriority.Background);
     }
 
     private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;

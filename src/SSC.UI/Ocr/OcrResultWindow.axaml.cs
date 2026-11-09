@@ -1,4 +1,5 @@
 using Avalonia;
+using SSC.UI.Motion;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using SSC.Application;
@@ -35,6 +36,7 @@ public partial class OcrResultWindow : Window
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
         InitializeComponent();
+        WindowingMotion.FadeIn(this);
         _canvas = new OcrOverlayControl(frame);
         CanvasHost.Width = Math.Max(1, frame.Width);
         CanvasHost.Height = Math.Max(1, frame.Height);

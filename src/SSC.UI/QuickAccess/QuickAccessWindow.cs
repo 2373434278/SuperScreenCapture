@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Domain.Capture;
+using SSC.UI.Motion;
 using SSC.UI.Services;
 using Path = Avalonia.Controls.Shapes.Path;
 
@@ -176,6 +177,7 @@ public sealed class QuickAccessWindow : Window
         root.Children.Add(close);
         Content = root;
 
+        WindowingMotion.FadeIn(this);
         Opened += (_, _) =>
         {
             WindowCaptureExclusion.Apply(this);

@@ -92,13 +92,13 @@
 
           <Button x:Name="RecognizeButton" Grid.Column="5" Classes="btn btn-ghost btn-sm" Margin="8,0,0,0">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" />
+              <Path Data="{StaticResource IcoOcr}" />
               <TextBlock x:Name="RecognizeText" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
 
           <Button x:Name="CloseButton" Grid.Column="6" Classes="icon-btn" Margin="6,0,0,0">
-            <Path Data="m5 5 14 14M19 5 5 19" />
+            <Path Data="{StaticResource IcoClose}" />
           </Button>
         </Grid>
       </Border>
@@ -121,13 +121,13 @@
               <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalAlignment="Center">
                 <Button x:Name="CopyAllButton" Classes="btn btn-ghost btn-sm">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                    <Path Data="{StaticResource IcoCopy}" />
                     <TextBlock x:Name="CopyAllText" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
                 <Button x:Name="CopySelectedButton" Grid.Column="1" Classes="btn btn-ghost btn-sm" Margin="7,0,0,0">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                    <Path Data="{StaticResource IcoCopy}" />
                     <TextBlock x:Name="CopySelectedText" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
@@ -148,7 +148,7 @@
                                  MinWidth="14" />
                       <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12.5" LineHeight="19" Foreground="{DynamicResource SscText}" TextWrapping="Wrap" />
                       <Button Grid.Column="2" Classes="line-copy" Tag="{Binding}" Click="OnCopyLine" VerticalAlignment="Top">
-                        <Path Data="M9 9h11v11H9zM15 5H6a2 2 0 0 0-2 2v9" />
+                        <Path Data="{StaticResource IcoCopy}" />
                       </Button>
                     </Grid>
                   </DataTemplate>
@@ -156,7 +156,7 @@
               </ListBox>
 
               <StackPanel x:Name="EmptyState" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" Margin="26" Background="{DynamicResource SscPanelBg}">
-                <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5"
+                <Path Data="{StaticResource IcoOcr}"
                       Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="34" Height="34" Stretch="Uniform" Opacity="0.5" HorizontalAlignment="Center" />
                 <TextBlock x:Name="EmptyTitle" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource SscTextMuted}" HorizontalAlignment="Center" />
                 <TextBlock x:Name="EmptyText" FontSize="11.5" Foreground="{DynamicResource SscTextSubtle}" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="260" />

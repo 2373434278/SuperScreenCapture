@@ -226,7 +226,7 @@
         <Grid ColumnDefinitions="Auto,Auto,*,Auto">
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
             <Border Width="28" Height="28" CornerRadius="9" Background="{DynamicResource SscBrandGradient}">
-              <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16 M12 4v6l5 3 M20 12l-5.5 3.2 M16 19l-3-5.5 M8 19l3-5.5 M4 12l5.5 3.2 M8 4l3 5.5"
+              <Path Data="{StaticResource IcoBrand}"
                     Stroke="White"
                     StrokeThickness="1.6"
                     StrokeLineCap="Round"
@@ -272,7 +272,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoRecord}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navRecord]}" />
@@ -282,7 +282,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoRefresh}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navLibrary]}" />
@@ -292,7 +292,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 9a3 3 0 1 1 0 6 3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoSettings}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navSettings]}" />
@@ -302,7 +302,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoOcr}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navOcr]}" />
@@ -312,7 +312,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoUpload}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navUpload]}" />
@@ -361,7 +361,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 9a3 3 0 1 1 0 6 3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoSettings}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navGeneral]}" VerticalAlignment="Center" />
@@ -381,7 +381,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M5 4h11l3 3v13H5zM8 4v6h8V4M8 20v-6h8v6" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoFile}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navOutput]}" VerticalAlignment="Center" />
@@ -391,7 +391,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoRecord}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navRecording]}" VerticalAlignment="Center" />
@@ -401,7 +401,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 9h8M8 12h8M8 15h5" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoOcr}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navOcr]}" VerticalAlignment="Center" />
@@ -411,7 +411,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoUpload}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navUpload]}" VerticalAlignment="Center" />
@@ -421,7 +421,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v6M12 8h.01" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoInfo}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navAbout]}" VerticalAlignment="Center" />
@@ -444,7 +444,7 @@
                         Command="{Binding SaveSettingsCommand}"
                         VerticalAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <Path Data="m4 12 5 5L20 6" />
+                    <Path Data="{StaticResource IcoCheck}" />
                     <TextBlock Text="{Binding L[saveSettings]}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
@@ -452,7 +452,7 @@
             </Border>
 
             <ScrollViewer Grid.Row="1" Padding="20,16,20,30">
-              <Panel>
+              <Panel x:Name="TabHost">
                 <!-- 通用页 -->
                 <StackPanel IsVisible="{Binding IsGeneralTab}" Spacing="24">
                   <StackPanel Spacing="0">
@@ -840,7 +840,7 @@
                 <StackPanel IsVisible="{Binding IsUploadTab}" Spacing="18">
                   <Border Background="{DynamicResource SscWarningSoft}" CornerRadius="9" Padding="12,10">
                     <Grid ColumnDefinitions="Auto,*">
-                      <Path Data="m12 3 7 3v5c0 4.4-2.8 8.2-7 10-4.2-1.8-7-5.6-7-10V6z"
+                      <Path Data="{StaticResource IcoShield}"
                             Stroke="{DynamicResource SscWarningText}"
                             StrokeThickness="1.7"
                             Width="15"
@@ -917,7 +917,7 @@
                           <Border Classes="select" Height="31">
                             <Grid ColumnDefinitions="*,Auto">
                               <TextBlock Text="{Binding L[uploadNever]}" FontSize="11.5" VerticalAlignment="Center" />
-                              <Path Grid.Column="1" Data="M6 9l6 6 6-6" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                              <Path Grid.Column="1" Data="{StaticResource IcoChevronDown}" Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.6" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
                             </Grid>
                           </Border>
                         </StackPanel>
@@ -961,7 +961,7 @@
                           Padding="16">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                       <Border Width="52" Height="52" CornerRadius="15" Background="{DynamicResource SscBrandGradient}">
-                        <Path Data="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16 M12 4v6l5 3 M20 12l-5.5 3.2 M16 19l-3-5.5 M8 19l3-5.5 M4 12l5.5 3.2 M8 4l3 5.5"
+                        <Path Data="{StaticResource IcoBrand}"
                               Stroke="White"
                               StrokeThickness="1.6"
                               Width="30"
@@ -983,7 +983,7 @@
                   <StackPanel Spacing="0">
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
-                        <Path Data="m12 3 7 3v5c0 4.4-2.8 8.2-7 10-4.2-1.8-7-5.6-7-10V6z"
+                        <Path Data="{StaticResource IcoShield}"
                               Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding L[aboutLicense]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="2" Text="{Binding AppLicense}" Classes="caption" Foreground="{DynamicResource SscAccent}" FontWeight="SemiBold" VerticalAlignment="Center" />
@@ -991,7 +991,7 @@
                     </Border>
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
-                        <Path Data="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.3 1.3M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.3-1.3"
+                        <Path Data="{StaticResource IcoLink}"
                               Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding L[aboutReadme]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
                         <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutView]}" Click="OnOpenReadme" VerticalAlignment="Center" />
@@ -999,7 +999,7 @@
                     </Border>
                     <Border Classes="set-row" Padding="0">
                       <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
-                        <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v6M12 8h.01"
+                        <Path Data="{StaticResource IcoInfo}"
                               Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding L[aboutThirdParty]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
                         <Button Grid.Column="2" Classes="link" Content="{Binding L[aboutView]}" Click="OnOpenThirdParty" VerticalAlignment="Center" />
@@ -1007,7 +1007,7 @@
                     </Border>
                     <Border Classes="set-row" Padding="0" BorderThickness="0">
                       <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="32">
-                        <Path Data="M3 12a9 9 0 1 0 3-6.7L3 8M3 4v4h4M12 7v5l3 2"
+                        <Path Data="{StaticResource IcoRefresh}"
                               Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1" Text="{Binding L[aboutCheckUpdate]}" Margin="7,0,0,0" Classes="field" VerticalAlignment="Center" />
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">

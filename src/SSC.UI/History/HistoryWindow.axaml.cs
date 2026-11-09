@@ -17,6 +17,7 @@ using SSC.Application.Upload;
 using SSC.Domain.Capture;
 using SSC.Domain.History;
 using SSC.UI.Editing;
+using SSC.UI.Motion;
 using SSC.UI.Ocr;
 using SSC.UI.Upload;
 
@@ -78,6 +79,7 @@ public partial class HistoryWindow : Window
         _encoder = encoder;
 
         InitializeComponent();
+        WindowingMotion.FadeIn(this);
         _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _searchTimer.Tick += (_, _) =>
         {

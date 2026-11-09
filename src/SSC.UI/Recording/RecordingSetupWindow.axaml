@@ -70,7 +70,7 @@
       <StackPanel HorizontalAlignment="Stretch" Spacing="0">
         <Border Width="54" Height="54" CornerRadius="27" Background="#29FF4757" BorderBrush="#4DFF4757" BorderThickness="1"
                 HorizontalAlignment="Center" Margin="0,0,0,12">
-          <Path Data="M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12"
+          <Path Data="{StaticResource IcoRecord}"
                 Stroke="#FF6B78"
                 StrokeThickness="1.8"
                 Width="24"

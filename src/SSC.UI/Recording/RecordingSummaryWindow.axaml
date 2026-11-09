@@ -70,7 +70,7 @@
     <Grid>
       <StackPanel HorizontalAlignment="Stretch" Spacing="0">
         <Border Width="52" Height="52" CornerRadius="26" Background="#1F17C964" HorizontalAlignment="Center" Margin="0,0,0,12">
-          <Path Data="m5 12 5 5L20 6"
+          <Path Data="{StaticResource IcoCheck}"
                 Stroke="{DynamicResource SscSuccess}"
                 StrokeThickness="2.4"
                 Width="24"

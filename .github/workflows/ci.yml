@@ -35,12 +35,23 @@ jobs:
       - name: Build native macOS library
         if: runner.os == 'macOS'
         run: bash build/mac/build-native.sh
+      - name: Verify native exports
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          nm -gU artifacts/native/osx/libSSCMacKit.dylib | grep -E 'ssc_hotkey_register|ssc_hotkey_unregister_all|ssc_autostart_status|ssc_autostart_set'
+          otool -L artifacts/native/osx/libSSCMacKit.dylib | grep -i carbon
       - name: Restore
         run: dotnet restore SuperScreenCapture.slnx
       - name: Build
         run: dotnet build SuperScreenCapture.slnx -c Release --no-restore
       - name: Test
         run: dotnet test SuperScreenCapture.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+      - name: Test Windows platform integration
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: dotnet test tests/SSC.Platform.Windows.Tests/SSC.Platform.Windows.Tests.csproj -c Release --logger "trx;LogFileName=windows-platform.trx"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

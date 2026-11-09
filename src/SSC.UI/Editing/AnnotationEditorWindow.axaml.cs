@@ -1,4 +1,5 @@
 using Avalonia;
+using SSC.UI.Motion;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -99,6 +100,7 @@ public partial class AnnotationEditorWindow : Window
         _retake = retake;
 
         InitializeComponent();
+        WindowingMotion.FadeIn(this);
 
         _session = new AnnotationEditorSession(frame.Width, frame.Height);
         _canvas = new AnnotationEditorCanvas(frame, _session, renderer);
@@ -139,6 +141,22 @@ public partial class AnnotationEditorWindow : Window
         var command = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
                       e.KeyModifiers.HasFlag(KeyModifiers.Control);
 
+        if (TextInputBox.IsVisible)
+        {
+            if (e.Key == Key.Escape)
+            {
+                HideTextInput();
+                e.Handled = true;
+            }
+
+            return;
+        }
+
+        if (FocusManager?.GetFocusedElement() is TextBox)
+        {
+            return;
+        }
+
         if (command && e.Key == Key.Z)
         {
             if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
@@ -168,23 +186,50 @@ public partial class AnnotationEditorWindow : Window
             return;
         }
 
-        if (e.Key == Key.Escape)
+        if (command && e.Key == Key.S)
         {
-            if (TextInputBox.IsVisible)
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
-                HideTextInput();
+                SaveButton.Flyout?.ShowAt(SaveButton);
             }
             else
             {
-                Close();
+                _ = SaveAsync();
             }
 
+            e.Handled = true;
+            return;
+        }
+
+        if (!command && !e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+        {
+            var toolIndex = e.Key switch
+            {
+                >= Key.D1 and <= Key.D9 => (int)(e.Key - Key.D1),
+                Key.D0 => 9,
+                Key.C => 10,
+                _ => -1
+            };
+
+            if (toolIndex >= 0 && toolIndex < ToolDefinitions.Length)
+            {
+                SelectTool(ToolDefinitions[toolIndex].Kind);
+                e.Handled = true;
+                return;
+            }
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            Close();
             e.Handled = true;
         }
     }
 
     private void BuildToolRail()
     {
+        string[] shortcuts = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "C" };
+        var index = 0;
         foreach (var (kind, labelKey, iconPath) in ToolDefinitions)
         {
             var icon = new Avalonia.Controls.Shapes.Path
@@ -196,10 +241,13 @@ public partial class AnnotationEditorWindow : Window
             var button = new Button { Content = icon };
             button.Classes.Add("tool");
             button.Click += (_, _) => SelectTool(kind);
-            ToolTip.SetTip(button, _localizer[labelKey]);
+            var label = $"{_localizer[labelKey]} ({shortcuts[index]})";
+            ToolTip.SetTip(button, label);
+            Avalonia.Automation.AutomationProperties.SetName(button, label);
             ToolRail.Children.Add(button);
             _toolButtons[kind] = button;
             _toolLabelKeys[kind] = labelKey;
+            index++;
         }
     }
 
