@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Styling;
+using Avalonia.Threading;
 
 namespace SSC.UI.Motion;
 
@@ -17,7 +18,13 @@ public static class WindowingMotion
         }
 
         window.Opacity = 0;
-        window.Opened += (_, _) => Animate(window, 0, 1, durationMs);
+        window.Opened += (_, _) =>
+        {
+            Animate(window, 0, 1, durationMs);
+            DispatcherTimer.RunOnce(
+                () => window.Opacity = 1,
+                TimeSpan.FromMilliseconds(durationMs + 250));
+        };
     }
 
     public static void FadeIn(Control control, int durationMs = 140)
@@ -29,6 +36,9 @@ public static class WindowingMotion
 
         control.Opacity = 0;
         Animate(control, 0, 1, durationMs);
+        DispatcherTimer.RunOnce(
+            () => control.Opacity = 1,
+            TimeSpan.FromMilliseconds(durationMs + 250));
     }
 
     private static void Animate(Animatable target, double from, double to, int durationMs)
