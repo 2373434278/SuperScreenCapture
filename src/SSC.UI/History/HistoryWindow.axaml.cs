@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -153,7 +154,11 @@ public partial class HistoryWindow : Window
         FavoriteFilter.Content = _localizer["historyFavorites"];
         DetailTagInput.PlaceholderText = _localizer["historyTagPlaceholder"];
         ToolTip.SetTip(GridViewButton, _localizer["historyGrid"]);
+        AutomationProperties.SetName(GridViewButton, _localizer["historyGrid"]);
         ToolTip.SetTip(ListViewButton, _localizer["historyList"]);
+        AutomationProperties.SetName(ListViewButton, _localizer["historyList"]);
+        AutomationProperties.SetName(CloseButton, _localizer["historyCancel"]);
+        AutomationProperties.SetName(DetailClose, _localizer["historyCancel"]);
 
         DetailSectionTitle.Text = _localizer["historyDetail"];
         DetailTypeLabel.Text = _localizer["historyMetaType"];
