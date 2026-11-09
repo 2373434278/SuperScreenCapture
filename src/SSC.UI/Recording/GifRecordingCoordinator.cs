@@ -62,6 +62,7 @@ public sealed class GifRecordingCoordinator
         var mainWindow = GetMainWindow();
         var wasVisible = mainWindow?.IsVisible == true;
         GifControlBarWindow? bar = null;
+        string? tempPath = null;
 
         try
         {
@@ -102,7 +103,7 @@ public sealed class GifRecordingCoordinator
             var first = selection.Frame.Crop(region);
             var (width, height) = GifEncoder.FitSize(first.Width, first.Height, settings.GifMaxDimension);
             var path = _namer.CreatePath(settings, CaptureKind.AnimatedImage, "gif");
-            var tempPath = path + ".part";
+            tempPath = path + ".part";
 
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             using var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
@@ -215,6 +216,11 @@ public sealed class GifRecordingCoordinator
         }
         catch (Exception exception)
         {
+            if (tempPath is not null)
+            {
+                TryDelete(tempPath);
+            }
+
             return new GifRecordingOutcome(false, $"{_localizer["gifFailed"]}: {exception.Message}");
         }
         finally

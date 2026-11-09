@@ -35,6 +35,7 @@ public sealed class QuickAccessWindow : Window
     private readonly TextBlock _title;
     private double _remaining;
     private bool _paused;
+    private Bitmap? _preview;
 
     public QuickAccessWindow(
         ScreenshotResult result,
@@ -212,14 +213,17 @@ public sealed class QuickAccessWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _timer.Stop();
+        _preview?.Dispose();
+        _preview = null;
         base.OnClosed(e);
     }
 
-    private static Control BuildPreview(ScreenshotResult result, CaptureFrame frame)
+    private Control BuildPreview(ScreenshotResult result, CaptureFrame frame)
     {
         try
         {
             var bitmap = new Bitmap(result.FilePath);
+            _preview = bitmap;
             return new Border
             {
                 Height = 140,
