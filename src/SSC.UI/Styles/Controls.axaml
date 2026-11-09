@@ -383,4 +383,26 @@
       </Transitions>
     </Setter>
   </Style>
+
+  <!-- 键盘焦点环：仅在键盘导航时显示，鼠标点击不出现。 -->
+  <Style Selector="Button:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="1.5"
+                CornerRadius="9"
+                Margin="-3" />
+      </Template>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="1.5"
+                CornerRadius="8"
+                Margin="-2" />
+      </Template>
+    </Setter>
+  </Style>
 </Styles>
