@@ -18,6 +18,9 @@ public partial class TestApp : Avalonia.Application
 {
     public override void Initialize()
     {
+        // Headless tests do not advance animations; disable motion so captured
+        // frames show the final opacity instead of a blank first frame.
+        Environment.SetEnvironmentVariable("SSC_REDUCE_MOTION", "1");
         AvaloniaXamlLoader.Load(this);
     }
 }
