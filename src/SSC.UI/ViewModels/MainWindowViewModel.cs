@@ -24,6 +24,7 @@ using SSC.UI.History;
 using SSC.UI.Ocr;
 using SSC.UI.Recording;
 using SSC.UI.Upload;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.ViewModels;
 
@@ -1113,7 +1114,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             var bytes = await _imageEncoder.EncodeAsync(frame, "png", 95);
             var fileName = $"{Path.GetFileNameWithoutExtension(entry.FilePath)}.png";
-            new UploadDialogWindow(bytes, fileName, _uploads, _settingsService, L).Show();
+            await DialogPresenter.ShowAsync(new UploadDialogWindow(bytes, fileName, _uploads, _settingsService, L));
             StatusMessage = L["statusReady"];
         }
         catch (Exception exception)

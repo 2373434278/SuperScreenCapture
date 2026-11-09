@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:history="using:SSC.UI.History"
+        xmlns:platform="using:SSC.UI.Platform"
         x:Class="SSC.UI.History.HistoryWindow"
         Title="SuperScreenCapture"
         Width="1180"
@@ -8,8 +9,11 @@
         MinWidth="940"
         MinHeight="620"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource SscBackdropBg}"
-        Foreground="{DynamicResource SscText}">
+        KeyboardNavigation.TabNavigation="Cycle"
+        Background="{DynamicResource SscWindowBackground}"
+        Foreground="{DynamicResource SscText}"
+        platform:WindowChrome.Mode="Native"
+        platform:WindowChrome.TitleBarHeight="54">
   <Window.Resources>
     <!-- 选中卡片由抽屉表达，列表项本身不再绘制蓝色选中底色。 -->
     <SolidColorBrush x:Key="ListBoxItemBackgroundSelected" Color="Transparent" />
@@ -237,14 +241,21 @@
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- macOS: sheet docked to the top edge, no scrim. -->
+    <Style Selector="Border.modal.sheet">
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="CornerRadius" Value="0,0,18,18" />
+      <Setter Property="BorderThickness" Value="0,0,1,1" />
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="Border.scrim.sheet">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
   </Window.Styles>
 
-  <Border Classes="frame">
-    <Grid RowDefinitions="*,30">
-      <Border Grid.Row="0" Margin="16" Classes="card" ClipToBounds="True">
-        <Grid RowDefinitions="Auto,Auto,*">
+  <Grid RowDefinitions="54,Auto,*,30">
           <!-- 头部：标题、计数、搜索、视图切换 -->
-          <Border Grid.Row="0" Padding="18,15" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+          <Border Grid.Row="0" Classes="captionbar" Padding="{DynamicResource SscCaptionPadding}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel Spacing="2" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource SscText}" LetterSpacing="-0.2" />
@@ -294,8 +305,9 @@
             </Grid>
           </Border>
 
-          <!-- 结果区 + 抽屉 + 删除确认 -->
-          <Panel Grid.Row="2">
+          <!-- 结果区 + 抽屉 -->
+          <Border Grid.Row="2" Margin="16,0,16,16" Classes="card" ClipToBounds="True">
+            <Panel>
             <Panel Margin="18,16,18,26">
               <ListBox x:Name="GridResults" Classes="history" SelectionMode="Single" ItemContainerTheme="{StaticResource HistoryItemTheme}">
                 <ListBox.ItemsPanel>
@@ -520,11 +532,13 @@
                 </Border>
               </Grid>
             </Border>
+            </Panel>
+          </Border>
 
-            <!-- 删除确认 -->
-            <Panel x:Name="DeleteModal" IsVisible="False">
-              <Border Background="#9403060C" />
-              <Border Classes="modal">
+          <!-- 删除确认：覆盖整个窗口 -->
+          <Panel x:Name="DeleteModal" Grid.RowSpan="4" IsVisible="False">
+              <Border x:Name="DeleteScrim" Classes="scrim" Background="#9403060C" />
+              <Border x:Name="DeleteCard" Classes="modal">
                 <StackPanel Spacing="0">
                   <TextBlock x:Name="DeleteTitle" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
                   <TextBlock x:Name="DeleteDescription" Margin="0,6,0,0" FontSize="12" Foreground="{DynamicResource SscTextMuted}" TextWrapping="Wrap" />
@@ -534,17 +548,13 @@
                   </StackPanel>
                 </StackPanel>
               </Border>
-            </Panel>
           </Panel>
-        </Grid>
-      </Border>
 
-      <Border Grid.Row="1" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,1,0,0" Padding="16,0">
+      <Border Grid.Row="3" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,1,0,0" Padding="16,0">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="StatusText" FontSize="11" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
           <TextBlock x:Name="VersionText" Grid.Column="1" FontSize="10" Foreground="{DynamicResource SscTextSubtle}" VerticalAlignment="Center" />
         </Grid>
       </Border>
-    </Grid>
-  </Border>
+  </Grid>
 </Window>

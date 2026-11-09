@@ -2,18 +2,22 @@ using Avalonia;
 using SSC.UI.Motion;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
+using SSC.Application.Hotkeys;
 using SSC.Application.Settings;
 using SSC.Application.Upload;
 using SSC.Domain.Annotations;
 using SSC.Domain.Capture;
 using SSC.UI.Capture;
 using SSC.UI.Ocr;
+using SSC.UI.Platform;
 using SSC.UI.Upload;
 using DomainPixelPoint = SSC.Domain.Geometry.PixelPoint;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.Editing;
 
@@ -309,6 +313,26 @@ public partial class AnnotationEditorWindow : Window
         RetakeButton.Click += (_, _) => Retake();
 
         TextInputBox.KeyDown += OnTextInputKeyDown;
+        _canvas.ContextRequested += OnCanvasContextRequested;
+    }
+
+    private void OnCanvasContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var modifier = PlatformInfo.IsMacOS ? HotkeyModifiers.Meta : HotkeyModifiers.Control;
+        var menu = ContextMenuFactory.Create(
+            new ContextMenuEntry(_localizer["contextUndo"], Undo, new HotkeyGesture(modifier, HotkeyKey.Z)),
+            new ContextMenuEntry(_localizer["contextRedo"], Redo, new HotkeyGesture(modifier | HotkeyModifiers.Shift, HotkeyKey.Z)),
+            ContextMenuEntry.Separator(),
+            new ContextMenuEntry(_localizer["contextCopy"], () => _ = CopyAsync(), new HotkeyGesture(modifier, HotkeyKey.C)),
+            new ContextMenuEntry($"{_localizer["contextSaveAs"]} PNG", () => { _saveFormat = "png"; _ = SaveAsync(); }, new HotkeyGesture(modifier, HotkeyKey.S)),
+            new ContextMenuEntry($"{_localizer["contextSaveAs"]} JPG", () => { _saveFormat = "jpg"; _ = SaveAsync(); }),
+            new ContextMenuEntry($"{_localizer["contextSaveAs"]} WebP", () => { _saveFormat = "webp"; _ = SaveAsync(); }),
+            ContextMenuEntry.Separator(),
+            new ContextMenuEntry(_localizer["contextOcr"], () => _ = RecognizeAsync()),
+            new ContextMenuEntry(_localizer["contextUpload"], () => _ = UploadAsync()),
+            new ContextMenuEntry(_localizer["contextPin"], Pin));
+        menu.Open(_canvas);
+        e.Handled = true;
     }
 
     private void OnSavePng(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -443,6 +467,12 @@ public partial class AnnotationEditorWindow : Window
         _canvas.Focus();
     }
 
+    public void UndoEdit() => Undo();
+
+    public void RedoEdit() => Redo();
+
+    public Task CopySelectionAsync() => CopyAsync();
+
     private void Undo()
     {
         if (_session.Undo())
@@ -531,7 +561,7 @@ public partial class AnnotationEditorWindow : Window
             var frame = _renderer.Render(_frame, _session.Document);
             var bytes = await _encoder.EncodeAsync(frame, "png", 95);
             var fileName = $"{Path.GetFileNameWithoutExtension(_result.FilePath)}.png";
-            new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer).Show();
+            await DialogPresenter.ShowAsync(new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer), this);
         }
         catch (Exception exception)
         {

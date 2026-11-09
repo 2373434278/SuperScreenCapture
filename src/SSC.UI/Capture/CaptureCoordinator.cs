@@ -14,6 +14,7 @@ using SSC.Domain.History;
 using SSC.UI.Editing;
 using SSC.UI.QuickAccess;
 using SSC.UI.Upload;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.Capture;
 
@@ -108,7 +109,7 @@ public sealed class CaptureCoordinator
         {
             var bytes = await _encoder.EncodeAsync(frame, "png", 95).ConfigureAwait(true);
             var fileName = $"{Path.GetFileNameWithoutExtension(result.FilePath)}.png";
-            new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer).Show();
+            await DialogPresenter.ShowAsync(new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer));
         }
         catch (Exception)
         {
@@ -570,8 +571,7 @@ public sealed class CaptureCoordinator
             return true;
         }
 
-        await _permissions.OpenSettingsAsync(PermissionKind.ScreenRecording, cancellationToken)
-            .ConfigureAwait(true);
+        await PermissionGuide.ShowAsync(_permissions, _localizer).ConfigureAwait(true);
         return false;
     }
 

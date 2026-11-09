@@ -14,6 +14,7 @@ using SSC.Application.Settings;
 using SSC.Domain.Capture;
 using SSC.Domain.History;
 using SSC.UI.Capture;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.Recording;
 
@@ -76,6 +77,7 @@ public sealed class GifRecordingCoordinator
 
             if (status is not PermissionStatus.Granted)
             {
+                await PermissionGuide.ShowAsync(_permissions, _localizer).ConfigureAwait(true);
                 return new GifRecordingOutcome(false, _localizer["capturePermissionRequired"]);
             }
 

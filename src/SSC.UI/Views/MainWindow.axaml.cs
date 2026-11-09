@@ -1,9 +1,12 @@
 using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.Input;
 using SSC.UI.Motion;
+using SSC.UI.Platform;
 using SSC.UI.ViewModels;
 
 namespace SSC.UI.Views;
@@ -21,7 +24,23 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ConfigureKeyBindings();
         WindowingMotion.FadeIn(this);
+    }
+
+    private void ConfigureKeyBindings()
+    {
+        var modifier = PlatformInfo.IsMacOS ? KeyModifiers.Meta : KeyModifiers.Control;
+        KeyBindings.Add(new KeyBinding
+        {
+            Gesture = new KeyGesture(Key.OemComma, modifier),
+            Command = new RelayCommand(() => ViewModel?.SelectTabCommand.Execute("general"))
+        });
+        KeyBindings.Add(new KeyBinding
+        {
+            Gesture = new KeyGesture(Key.W, modifier),
+            Command = new RelayCommand(Hide)
+        });
     }
 
     private bool _tabFadeQueued;

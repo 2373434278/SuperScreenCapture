@@ -1,10 +1,14 @@
 using Avalonia;
 using SSC.UI.Motion;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.VisualTree;
 using SSC.Application;
 using SSC.Application.Abstractions;
+using SSC.Application.Hotkeys;
 using SSC.Domain.Capture;
+using SSC.UI.Platform;
 
 namespace SSC.UI.Ocr;
 
@@ -107,6 +111,58 @@ public partial class OcrResultWindow : Window
                 _ = CopyTextAsync(row.Text);
             }
         };
+
+        LineList.ContextRequested += OnLinesContextRequested;
+        LineList.PointerPressed += OnLinesPointerPressed;
+        KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+            {
+                Close();
+                e.Handled = true;
+            }
+        };
+    }
+
+    private static void OnLinesPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not ListBox list || !e.GetCurrentPoint(list).Properties.IsRightButtonPressed)
+        {
+            return;
+        }
+
+        if ((e.Source as Visual)?.FindAncestorOfType<ListBoxItem>() is { } item)
+        {
+            item.IsSelected = true;
+        }
+    }
+
+    private void OnLinesContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not ListBox list)
+        {
+            return;
+        }
+
+        var row = list.SelectedItem as OcrLineRow;
+        var commandModifier = (PlatformInfo.IsMacOS ? HotkeyModifiers.Meta : HotkeyModifiers.Control);
+        var menu = ContextMenuFactory.Create(
+            new ContextMenuEntry(
+                _localizer["contextCopyLine"],
+                () => _ = CopyTextAsync(row?.Text ?? string.Empty),
+                new HotkeyGesture(commandModifier, HotkeyKey.C),
+                IsDefault: true,
+                IsEnabled: row is not null),
+            new ContextMenuEntry(
+                _localizer["contextCopyAll"],
+                () => _ = CopyTextAsync(_result.Text)),
+            ContextMenuEntry.Separator(),
+            new ContextMenuEntry(
+                _localizer["contextClearSelection"],
+                () => LineList.SelectedItem = null,
+                IsEnabled: row is not null));
+        menu.Open(list);
+        e.Handled = true;
     }
 
     private void ApplyLocalization()

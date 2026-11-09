@@ -1,12 +1,15 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using SSC.Application.Abstractions;
 using SSC.Domain.Capture;
+using SSC.UI.Platform;
 using DomainPixelPoint = SSC.Domain.Geometry.PixelPoint;
 using DomainPixelRect = SSC.Domain.Geometry.PixelRect;
 
@@ -75,6 +78,28 @@ public sealed class CaptureOverlayControl : Control
 
         Focusable = true;
         Cursor = new Cursor(StandardCursorType.Cross);
+        ContextRequested += OnContextRequested;
+    }
+
+    private void OnContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var hasSelection = _mode == CaptureOverlayMode.Window
+            ? _hoveredWindow is not null
+            : _selection is { Width: > 0, Height: > 0 };
+        var entries = new List<ContextMenuEntry>();
+        if (hasSelection)
+        {
+            entries.Add(new ContextMenuEntry(_localizer["captureConfirm"], Complete, IsDefault: true));
+            entries.Add(ContextMenuEntry.Separator());
+        }
+
+        entries.Add(new ContextMenuEntry(_localizer["captureCancel"], Cancel, IsDanger: !hasSelection));
+
+        var menu = ContextMenuFactory.Create(entries);
+        menu.PlacementTarget = this;
+        menu.Placement = PlacementMode.Pointer;
+        menu.Open(this);
+        e.Handled = true;
     }
 
     public DisplayDescriptor Display { get; }

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using Avalonia.Input;
 using SSC.Application.Abstractions;
 using SSC.Application.Hotkeys;
+using SSC.UI.Platform;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace SSC.App;
@@ -17,6 +17,7 @@ internal sealed record TrayActions(
     Action StartFullScreenRecording,
     Action StartGif,
     Action ShowHistory,
+    Action ShowAbout,
     Action PickColor,
     Action Quit);
 
@@ -47,6 +48,7 @@ internal sealed class TrayMenu
         Add("trayHistory", "history", actions.ShowHistory);
         Menu.Items.Add(new NativeMenuItemSeparator());
         Add("traySettings", null, actions.ShowWindow);
+        Add("trayAbout", null, actions.ShowAbout);
         Menu.Items.Add(new NativeMenuItemSeparator());
         Add("trayQuit", null, actions.Quit);
     }
@@ -83,7 +85,7 @@ internal sealed class TrayMenu
 
             entry.Item.Gesture = bindings.TryGetValue(entry.ActionKey, out var raw) &&
                                  HotkeyGesture.TryParse(raw, out var gesture, out _)
-                ? ToKeyGesture(gesture)
+                ? GestureMapper.ToKeyGesture(gesture)
                 : null;
         }
     }
@@ -95,55 +97,6 @@ internal sealed class TrayMenu
         _items.Add(new TrayItem(item, headerKey, actionKey));
         Menu.Items.Add(item);
     }
-
-    private static KeyGesture? ToKeyGesture(HotkeyGesture gesture)
-    {
-        var key = MapKey(gesture.Key);
-        if (key is null)
-        {
-            return null;
-        }
-
-        var modifiers = KeyModifiers.None;
-        if (gesture.Modifiers.HasFlag(HotkeyModifiers.Control))
-        {
-            modifiers |= KeyModifiers.Control;
-        }
-
-        if (gesture.Modifiers.HasFlag(HotkeyModifiers.Alt))
-        {
-            modifiers |= KeyModifiers.Alt;
-        }
-
-        if (gesture.Modifiers.HasFlag(HotkeyModifiers.Shift))
-        {
-            modifiers |= KeyModifiers.Shift;
-        }
-
-        if (gesture.Modifiers.HasFlag(HotkeyModifiers.Meta))
-        {
-            modifiers |= KeyModifiers.Meta;
-        }
-
-        return new KeyGesture(key.Value, modifiers);
-    }
-
-    private static Key? MapKey(HotkeyKey key) => key switch
-    {
-        HotkeyKey.Comma => Key.OemComma,
-        HotkeyKey.Period => Key.OemPeriod,
-        HotkeyKey.Slash => Key.OemQuestion,
-        HotkeyKey.Semicolon => Key.OemSemicolon,
-        HotkeyKey.Quote => Key.OemQuotes,
-        HotkeyKey.BracketLeft => Key.OemOpenBrackets,
-        HotkeyKey.BracketRight => Key.OemCloseBrackets,
-        HotkeyKey.Backslash => Key.OemPipe,
-        HotkeyKey.Minus => Key.OemMinus,
-        HotkeyKey.Equal => Key.OemPlus,
-        HotkeyKey.Grave => Key.OemTilde,
-        HotkeyKey.Backspace => Key.Back,
-        _ => Enum.TryParse<Key>(key.ToString(), out var parsed) ? parsed : null
-    };
 
     private readonly record struct TrayItem(NativeMenuItem Item, string HeaderKey, string? ActionKey);
 }
@@ -168,6 +121,11 @@ internal static class TrayIconFactory
         menu.Relocalize(localizer, delaySeconds);
         menu.ApplyGestures(hotkeys);
         trayIcon.Menu = menu.Menu;
+
+        if (PlatformInfo.IsWindows)
+        {
+            trayIcon.Clicked += (_, _) => actions.ShowWindow();
+        }
 
         var icons = new TrayIcons();
         icons.Add(trayIcon);

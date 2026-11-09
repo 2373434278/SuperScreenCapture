@@ -1,0 +1,49 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <!-- Windows keeps the native title bar; content starts at the toolbar. -->
+    <Thickness x:Key="SscCaptionPadding">14,0,14,0</Thickness>
+    <x:Double x:Key="SscGridRowMinHeight">32</x:Double>
+    <x:Double x:Key="SscDialogRadius">14</x:Double>
+    <x:Double x:Key="SscFocusRingThickness">1</x:Double>
+  </Styles.Resources>
+
+  <!-- Always-visible desktop scrollbars. -->
+  <Style Selector="ScrollBar">
+    <Setter Property="AllowAutoHide" Value="False" />
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+  </Style>
+
+  <Style Selector="ComboBox:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Windows bolds the default context-menu action. -->
+  <Style Selector="MenuItem.ctx-default">
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- Windows: crisp 1px keyboard focus outline. -->
+  <Style Selector="Button:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="1"
+                CornerRadius="7"
+                Margin="-1" />
+      </Template>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="1"
+                CornerRadius="7"
+                Margin="-1" />
+      </Template>
+    </Setter>
+  </Style>
+</Styles>

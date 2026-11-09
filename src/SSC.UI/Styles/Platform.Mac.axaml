@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <!-- Traffic lights live inside the 54px toolbar. -->
+    <Thickness x:Key="SscCaptionPadding">78,0,14,0</Thickness>
+    <x:Double x:Key="SscGridRowMinHeight">44</x:Double>
+    <x:Double x:Key="SscDialogRadius">18</x:Double>
+    <x:Double x:Key="SscFocusRingThickness">2</x:Double>
+  </Styles.Resources>
+
+  <!-- Overlay scrollbars: thin and auto-hiding. -->
+  <Style Selector="ScrollBar">
+    <Setter Property="AllowAutoHide" Value="True" />
+    <Setter Property="HideDelay" Value="0:0:0.4" />
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+  </Style>
+
+  <Style Selector="ComboBox:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource SscAccent}" />
+    <Setter Property="BorderThickness" Value="2" />
+  </Style>
+
+  <!-- macOS: soft outer glow for keyboard focus. -->
+  <Style Selector="Button:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="2"
+                CornerRadius="10"
+                Margin="-4"
+                BoxShadow="0 0 0 3 #4D7B7FFF" />
+      </Template>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox:focus-visible">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <Border BorderBrush="{DynamicResource SscAccent}"
+                BorderThickness="2"
+                CornerRadius="9"
+                Margin="-3"
+                BoxShadow="0 0 0 3 #4D7B7FFF" />
+      </Template>
+    </Setter>
+  </Style>
+</Styles>

@@ -9,6 +9,7 @@ using SSC.Domain.Geometry;
 using SSC.Domain.Recording;
 using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.Recording;
 
@@ -406,8 +407,7 @@ public sealed class RecordingCoordinator
             return true;
         }
 
-        await _permissions.OpenSettingsAsync(PermissionKind.ScreenRecording, cancellationToken)
-            .ConfigureAwait(true);
+        await PermissionGuide.ShowAsync(_permissions, _localizer).ConfigureAwait(true);
         return false;
     }
 

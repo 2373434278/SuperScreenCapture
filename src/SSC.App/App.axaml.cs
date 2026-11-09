@@ -12,8 +12,10 @@ using SSC.Application.Hotkeys;
 using SSC.Application.Recording;
 using SSC.Application.Settings;
 using SSC.Domain.Recording;
+using SSC.Platform.Abstractions;
 using SSC.UI.Capture;
 using SSC.UI.History;
+using SSC.UI.Platform;
 using SSC.UI.Recording;
 using SSC.UI.ViewModels;
 using SSC.UI.Views;
@@ -30,6 +32,7 @@ public partial class App : Avalonia.Application
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private MainWindow? _mainWindow;
     private TrayMenu? _trayMenu;
+    private AppMenu? _appMenu;
     private bool _isQuitting;
     private bool _allowClose;
 
@@ -61,6 +64,8 @@ public partial class App : Avalonia.Application
             base.OnFrameworkInitializationCompleted();
             return;
         }
+
+        PlatformStyles.Apply(this, _services.GetRequiredService<PlatformDescriptor>().Kind);
 
         var singleInstance = _services.GetRequiredService<ISingleInstanceService>();
         if (!singleInstance.TryAcquire())
@@ -99,6 +104,7 @@ public partial class App : Avalonia.Application
                 StartFullScreenRecording,
                 StartGif,
                 ShowHistory,
+                ShowAbout,
                 PickColor,
                 Quit);
             _trayMenu = TrayIconFactory.Create(
@@ -108,6 +114,20 @@ public partial class App : Avalonia.Application
                 trayActions,
                 settings.CaptureDelaySeconds,
                 settings.Hotkeys);
+
+            if (PlatformInfo.IsMacOS)
+            {
+                _appMenu = new AppMenu(
+                    trayActions,
+                    HideMainWindow,
+                    ShowSettings,
+                    ShowAbout,
+                    () => OpenBundledDocument("README.md"),
+                    () => OpenBundledDocument("THIRD-PARTY-NOTICES.md"),
+                    CheckUpdates,
+                    localizer);
+                _appMenu.ApplyGestures(settings.Hotkeys);
+            }
         }
         catch (Exception exception)
         {
@@ -147,6 +167,32 @@ public partial class App : Avalonia.Application
         if (!startHidden)
         {
             _mainWindow.Show();
+        }
+
+        if (_appMenu is not null)
+        {
+            // The macOS menu bar exists only after the first window is created.
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    try
+                    {
+                        _appMenu.Attach(_mainWindow!);
+                    }
+                    catch (Exception menuException)
+                    {
+                        Log.Warning(menuException, "Application menu could not attach to the main window.");
+                        try
+                        {
+                            _appMenu.Attach(this);
+                        }
+                        catch (Exception fallbackException)
+                        {
+                            Log.Warning(fallbackException, "Application menu could not attach to the application either.");
+                        }
+                    }
+                },
+                DispatcherPriority.Background);
         }
 
         if (autoStartSelfTest)
@@ -321,6 +367,7 @@ public partial class App : Avalonia.Application
             _trayMenu,
             _services.GetRequiredService<ILocalizer>(),
             _services.GetRequiredService<SettingsService>().Current.CaptureDelaySeconds);
+        _appMenu?.Relocalize();
     }
 
     private void OnSettingsChanged(object? sender, AppSettings settings)
@@ -335,6 +382,45 @@ public partial class App : Avalonia.Application
             _services.GetRequiredService<ILocalizer>(),
             settings.CaptureDelaySeconds);
         _trayMenu.ApplyGestures(settings.Hotkeys);
+        _appMenu?.ApplyGestures(settings.Hotkeys);
+    }
+
+    private void HideMainWindow() => _mainWindow?.Hide();
+
+    private void ShowSettings()
+    {
+        ShowMainWindow();
+        _services?.GetService<MainWindowViewModel>()?.SelectTabCommand.Execute("general");
+    }
+
+    private void ShowAbout()
+    {
+        ShowMainWindow();
+        _services?.GetService<MainWindowViewModel>()?.SelectTabCommand.Execute("about");
+    }
+
+    private void CheckUpdates()
+    {
+        ShowMainWindow();
+        _services?.GetService<MainWindowViewModel>()?.CheckUpdatesCommand.Execute(null);
+    }
+
+    private void OpenBundledDocument(string fileName)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, fileName);
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception exception)
+        {
+            Log.Warning(exception, "Could not open {File}.", fileName);
+        }
     }
 
     private void ShowMainWindow()
@@ -552,6 +638,7 @@ public partial class App : Avalonia.Application
     {
         _trayMenu?.Icon.Dispose();
         _trayMenu = null;
+        _appMenu = null;
 
         if (_services is not null)
         {

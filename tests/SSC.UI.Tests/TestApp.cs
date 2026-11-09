@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Markup.Xaml;
+using SSC.UI.Platform;
 
 [assembly: AvaloniaTestApplication(typeof(SSC.UI.Tests.TestAppBuilder))]
 
@@ -22,5 +23,6 @@ public partial class TestApp : Avalonia.Application
         // frames show the final opacity instead of a blank first frame.
         Environment.SetEnvironmentVariable("SSC_REDUCE_MOTION", "1");
         AvaloniaXamlLoader.Load(this);
+        PlatformStyles.Apply(this, PlatformInfo.Current);
     }
 }

@@ -30,7 +30,14 @@ SuperScreenCapture is an Apache-2.0 open-source screenshot and screen recording 
 - Storage: inspect capture/database/cache usage, clean up old items and keep favorites.
 - Upload: Imgur, Amazon S3 and custom HTTP; disabled by default; retry, cancel, and copy/open/delete remote links.
 - System integration: global hotkeys, tray menu, launch at login, close to tray and single instance.
-- Permissions: guided macOS screen recording, microphone and camera consent; no extra prompts on Windows.
+- Permissions: a macOS guide dialog covers screen recording, microphone and camera consent; Windows only surfaces microphone/camera. Dialogs support Esc/Enter and keyboard focus cycling.
+
+### Platform behavior
+
+- macOS: traffic lights sit inside the 54px toolbar with the content extended into the title bar; the system menu bar provides SSC / File / Edit / Window / Help with Settings ⌘,, Quit ⌘Q and Close Window ⌘W; dialogs are top-attached sheets; scrollbars are thin overlays; keyboard focus uses a soft outer glow.
+- Windows: the native title bar and right-side minimize/maximize/close buttons are kept (Snap Layouts supported); dialogs are centered modals; scrollbars are always visible; keyboard focus uses a crisp 1px outline; left-clicking the tray restores the main window.
+- Library items, the annotation canvas, OCR lines and the capture selection all expose right-click menus; the default action is bold on Windows and regular weight on macOS.
+- The upload dialog is a top sheet on macOS and a centered modal on Windows; history delete confirmation docks to the top on macOS.
 
 ## Requirements
 

@@ -317,13 +317,8 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="16" />
   </Style>
-  <Style Selector="Border.frame">
-    <Setter Property="Margin" Value="14" />
-    <Setter Property="Background" Value="{DynamicResource SscWindowBackground}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SscBorderStrong}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="16" />
-    <Setter Property="ClipToBounds" Value="True" />
+  <Style Selector="MenuItem.danger">
+    <Setter Property="Foreground" Value="{DynamicResource SscDanger}" />
   </Style>
   <Style Selector="Border.set-row">
     <Setter Property="BorderBrush" Value="{DynamicResource SscBorder}" />

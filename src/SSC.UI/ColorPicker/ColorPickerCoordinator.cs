@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Domain.Capture;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.ColorPicker;
 
@@ -50,6 +51,7 @@ public sealed class ColorPickerCoordinator
 
             if (status is not PermissionStatus.Granted)
             {
+                await PermissionGuide.ShowAsync(_permissions, _localizer).ConfigureAwait(true);
                 return null;
             }
 

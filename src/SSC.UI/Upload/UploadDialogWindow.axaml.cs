@@ -65,6 +65,7 @@ public partial class UploadDialogWindow : Window
 
         ProviderBox.SelectedIndex = providerIndex;
         RebuildFields();
+        Opened += (_, _) => ProviderBox.Focus();
     }
 
     private void WireControls()

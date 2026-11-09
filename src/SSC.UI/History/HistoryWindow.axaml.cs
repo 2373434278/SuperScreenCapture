@@ -8,10 +8,12 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
 using SSC.Application.Events;
+using SSC.Application.Hotkeys;
 using SSC.Application.Settings;
 using SSC.Application.Upload;
 using SSC.Domain.Capture;
@@ -19,7 +21,9 @@ using SSC.Domain.History;
 using SSC.UI.Editing;
 using SSC.UI.Motion;
 using SSC.UI.Ocr;
+using SSC.UI.Platform;
 using SSC.UI.Upload;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.History;
 
@@ -79,6 +83,11 @@ public partial class HistoryWindow : Window
         _encoder = encoder;
 
         InitializeComponent();
+        if (PlatformInfo.IsMacOS)
+        {
+            DeleteCard.Classes.Add("sheet");
+            DeleteScrim.Classes.Add("sheet");
+        }
         WindowingMotion.FadeIn(this);
         _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _searchTimer.Tick += (_, _) =>
@@ -142,6 +151,87 @@ public partial class HistoryWindow : Window
 
         DeleteCancel.Click += (_, _) => HideDeleteModal();
         DeleteConfirm.Click += (_, _) => ConfirmDelete();
+
+        GridResults.ContextRequested += OnResultsContextRequested;
+        ListResults.ContextRequested += OnResultsContextRequested;
+        GridResults.PointerPressed += OnResultsPointerPressed;
+        ListResults.PointerPressed += OnResultsPointerPressed;
+        GridResults.DoubleTapped += OnResultsDoubleTapped;
+        ListResults.DoubleTapped += OnResultsDoubleTapped;
+        KeyDown += OnWindowKeyDown;
+    }
+
+    private static HotkeyGesture CommandGesture(HotkeyKey key, HotkeyModifiers extra = HotkeyModifiers.None) =>
+        new((PlatformInfo.IsMacOS ? HotkeyModifiers.Meta : HotkeyModifiers.Control) | extra, key);
+
+    private static void OnResultsPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not ListBox list || !e.GetCurrentPoint(list).Properties.IsRightButtonPressed)
+        {
+            return;
+        }
+
+        if ((e.Source as Visual)?.FindAncestorOfType<ListBoxItem>() is { } item)
+        {
+            item.IsSelected = true;
+        }
+    }
+
+    private void OnResultsContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not ListBox list || list.SelectedItem is not HistoryCardViewModel card)
+        {
+            return;
+        }
+
+        SelectCard(card);
+        var menu = ContextMenuFactory.Create(
+            new ContextMenuEntry(_localizer["contextOpen"], () => SelectCard(card), IsDefault: true),
+            new ContextMenuEntry(_localizer["contextCopy"], () => _ = RunActionAsync("Copy", card), CommandGesture(HotkeyKey.C)),
+            new ContextMenuEntry(_localizer["contextEdit"], () => _ = RunActionAsync("Edit", card)),
+            new ContextMenuEntry(_localizer["contextPin"], () => _ = RunActionAsync("Pin", card)),
+            new ContextMenuEntry(_localizer["contextUpload"], () => _ = RunActionAsync("Upload", card)),
+            new ContextMenuEntry(_localizer["contextFavorite"], () => _ = RunActionAsync("Favorite", card)),
+            ContextMenuEntry.Separator(),
+            new ContextMenuEntry(
+                _localizer["contextDelete"],
+                () => ShowDeleteModal(card),
+                CommandGesture(HotkeyKey.Backspace),
+                IsDanger: true));
+        menu.Open(list);
+        e.Handled = true;
+    }
+
+    private void OnResultsDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is ListBox { SelectedItem: HistoryCardViewModel card })
+        {
+            _ = RunActionAsync("Edit", card);
+            e.Handled = true;
+        }
+    }
+
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape)
+        {
+            return;
+        }
+
+        if (DeleteModal.IsVisible)
+        {
+            HideDeleteModal();
+        }
+        else if (DetailDrawer.IsVisible)
+        {
+            CloseDrawer();
+        }
+        else
+        {
+            Close();
+        }
+
+        e.Handled = true;
     }
 
     private void ApplyLocalization()
@@ -637,7 +727,7 @@ public partial class HistoryWindow : Window
         {
             var bytes = await _encoder.EncodeAsync(frame, "png", 95);
             var fileName = $"{Path.GetFileNameWithoutExtension(entry.FilePath)}.png";
-            new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer).Show();
+            await DialogPresenter.ShowAsync(new UploadDialogWindow(bytes, fileName, _uploads, _settings, _localizer), this);
         }
         catch (Exception exception)
         {

@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:editing="using:SSC.UI.Editing"
+        xmlns:platform="using:SSC.UI.Platform"
         x:Class="SSC.UI.Editing.AnnotationEditorWindow"
         Title="SuperScreenCapture"
         Width="1180"
@@ -8,8 +9,11 @@
         MinWidth="960"
         MinHeight="640"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource SscBackdropBg}"
-        Foreground="{DynamicResource SscText}">
+        KeyboardNavigation.TabNavigation="Cycle"
+        Background="{DynamicResource SscWindowBackground}"
+        Foreground="{DynamicResource SscText}"
+        platform:WindowChrome.Mode="Native"
+        platform:WindowChrome.TitleBarHeight="54">
   <Window.Styles>
     <!-- 图标按钮（原型 .icon-btn） -->
     <Style Selector="Button.editor-icon">
@@ -124,15 +128,15 @@
 
   </Window.Styles>
 
-  <!-- 编辑器外壳：原型 P2 中 screen padding 16 + rounded editor-shell。 -->
-  <Border Classes="frame" Margin="16" CornerRadius="18">
-    <Grid RowDefinitions="52,*,56">
+  <!-- 真实窗口即外壳；macOS 顶栏与红绿灯平齐。 -->
+  <Grid RowDefinitions="54,*,56">
       <!-- 顶栏 -->
       <Border Grid.Row="0"
+              Classes="captionbar"
               Background="{DynamicResource SscPanelBg}"
               BorderBrush="{DynamicResource SscBorder}"
               BorderThickness="0,0,0,1"
-              Padding="14,0">
+              Padding="{DynamicResource SscCaptionPadding}">
         <Grid ColumnDefinitions="Auto,*,Auto">
           <Button x:Name="RetakeButton" Classes="btn btn-ghost btn-sm" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -309,6 +313,5 @@
           </Border>
         </Grid>
       </Grid>
-    </Grid>
-  </Border>
+  </Grid>
 </Window>

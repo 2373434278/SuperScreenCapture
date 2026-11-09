@@ -363,6 +363,41 @@ public sealed class RecordingWindowTests
         public void Write(string key, string value) => _values[key] = value;
     }
 
+    [AvaloniaFact]
+    public void PermissionGuide_Renders()
+    {
+        var window = new SSC.UI.Dialogs.PermissionGuideWindow(new GrantedPermissions(), new JsonLocalizer());
+
+        try
+        {
+            window.Show();
+            var rendered = window.CaptureRenderedFrame();
+            Assert.NotNull(rendered);
+            using (var stream = File.Create(Path.Combine(Path.GetTempPath(), "ssc-ui-permission-guide.png")))
+            {
+                rendered!.Save(stream, new PngBitmapEncoderOptions());
+            }
+
+            Assert.True(rendered.PixelSize.Width >= 500);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private sealed class GrantedPermissions : IPermissionService
+    {
+        public Task<PermissionStatus> CheckAsync(PermissionKind kind, CancellationToken cancellationToken = default) =>
+            Task.FromResult(PermissionStatus.Granted);
+
+        public Task<PermissionStatus> RequestAsync(PermissionKind kind, CancellationToken cancellationToken = default) =>
+            Task.FromResult(PermissionStatus.Granted);
+
+        public Task OpenSettingsAsync(PermissionKind kind, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+    }
+
     private sealed class TestPaths : IAppPaths
     {
         private readonly string _root = Path.Combine(
