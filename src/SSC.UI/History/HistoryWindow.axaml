@@ -255,7 +255,7 @@
                 <Border Width="250" Height="34" CornerRadius="9" Background="{DynamicResource SscPanelAltBg}"
                         BorderBrush="{DynamicResource SscBorderStrong}" BorderThickness="1" Padding="10,0">
                   <Grid ColumnDefinitions="Auto,*">
-                    <Path Data="M10 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0M20 20l4 4"
+                    <Path Data="{StaticResource IcoSearchSmall}"
                           Stroke="{DynamicResource SscTextSubtle}" StrokeThickness="1.7" Width="15" Height="15" Stretch="Uniform" VerticalAlignment="Center" />
                     <TextBox x:Name="SearchBox" Grid.Column="1" Background="Transparent" BorderThickness="0" FontSize="12"
                              VerticalContentAlignment="Center" Margin="6,0,0,0" />
@@ -265,10 +265,10 @@
                 <Border Classes="seg" VerticalAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="2">
                     <Button x:Name="GridViewButton" Classes="view active">
-                      <Path Data="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+                      <Path Data="{StaticResource IcoGridSmall}" />
                     </Button>
                     <Button x:Name="ListViewButton" Classes="view">
-                      <Path Data="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+                      <Path Data="{StaticResource IcoListSmall}" />
                     </Button>
                   </StackPanel>
                 </Border>

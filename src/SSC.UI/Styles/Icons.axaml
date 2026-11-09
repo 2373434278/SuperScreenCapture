@@ -46,4 +46,19 @@
   <StreamGeometry x:Key="IcoCheck">m5 12 5 5L20 6</StreamGeometry>
   <StreamGeometry x:Key="IcoFile">M5 4h11l3 3v13H5zM8 4v6h8V4M8 20v-6h8v6</StreamGeometry>
   <StreamGeometry x:Key="IcoBrand">M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16 M12 4v6l5 3 M20 12l-5.5 3.2 M16 19l-3-5.5 M8 19l3-5.5 M4 12l5.5 3.2 M8 4l3 5.5</StreamGeometry>
+  <StreamGeometry x:Key="IcoRecordBadge">M12 5a7 7 0 1 0 0 14a7 7 0 1 0 0-14M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6</StreamGeometry>
+  <StreamGeometry x:Key="IcoMic">M9 3h6v11a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3M9 21h6</StreamGeometry>
+  <StreamGeometry x:Key="IcoSpeaker">M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11</StreamGeometry>
+  <StreamGeometry x:Key="IcoCamera">M3 7h13v10H3zM16 10l5-3v10l-5-3</StreamGeometry>
+  <StreamGeometry x:Key="IcoPause">M9 5v14M15 5v14</StreamGeometry>
+  <StreamGeometry x:Key="IcoGear">M12 9a3 3 0 1 1 0 6a3 3 0 1 1 0-6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7</StreamGeometry>
+  <StreamGeometry x:Key="IcoStop">M7 7h10v10H7z</StreamGeometry>
+  <StreamGeometry x:Key="IcoUndoSmall">M9 7 4 12l5 5M4 12h9a6 6 0 0 1 0 12</StreamGeometry>
+  <StreamGeometry x:Key="IcoSearchSmall">M10 10a6 6 0 1 0 12 0a6 6 0 1 0-12 0M20 20l4 4</StreamGeometry>
+  <StreamGeometry x:Key="IcoGridSmall">M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z</StreamGeometry>
+  <StreamGeometry x:Key="IcoListSmall">M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01</StreamGeometry>
+  <StreamGeometry x:Key="IcoSunSmall">M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4</StreamGeometry>
+  <StreamGeometry x:Key="IcoMoonSmall">M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z</StreamGeometry>
+  <StreamGeometry x:Key="IcoKeyboard">M3 6h18v12H3zM6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10</StreamGeometry>
+  <StreamGeometry x:Key="IcoInfoSmall">M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h.01</StreamGeometry>
 </ResourceDictionary>

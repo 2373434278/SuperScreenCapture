@@ -252,7 +252,7 @@
                       VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="1">
                   <Button x:Name="UndoButton" Classes="hist-btn">
-                    <Path Data="M9 7 4 12l5 5M4 12h9a6 6 0 0 1 0 12" />
+                    <Path Data="{StaticResource IcoUndoSmall}" />
                   </Button>
                   <TextBlock x:Name="UndoCountText" Classes="val" Width="18" />
                   <Button x:Name="RedoButton" Classes="hist-btn">

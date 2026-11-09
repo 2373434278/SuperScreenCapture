@@ -252,7 +252,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M6 5h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoCapture}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navCapture]}" />
@@ -262,7 +262,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M4 20l4-1 10-10-3-3L5 16zM14 6l3 3" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoAnnotate}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navAnnotate]}" />
@@ -322,7 +322,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M4 13h4l2 3h4l2-3h4M5 5h14l2 8v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4z" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoTray}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                   <TextBlock Text="{Binding L[navTray]}" />
@@ -345,8 +345,8 @@
 
             <Button Classes="icon-btn" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="{Binding L[themeLabel]}" AutomationProperties.Name="{Binding L[themeLabel]}">
               <Panel>
-                <Path Data="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" IsVisible="{Binding IsDarkTheme}" />
-                <Path Data="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" IsVisible="{Binding IsLightTheme}" />
+                <Path Data="{StaticResource IcoSunSmall}" IsVisible="{Binding IsDarkTheme}" />
+                <Path Data="{StaticResource IcoMoonSmall}" IsVisible="{Binding IsLightTheme}" />
               </Panel>
             </Button>
           </StackPanel>
@@ -371,7 +371,7 @@
               <StackPanel Orientation="Horizontal" Spacing="9">
                 <Viewbox Width="16" Height="16" Stretch="Uniform">
                   <Canvas Width="24" Height="24">
-                    <Path Data="M3 6h18v12H3zM6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10" Width="24" Height="24" Stretch="None" />
+                    <Path Data="{StaticResource IcoKeyboard}" Width="24" Height="24" Stretch="None" />
                   </Canvas>
                 </Viewbox>
                 <TextBlock Text="{Binding L[navHotkeys]}" VerticalAlignment="Center" />
@@ -1034,7 +1034,7 @@
               BorderThickness="0,1,0,0"
               Padding="14,0">
         <Grid ColumnDefinitions="Auto,*,Auto">
-          <Path Data="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h.01"
+          <Path Data="{StaticResource IcoInfoSmall}"
                 Stroke="{DynamicResource SscTextSubtle}"
                 StrokeThickness="1.6"
                 Width="13"

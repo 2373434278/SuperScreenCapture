@@ -52,7 +52,14 @@ public sealed class ResourceAuditTests
             "IcoTray", "IcoUpload"
         };
 
-        foreach (var key in required)
+        var icons = (ResourceDictionary)AvaloniaXamlLoader.Load(
+            new Uri("avares://SSC.UI/Styles/Icons.axaml"));
+        var all = required
+            .Concat(icons.Keys.Select(key => (string)key))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        foreach (var key in all)
         {
             Assert.True(
                 Avalonia.Application.Current!.TryFindResource(key, out var resource),
