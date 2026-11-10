@@ -218,15 +218,17 @@
     </Style>
   </Window.Styles>
 
-  <!-- 真实窗口即外壳：macOS 延伸进 54px 标题栏，Windows 保留系统标题栏。 -->
+  <!-- 真实窗口即外壳：macOS 红绿灯与 Windows 自定义系统按钮都嵌进 54px 顶栏。 -->
   <Grid RowDefinitions="54,*,30">
-      <!-- 顶栏 -->
-      <Border Grid.Row="0"
+      <!-- 顶栏：左侧内容 + 右侧系统按钮（mac 下隐藏，Auto 列宽归零） -->
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+      <Border Grid.Column="0"
               Classes="captionbar"
               Background="{DynamicResource SscPanelBg}"
               BorderBrush="{DynamicResource SscBorder}"
               BorderThickness="0,0,0,1"
-              Padding="{DynamicResource SscCaptionPadding}">
+              Padding="{DynamicResource SscCaptionPadding}"
+              platform:WindowChrome.IsDragArea="True">
         <Grid ColumnDefinitions="Auto,Auto,*,Auto">
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
             <Border Width="28" Height="28" CornerRadius="9" Background="{DynamicResource SscBrandGradient}">
@@ -349,6 +351,7 @@
 
             <Button Classes="icon-btn" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="{Binding L[themeLabel]}" AutomationProperties.Name="{Binding L[themeLabel]}">
               <Panel>
+                <Path Data="{StaticResource IcoAutoSmall}" IsVisible="{Binding IsAutoTheme}" />
                 <Path Data="{StaticResource IcoSunSmall}" IsVisible="{Binding IsDarkTheme}" />
                 <Path Data="{StaticResource IcoMoonSmall}" IsVisible="{Binding IsLightTheme}" />
               </Panel>
@@ -356,6 +359,8 @@
           </StackPanel>
         </Grid>
       </Border>
+      <controls:CaptionButtons x:Name="SystemCaptionButtons" Grid.Column="1" />
+      </Grid>
 
       <!-- 设置主体 -->
       <Grid Grid.Row="1" ColumnDefinitions="188,14,*" Margin="16">
@@ -436,22 +441,19 @@
 
         <Border Grid.Column="2" Classes="card" ClipToBounds="True">
           <Grid RowDefinitions="Auto,*">
-            <!-- 面板头：标题 + 副标题 + 保存设置 -->
+            <!-- 面板头：标题 + 副标题 + 自动保存提示 -->
             <Border Grid.Row="0" Padding="20,16" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
               <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="3">
                   <TextBlock Text="{Binding HeaderTitle}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource SscText}" LetterSpacing="-0.2" />
                   <TextBlock Text="{Binding HeaderSubtitle}" Classes="muted" />
                 </StackPanel>
-                <Button Grid.Column="1"
-                        Classes="btn btn-primary btn-sm"
-                        Command="{Binding SaveSettingsCommand}"
-                        VerticalAlignment="Center">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <Path Data="{StaticResource IcoCheck}" />
-                    <TextBlock Text="{Binding L[saveSettings]}" VerticalAlignment="Center" />
-                  </StackPanel>
-                </Button>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding L[autoSaveHint]}"
+                           Classes="muted"
+                           FontSize="11.5"
+                           VerticalAlignment="Center"
+                           Margin="12,0,0,0" />
               </Grid>
             </Border>
 
@@ -478,6 +480,7 @@
                         <TextBlock Text="{Binding L[themeLabel]}" Classes="set-label" VerticalAlignment="Center" />
                         <Border Grid.Column="1" Classes="seg" VerticalAlignment="Center">
                           <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="seg" Classes.active="{Binding IsAutoTheme}" Content="{Binding L[themeAuto]}" Command="{Binding SetThemeCommand}" CommandParameter="auto" />
                             <Button Classes="seg" Classes.active="{Binding IsDarkTheme}" Content="{Binding L[themeDark]}" Command="{Binding SetThemeCommand}" CommandParameter="dark" />
                             <Button Classes="seg" Classes.active="{Binding IsLightTheme}" Content="{Binding L[themeLight]}" Command="{Binding SetThemeCommand}" CommandParameter="light" />
                           </StackPanel>
@@ -513,7 +516,7 @@
                         </ComboBox>
                       </Grid>
                     </Border>
-                    <Border Classes="set-row" Padding="0" BorderThickness="0">
+                    <Border x:Name="CloseToTrayRow" Classes="set-row" Padding="0" BorderThickness="0" IsVisible="{Binding IsWindowsHost}">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <StackPanel Spacing="2" VerticalAlignment="Center">
                           <TextBlock Text="{Binding L[closeToTray]}" Classes="set-label" />
@@ -536,6 +539,15 @@
                         </ComboBox>
                       </Grid>
                     </Border>
+                  </StackPanel>
+
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding L[restoreAllDefaults]}" Classes="section" />
+                    <TextBlock Text="{Binding L[restoreAllDefaultsDesc]}" Classes="muted" Margin="0,3,0,10" TextWrapping="Wrap" />
+                    <Button Classes="btn btn-ghost btn-sm"
+                            Content="{Binding L[restoreAllDefaults]}"
+                            HorizontalAlignment="Left"
+                            Click="OnRestoreAllDefaults" />
                   </StackPanel>
                 </StackPanel>
 
@@ -580,7 +592,7 @@
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <TextBlock Text="{Binding L[saveDirectory]}" Classes="set-label" VerticalAlignment="Center" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                          <TextBox Width="250" Classes="input" Text="{Binding SaveDirectory, Mode=TwoWay}" />
+                          <TextBox x:Name="SaveDirectoryBox" Width="250" Classes="input" Text="{Binding SaveDirectory, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
                           <Button Content="{Binding L[browse]}" Classes="btn btn-ghost btn-sm" Click="OnBrowseSaveDirectory" />
                         </StackPanel>
                       </Grid>
@@ -588,7 +600,7 @@
                     <Border Classes="set-row" Padding="0" BorderThickness="0">
                       <Grid ColumnDefinitions="*,Auto" MinHeight="50">
                         <TextBlock Text="{Binding L[fileNamePattern]}" Classes="set-label" VerticalAlignment="Center" />
-                        <TextBox Grid.Column="1" Width="250" Classes="input" Text="{Binding FileNamePattern, Mode=TwoWay}" />
+                        <TextBox x:Name="FileNamePatternBox" Grid.Column="1" Width="250" Classes="input" Text="{Binding FileNamePattern, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
                       </Grid>
                     </Border>
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,8,0,0">
@@ -880,19 +892,19 @@
                             Margin="0,11,0,0" IsEnabled="{Binding IsUploadS3}">
                         <StackPanel Spacing="0">
                           <TextBlock Text="{Binding L[uploadBucket]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadBucket, Mode=TwoWay}" PlaceholderText="my-bucket" />
+                          <TextBox Classes="field-input" Text="{Binding UploadBucket, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PlaceholderText="my-bucket" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="0">
                           <TextBlock Text="{Binding L[uploadRegion]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadRegion, Mode=TwoWay}" PlaceholderText="ap-southeast-1" />
+                          <TextBox Classes="field-input" Text="{Binding UploadRegion, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PlaceholderText="ap-southeast-1" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Spacing="0">
                           <TextBlock Text="{Binding L[uploadAccessKey]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadAccessKey, Mode=TwoWay}" PlaceholderText="AKIA…" />
+                          <TextBox Classes="field-input" Text="{Binding UploadAccessKey, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PlaceholderText="AKIA…" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="1" Spacing="0">
                           <TextBlock Text="{Binding L[uploadSecretKey]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadSecretKey, Mode=TwoWay}" PasswordChar="•" />
+                          <TextBox Classes="field-input" Text="{Binding UploadSecretKey, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PasswordChar="•" />
                         </StackPanel>
                       </Grid>
                     </StackPanel>
@@ -914,7 +926,7 @@
                       <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,11,0,0" IsEnabled="{Binding IsUploadImgur}">
                         <StackPanel Spacing="0">
                           <TextBlock Text="{Binding L[uploadClientId]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadClientId, Mode=TwoWay}" PlaceholderText="e4f1c…" />
+                          <TextBox Classes="field-input" Text="{Binding UploadClientId, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PlaceholderText="e4f1c…" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="0">
                           <TextBlock Text="{Binding L[uploadExpiry]}" Classes="provider-label" />
@@ -945,11 +957,11 @@
                       <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,11,0,0" IsEnabled="{Binding IsUploadCustom}">
                         <StackPanel Spacing="0">
                           <TextBlock Text="{Binding L[uploadEndpoint]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadEndpoint, Mode=TwoWay}" PlaceholderText="https://example.com/upload" />
+                          <TextBox Classes="field-input" Text="{Binding UploadEndpoint, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PlaceholderText="https://example.com/upload" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="0">
                           <TextBlock Text="{Binding L[uploadToken]}" Classes="provider-label" />
-                          <TextBox Classes="field-input" Text="{Binding UploadToken, Mode=TwoWay}" PasswordChar="•" />
+                          <TextBox Classes="field-input" Text="{Binding UploadToken, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" PasswordChar="•" />
                         </StackPanel>
                       </Grid>
                     </StackPanel>

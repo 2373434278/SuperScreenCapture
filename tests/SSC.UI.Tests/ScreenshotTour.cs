@@ -38,6 +38,9 @@ public sealed class ScreenshotTour
         window.Show();
         await Task.Delay(600, TestContext.Current.CancellationToken);
 
+        // 主题默认已改为「跟随系统」，截图必须显式固定深浅色，避免随构建机外观漂移。
+        viewModel.SetThemeCommand.Execute("dark");
+        await Task.Delay(400, TestContext.Current.CancellationToken);
         window.Opacity = 1;
         Save(window, Path.Combine(output, "settings-dark.png"));
 

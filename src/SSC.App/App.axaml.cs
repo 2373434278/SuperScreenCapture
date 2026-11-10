@@ -35,6 +35,9 @@ public partial class App : Avalonia.Application
     private AppMenu? _appMenu;
     private bool _isQuitting;
     private bool _allowClose;
+    private int? _lastTrayDelay;
+    private string? _lastHotkeySignature;
+    private bool _themeVariantSubscribed;
 
     public override void Initialize()
     {
@@ -81,9 +84,13 @@ public partial class App : Avalonia.Application
         var localizer = _services.GetRequiredService<ILocalizer>();
         var settings = settingsService.Current;
 
-        RequestedThemeVariant = settings.Theme == "light"
-            ? ThemeVariant.Light
-            : ThemeVariant.Dark;
+        // "auto" 交给框架按平台解析（ThemeVariant.Default），无需额外依赖。
+        RequestedThemeVariant = settings.Theme switch
+        {
+            "light" => ThemeVariant.Light,
+            "dark" => ThemeVariant.Dark,
+            _ => ThemeVariant.Default
+        };
 
         _mainWindow = _services.GetRequiredService<MainWindow>();
         _mainWindow.Icon = LoadWindowIcon();
@@ -134,9 +141,33 @@ public partial class App : Avalonia.Application
             Log.Error(exception, "Tray icon could not be created.");
         }
 
+        // Changed 现在随每次设置编辑触发；缓存基线供 OnSettingsChanged 做差异比较。
+        _lastTrayDelay = settings.CaptureDelaySeconds;
+        _lastHotkeySignature = BuildHotkeySignature(settings.Hotkeys);
+
         localizer.LanguageChanged += OnLanguageChanged;
         settingsService.Changed += OnSettingsChanged;
+
+        // auto 主题下系统外观切换时，刷新设置页分段与顶栏图标（每次启动只订阅一次）。
+        if (!_themeVariantSubscribed)
+        {
+            ActualThemeVariantChanged += OnActualThemeVariantChanged;
+            _themeVariantSubscribed = true;
+        }
+
         desktop.Exit += (_, _) => Cleanup();
+
+        // macOS: 关闭窗口后点击 Dock 图标应重新显示主窗口，而不是新建/无响应。
+        if (this.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
+        {
+            activatableLifetime.Activated += (_, args) =>
+            {
+                if (WindowLifecyclePolicy.ShouldShowOnActivation(args.Kind))
+                {
+                    ShowMainWindow();
+                }
+            };
+        }
 
         var hotkeyRouter = _services.GetRequiredService<HotkeyRouter>();
         hotkeyRouter.Handler = HandleHotkeyAction;
@@ -335,7 +366,7 @@ public partial class App : Avalonia.Application
         }
 
         var closeToTray = _services?.GetRequiredService<SettingsService>().Current.CloseToTray ?? true;
-        if (!closeToTray)
+        if (!WindowLifecyclePolicy.ShouldHideOnClose(PlatformInfo.Current, closeToTray))
         {
             _allowClose = true;
             return;
@@ -370,6 +401,9 @@ public partial class App : Avalonia.Application
         _appMenu?.Relocalize();
     }
 
+    private void OnActualThemeVariantChanged(object? sender, EventArgs e) =>
+        _services?.GetService<MainWindowViewModel>()?.RefreshThemeState();
+
     private void OnSettingsChanged(object? sender, AppSettings settings)
     {
         if (_trayMenu is null || _services is null)
@@ -377,13 +411,40 @@ public partial class App : Avalonia.Application
             return;
         }
 
-        TrayIconFactory.Update(
-            _trayMenu,
-            _services.GetRequiredService<ILocalizer>(),
-            settings.CaptureDelaySeconds);
-        _trayMenu.ApplyGestures(settings.Hotkeys);
-        _appMenu?.ApplyGestures(settings.Hotkeys);
+        // 设置项逐项即时保存，Changed 会频繁触发；只有真正影响托盘/菜单的变化才更新，
+        // 避免重复刷新托盘图标或重建快捷键菜单（Changed 风暴）。
+        var delayChanged = _lastTrayDelay != settings.CaptureDelaySeconds;
+        var signature = BuildHotkeySignature(settings.Hotkeys);
+        var hotkeysChanged = !string.Equals(_lastHotkeySignature, signature, StringComparison.Ordinal);
+
+        if (!delayChanged && !hotkeysChanged)
+        {
+            return;
+        }
+
+        if (delayChanged)
+        {
+            TrayIconFactory.Update(
+                _trayMenu,
+                _services.GetRequiredService<ILocalizer>(),
+                settings.CaptureDelaySeconds);
+            _lastTrayDelay = settings.CaptureDelaySeconds;
+        }
+
+        if (hotkeysChanged)
+        {
+            _trayMenu.ApplyGestures(settings.Hotkeys);
+            _appMenu?.ApplyGestures(settings.Hotkeys);
+            _lastHotkeySignature = signature;
+        }
     }
+
+    private static string BuildHotkeySignature(IReadOnlyDictionary<string, string> hotkeys) =>
+        string.Join(
+            "|",
+            hotkeys
+                .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
+                .Select(static pair => $"{pair.Key}={pair.Value}"));
 
     private void HideMainWindow() => _mainWindow?.Hide();
 

@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SSC.UI.Dialogs.ConfirmDialogWindow"
+        Title="SuperScreenCapture"
+        Width="420"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        KeyboardNavigation.TabNavigation="Cycle"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyBackgroundFallback="Transparent"
+        TransparencyLevelHint="Transparent"
+        Foreground="{DynamicResource SscText}">
+  <Border Background="{DynamicResource SscPanelBg}"
+          BorderBrush="{DynamicResource SscBorderStrong}"
+          BorderThickness="1"
+          CornerRadius="18"
+          Padding="22"
+          BoxShadow="0 30 90 0 #80000000">
+    <StackPanel Spacing="16">
+      <Grid ColumnDefinitions="Auto,*">
+        <Border Width="38" Height="38" CornerRadius="11" Background="{DynamicResource SscWarningSoft}" VerticalAlignment="Top">
+          <Path Data="{StaticResource IcoInfo}"
+                Stroke="{DynamicResource SscWarningText}"
+                StrokeThickness="1.7"
+                Width="20"
+                Height="20"
+                Stretch="Uniform"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+        </Border>
+        <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="4" VerticalAlignment="Center">
+          <TextBlock x:Name="TitleText" FontSize="16" FontWeight="Bold" LetterSpacing="-0.2" TextWrapping="Wrap" />
+          <TextBlock x:Name="DescText" FontSize="11.5" Foreground="{DynamicResource SscTextMuted}" TextWrapping="Wrap" LineHeight="17" />
+        </StackPanel>
+      </Grid>
+
+      <StackPanel x:Name="FooterActions" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button x:Name="CancelButton" Classes="btn btn-ghost" Height="32">
+          <TextBlock x:Name="CancelText" />
+        </Button>
+        <Button x:Name="ConfirmButton" Classes="btn btn-primary" Height="32" IsDefault="True">
+          <TextBlock x:Name="ConfirmText" />
+        </Button>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

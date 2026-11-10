@@ -124,7 +124,15 @@ internal static class TrayIconFactory
 
         if (PlatformInfo.IsWindows)
         {
-            trayIcon.Clicked += (_, _) => actions.ShowWindow();
+            // Avalonia 12 的 TrayIcon 只有 Clicked，双击由时间戳合成；单击不做任何事。
+            var doubleClickGate = new TrayDoubleClickGate();
+            trayIcon.Clicked += (_, _) =>
+            {
+                if (doubleClickGate.RegisterClick(Environment.TickCount64))
+                {
+                    actions.ShowWindow();
+                }
+            };
         }
 
         var icons = new TrayIcons();

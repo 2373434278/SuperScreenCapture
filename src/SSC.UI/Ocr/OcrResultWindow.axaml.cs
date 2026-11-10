@@ -40,6 +40,7 @@ public partial class OcrResultWindow : Window
         _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
         InitializeComponent();
+        SystemCaptionButtons.Localizer = _localizer;
         WindowingMotion.FadeIn(this);
         _canvas = new OcrOverlayControl(frame);
         CanvasHost.Width = Math.Max(1, frame.Width);

@@ -1,8 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
-    <!-- Windows keeps the native title bar; content starts at the toolbar. -->
-    <Thickness x:Key="SscCaptionPadding">14,0,14,0</Thickness>
+    <!-- Windows 自绘 chrome：右侧让位给 CaptionButtons（– □ ×），内容不再留右边距。 -->
+    <Thickness x:Key="SscCaptionPadding">14,0,0,0</Thickness>
     <x:Double x:Key="SscGridRowMinHeight">32</x:Double>
     <x:Double x:Key="SscDialogRadius">14</x:Double>
     <x:Double x:Key="SscFocusRingThickness">1</x:Double>

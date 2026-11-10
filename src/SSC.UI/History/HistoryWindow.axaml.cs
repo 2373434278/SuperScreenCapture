@@ -83,11 +83,14 @@ public partial class HistoryWindow : Window
         _encoder = encoder;
 
         InitializeComponent();
+        SystemCaptionButtons.Localizer = _localizer;
         if (PlatformInfo.IsMacOS)
         {
             DeleteCard.Classes.Add("sheet");
             DeleteScrim.Classes.Add("sheet");
         }
+
+        DialogButtonOrder.Apply(DeleteActions, DeleteConfirm);
         WindowingMotion.FadeIn(this);
         _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _searchTimer.Tick += (_, _) =>
@@ -555,6 +558,8 @@ public partial class HistoryWindow : Window
 
         _pendingDelete = card;
         DeleteModal.IsVisible = true;
+        // Windows 下重排后首个按钮是删除，初始焦点仍必须落在取消上（两平台一致）。
+        DeleteCancel.Focus();
     }
 
     private void HideDeleteModal()

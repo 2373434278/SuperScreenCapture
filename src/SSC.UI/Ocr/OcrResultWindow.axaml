@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:SSC.UI.Controls"
         xmlns:ocr="using:SSC.UI.Ocr"
         xmlns:platform="using:SSC.UI.Platform"
         x:Class="SSC.UI.Ocr.OcrResultWindow"
@@ -69,8 +70,9 @@
   </Window.Styles>
 
   <Grid RowDefinitions="54,*,30">
-      <!-- 头部：返回、标题、引擎、语言、重新识别、关闭 -->
-      <Border Grid.Row="0" Classes="captionbar" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1" Padding="{DynamicResource SscCaptionPadding}">
+      <!-- 头部：返回、标题、引擎、语言、重新识别、关闭 + 右侧系统按钮 -->
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+      <Border Grid.Column="0" Classes="captionbar" Background="{DynamicResource SscPanelBg}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1" Padding="{DynamicResource SscCaptionPadding}" platform:WindowChrome.IsDragArea="True">
         <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" VerticalAlignment="Center">
           <Button x:Name="BackButton" Classes="btn btn-ghost btn-sm" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -105,6 +107,8 @@
           </Button>
         </Grid>
       </Border>
+      <controls:CaptionButtons x:Name="SystemCaptionButtons" Grid.Column="1" />
+      </Grid>
 
       <Grid Grid.Row="1" ColumnDefinitions="1.05*,0.95*">
         <!-- 左侧图像与识别框 -->

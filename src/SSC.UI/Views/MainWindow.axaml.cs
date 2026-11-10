@@ -5,6 +5,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
+using SSC.UI.Dialogs;
 using SSC.UI.Motion;
 using SSC.UI.Platform;
 using SSC.UI.ViewModels;
@@ -49,6 +50,7 @@ public partial class MainWindow : Window
         : this()
     {
         DataContext = viewModel;
+        SystemCaptionButtons.Localizer = viewModel.L;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
 
@@ -101,6 +103,27 @@ public partial class MainWindow : Window
         {
             viewModel.SaveDirectory = folders[0].Path.LocalPath;
         }
+    }
+
+    /// <summary>“恢复默认设置”：确认后由视图模型统一重置并立即落盘。</summary>
+    private async void OnRestoreAllDefaults(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        var confirmed = await ConfirmDialogWindow.ShowAsync(
+            viewModel.L,
+            viewModel.L["restoreAllDefaults"],
+            viewModel.L["restoreAllDefaultsDesc"]);
+        if (!confirmed)
+        {
+            return;
+        }
+
+        viewModel.ResetAllSettingsCommand.Execute(null);
     }
 
     /// <summary>复制 Windows OCR 语言包安装命令。</summary>

@@ -17,9 +17,60 @@ public sealed class SettingsServiceTests
         var service = CreateService(new FakeSettingsRepository());
 
         Assert.Equal("zh", service.Current.Language);
-        Assert.Equal("dark", service.Current.Theme);
+        // 主题默认跟随系统：新安装不再强制深色。
+        Assert.Equal("auto", service.Current.Theme);
         Assert.Equal("⌘⇧2", service.Current.Hotkeys["captureRegion"]);
         Assert.Equal("/tmp/ssc/screenshots", service.Current.SaveDirectory);
+    }
+
+    [Theory]
+    [InlineData(1, "dark", "auto")]
+    [InlineData(2, "dark", "auto")]
+    [InlineData(2, "light", "light")]
+    [InlineData(2, "blue", "auto")]
+    [InlineData(3, "auto", "auto")]
+    [InlineData(3, "dark", "dark")]
+    [InlineData(3, "light", "light")]
+    [InlineData(3, "blue", "auto")]
+    public void StoredTheme_MigratesToSchemaV3(int storedSchemaVersion, string storedTheme, string expectedTheme)
+    {
+        var repository = new FakeSettingsRepository();
+        repository.Write(
+            SettingsService.StorageKey,
+            $"{{\"schemaVersion\":{storedSchemaVersion},\"theme\":\"{storedTheme}\"}}");
+
+        var service = CreateService(repository);
+
+        Assert.Equal(expectedTheme, service.Current.Theme);
+        Assert.Equal(3, service.Current.SchemaVersion);
+    }
+
+    [Fact]
+    public void MissingSchemaVersion_TreatsDarkAsLegacyAndMigratesToAuto()
+    {
+        var repository = new FakeSettingsRepository();
+        repository.Write(SettingsService.StorageKey, "{\"theme\":\"dark\"}");
+
+        var service = CreateService(repository);
+
+        Assert.Equal("auto", service.Current.Theme);
+        Assert.Equal(3, service.Current.SchemaVersion);
+    }
+
+    [Fact]
+    public void Save_KeepsExplicitDarkChoiceAtSchemaV3()
+    {
+        var repository = new FakeSettingsRepository();
+        var service = CreateService(repository);
+        var settings = service.Current;
+        settings.Theme = "dark";
+
+        service.Save(settings);
+
+        Assert.Equal(3, service.Current.SchemaVersion);
+        var reloaded = CreateService(repository);
+        Assert.Equal("dark", reloaded.Current.Theme);
+        Assert.Equal(3, reloaded.Current.SchemaVersion);
     }
 
     [Fact]

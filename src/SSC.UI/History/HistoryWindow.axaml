@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:SSC.UI.Controls"
         xmlns:history="using:SSC.UI.History"
         xmlns:platform="using:SSC.UI.Platform"
         x:Class="SSC.UI.History.HistoryWindow"
@@ -254,8 +255,9 @@
   </Window.Styles>
 
   <Grid RowDefinitions="54,Auto,*,30">
-          <!-- 头部：标题、计数、搜索、视图切换 -->
-          <Border Grid.Row="0" Classes="captionbar" Padding="{DynamicResource SscCaptionPadding}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
+          <!-- 头部：标题、计数、搜索、视图切换 + 右侧系统按钮 -->
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+          <Border Grid.Column="0" Classes="captionbar" Padding="{DynamicResource SscCaptionPadding}" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1" platform:WindowChrome.IsDragArea="True">
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel Spacing="2" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource SscText}" LetterSpacing="-0.2" />
@@ -290,6 +292,8 @@
               </StackPanel>
             </Grid>
           </Border>
+          <controls:CaptionButtons x:Name="SystemCaptionButtons" Grid.Column="1" />
+          </Grid>
 
           <!-- 过滤条 -->
           <Border Grid.Row="1" Padding="18,11" BorderBrush="{DynamicResource SscBorder}" BorderThickness="0,0,0,1">
@@ -542,7 +546,7 @@
                 <StackPanel Spacing="0">
                   <TextBlock x:Name="DeleteTitle" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource SscText}" />
                   <TextBlock x:Name="DeleteDescription" Margin="0,6,0,0" FontSize="12" Foreground="{DynamicResource SscTextMuted}" TextWrapping="Wrap" />
-                  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,20,0,0">
+                  <StackPanel x:Name="DeleteActions" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,20,0,0">
                     <Button x:Name="DeleteCancel" Classes="btn btn-ghost" Height="32" />
                     <Button x:Name="DeleteConfirm" Classes="btn btn-danger" Height="32" />
                   </StackPanel>

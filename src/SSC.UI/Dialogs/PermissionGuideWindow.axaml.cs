@@ -21,6 +21,7 @@ public partial class PermissionGuideWindow : Window
 
         InitializeComponent();
         ScreenRow.IsVisible = PlatformInfo.IsMacOS;
+        DialogButtonOrder.Apply(FooterActions, OpenSettingsButton);
         ApplyLocalization();
 
         Opened += async (_, _) => await RefreshAsync();

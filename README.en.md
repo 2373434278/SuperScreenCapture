@@ -2,7 +2,7 @@
 
 English | [简体中文](README.md)
 
-SuperScreenCapture is an Apache-2.0 open-source screenshot and screen recording app for macOS (Apple Silicon / Intel) and Windows (x64 / ARM64). The UI ships in English and Simplified Chinese with light and dark themes.
+SuperScreenCapture is an Apache-2.0 open-source screenshot and screen recording app for macOS (Apple Silicon / Intel) and Windows (x64 / ARM64). The UI ships in English and Simplified Chinese, and its theme follows the system by default and can also be pinned to light or dark.
 
 ## Screenshots
 
@@ -35,7 +35,7 @@ SuperScreenCapture is an Apache-2.0 open-source screenshot and screen recording 
 ### Platform behavior
 
 - macOS: traffic lights sit inside the 54px toolbar with the content extended into the title bar; the system menu bar provides SSC / File / Edit / Window / Help with Settings ⌘,, Quit ⌘Q and Close Window ⌘W; dialogs are top-attached sheets; scrollbars are thin overlays; keyboard focus uses a soft outer glow.
-- Windows: the native title bar and right-side minimize/maximize/close buttons are kept (Snap Layouts supported); dialogs are centered modals; scrollbars are always visible; keyboard focus uses a crisp 1px outline; left-clicking the tray restores the main window.
+- Windows: a single 54px toolbar shared with macOS, with the minimize/maximize/close buttons drawn on the right side of the toolbar (Snap Layouts supported); dialogs are centered modals; scrollbars are always visible; keyboard focus uses a crisp 1px outline; double-clicking the tray restores the main window.
 - Library items, the annotation canvas, OCR lines and the capture selection all expose right-click menus; the default action is bold on Windows and regular weight on macOS.
 - The upload dialog is a top sheet on macOS and a centered modal on Windows; history delete confirmation docks to the top on macOS.
 
@@ -85,6 +85,15 @@ The app lives in the tray. Default hotkeys:
 macOS reserves ⌘⇧3/4/5/6 for system screenshots, so the defaults use ⌥⌘ chords; legacy defaults migrate automatically on upgrade.
 
 Hotkeys can be recorded and changed in Settings → Hotkeys; conflicts are reported immediately.
+
+## Upgrade notes
+
+Upgrading from 1.0.x changes a few behaviors:
+
+- Theme: earlier versions hard-coded "Dark" in the settings file. On upgrade that value migrates to "Auto", so the UI follows the macOS/Windows light or dark appearance; a theme you had explicitly set to Light stays as-is. You can switch later in Settings → General → Theme or with the toolbar theme button, which cycles Auto → Dark → Light → Auto.
+- Annotation editor: ⌘S / Ctrl+S still saves directly; ⌘⇧S / Ctrl+Shift+S now opens Save As… with the system save panel, while per-format saving (PNG/JPG/WebP) lives in the save button's flyout.
+- Windows tray: double-click the icon to restore the main window; a single click does nothing, so the window no longer pops up by accident.
+- Window chrome: Windows and macOS now share a single 54px toolbar.
 
 ## Settings
 

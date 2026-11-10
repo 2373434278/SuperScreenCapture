@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SSC.UI.Controls.CaptionButtons"
+             Focusable="False"
+             IsTabStop="False">
+  <UserControl.Styles>
+    <!-- Windows 自定义系统按钮（– □ ×）：与 54px 顶栏同高，悬停用面板色。 -->
+    <Style Selector="Button.captionbtn">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="IsTabStop" Value="False" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.captionbtn:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SscPanelAltBg}" />
+    </Style>
+    <Style Selector="Button.captionbtn:pressed">
+      <Setter Property="Background" Value="{DynamicResource SscPanel3Bg}" />
+    </Style>
+    <Style Selector="Button.captionbtn Path">
+      <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="Stretch" Value="None" />
+    </Style>
+    <!-- 关闭按钮沿用 Windows 惯例的红色悬停。 -->
+    <Style Selector="Button.captionbtn.close:pointerover">
+      <Setter Property="Background" Value="#c42b1c" />
+    </Style>
+    <Style Selector="Button.captionbtn.close:pointerover Path">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
+    <Style Selector="Button.captionbtn.close:pressed">
+      <Setter Property="Background" Value="#9f2015" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- 与顶栏底色/底边连续，右侧贴齐窗口边缘。 -->
+  <Border Background="{DynamicResource SscPanelBg}"
+          BorderBrush="{DynamicResource SscBorder}"
+          BorderThickness="0,0,0,1">
+    <Grid ColumnDefinitions="Auto,Auto,Auto">
+      <Button x:Name="MinimizeButtonPart"
+              Grid.Column="0"
+              Width="46"
+              VerticalAlignment="Stretch"
+              Classes="captionbtn">
+        <Canvas Width="11" Height="11">
+          <Path Data="M0.5,5.5 H10.5" />
+        </Canvas>
+      </Button>
+      <Button x:Name="MaximizeButtonPart"
+              Grid.Column="1"
+              Width="46"
+              VerticalAlignment="Stretch"
+              Classes="captionbtn">
+        <Canvas Width="11" Height="11">
+          <Panel>
+            <Path x:Name="MaximizeIcon" Data="M0.5,0.5 H10.5 V10.5 H0.5 Z" />
+            <Path x:Name="RestoreIcon" Data="M0.5,3.5 H7.5 V10.5 H0.5 Z M3.5,3.5 V0.5 H10.5 V7.5 H7.5" IsVisible="False" />
+          </Panel>
+        </Canvas>
+      </Button>
+      <Button x:Name="CloseButtonPart"
+              Grid.Column="2"
+              Width="46"
+              VerticalAlignment="Stretch"
+              Classes="captionbtn close">
+        <Canvas Width="11" Height="11">
+          <Path Data="M0.5,0.5 L10.5,10.5 M10.5,0.5 L0.5,10.5" />
+        </Canvas>
+      </Button>
+    </Grid>
+  </Border>
+</UserControl>

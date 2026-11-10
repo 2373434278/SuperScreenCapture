@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using SSC.Application.Abstractions;
 using SSC.Application.Capture;
 using SSC.Application.Editing;
@@ -104,6 +105,7 @@ public partial class AnnotationEditorWindow : Window
         _retake = retake;
 
         InitializeComponent();
+        SystemCaptionButtons.Localizer = _localizer;
         WindowingMotion.FadeIn(this);
 
         _session = new AnnotationEditorSession(frame.Width, frame.Height);
@@ -194,7 +196,7 @@ public partial class AnnotationEditorWindow : Window
         {
             if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
-                SaveButton.Flyout?.ShowAt(SaveButton);
+                _ = SaveAsAsync();
             }
             else
             {
@@ -324,9 +326,10 @@ public partial class AnnotationEditorWindow : Window
             new ContextMenuEntry(_localizer["contextRedo"], Redo, new HotkeyGesture(modifier | HotkeyModifiers.Shift, HotkeyKey.Z)),
             ContextMenuEntry.Separator(),
             new ContextMenuEntry(_localizer["contextCopy"], () => _ = CopyAsync(), new HotkeyGesture(modifier, HotkeyKey.C)),
-            new ContextMenuEntry($"{_localizer["contextSaveAs"]} PNG", () => { _saveFormat = "png"; _ = SaveAsync(); }, new HotkeyGesture(modifier, HotkeyKey.S)),
-            new ContextMenuEntry($"{_localizer["contextSaveAs"]} JPG", () => { _saveFormat = "jpg"; _ = SaveAsync(); }),
-            new ContextMenuEntry($"{_localizer["contextSaveAs"]} WebP", () => { _saveFormat = "webp"; _ = SaveAsync(); }),
+            new ContextMenuEntry($"{_localizer["contextSave"]} PNG", () => { _saveFormat = "png"; _ = SaveAsync(); }, new HotkeyGesture(modifier, HotkeyKey.S)),
+            new ContextMenuEntry($"{_localizer["contextSave"]} JPG", () => { _saveFormat = "jpg"; _ = SaveAsync(); }),
+            new ContextMenuEntry($"{_localizer["contextSave"]} WebP", () => { _saveFormat = "webp"; _ = SaveAsync(); }),
+            new ContextMenuEntry($"{_localizer["contextSaveAs"]}…", () => _ = SaveAsAsync()),
             ContextMenuEntry.Separator(),
             new ContextMenuEntry(_localizer["contextOcr"], () => _ = RecognizeAsync()),
             new ContextMenuEntry(_localizer["contextUpload"], () => _ = UploadAsync()),
@@ -352,6 +355,8 @@ public partial class AnnotationEditorWindow : Window
         _saveFormat = "webp";
         _ = SaveAsync();
     }
+
+    private void OnSaveAs(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _ = SaveAsAsync();
 
     private void SelectTool(AnnotationToolKind kind)
     {
@@ -519,6 +524,57 @@ public partial class AnnotationEditorWindow : Window
         }
     }
 
+    /// <summary>
+    /// 另存为：使用系统保存面板选择路径后写入该文件。系统保存面板不可用时
+    /// （如受限环境）退回设置目录直存，保证快捷键仍有可预期行为。
+    /// </summary>
+    private async Task SaveAsAsync()
+    {
+        var storage = StorageProvider;
+        if (storage is null || !storage.CanSave)
+        {
+            await SaveAsync();
+            return;
+        }
+
+        try
+        {
+            var frame = _renderer.Render(_frame, _session.Document);
+            var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = _localizer["editorSaveAs"],
+                SuggestedFileName = Path.GetFileNameWithoutExtension(_result.FilePath),
+                DefaultExtension = "png",
+                ShowOverwritePrompt = true,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("PNG") { Patterns = new[] { "*.png" } },
+                    new FilePickerFileType("JPG") { Patterns = new[] { "*.jpg", "*.jpeg" } },
+                    new FilePickerFileType("WebP") { Patterns = new[] { "*.webp" } }
+                }
+            });
+
+            // 用户取消：保持现状，不改文件、不改历史、不改状态栏。
+            if (file is null)
+            {
+                return;
+            }
+
+            var path = file.Path.LocalPath;
+            var saved = await _screenshots.SaveAsAsync(
+                frame,
+                CaptureKind.Screenshot,
+                path,
+                Path.GetExtension(path));
+            FileNameText.Text = Path.GetFileName(saved.FilePath);
+            StatusText.Text = string.Format(_localizer["editorSaved"], Path.GetFileName(saved.FilePath));
+        }
+        catch (Exception exception)
+        {
+            StatusText.Text = $"{_localizer["editorActionFailed"]}: {exception.Message}";
+        }
+    }
+
     private void Pin()
     {
         var frame = _renderer.Render(_frame, _session.Document);
@@ -603,6 +659,7 @@ public partial class AnnotationEditorWindow : Window
         DoneText.Text = _localizer["editorDone"];
         CopyText.Text = _localizer["editorCopy"];
         SaveText.Text = _localizer["editorSave"];
+        SaveAsMenuItem.Header = _localizer["editorSaveAs"];
         ColorLabel.Text = _localizer["editorColor"];
         WidthLabel.Text = _localizer["editorWidth"];
         FontLabel.Text = _localizer["editorFontSize"];

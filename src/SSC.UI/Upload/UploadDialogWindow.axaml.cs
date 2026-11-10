@@ -7,6 +7,7 @@ using Avalonia.Media.Imaging;
 using SSC.Application.Abstractions;
 using SSC.Application.Settings;
 using SSC.Application.Upload;
+using SSC.UI.Dialogs;
 
 namespace SSC.UI.Upload;
 
@@ -45,6 +46,7 @@ public partial class UploadDialogWindow : Window
         _upload = settings.Current.Upload.Clone();
 
         InitializeComponent();
+        DialogButtonOrder.Apply(UploadButton, CancelButton);
         WindowingMotion.FadeIn(this);
         _preview = TryCreatePreview(data);
         PreviewImage.Source = _preview;

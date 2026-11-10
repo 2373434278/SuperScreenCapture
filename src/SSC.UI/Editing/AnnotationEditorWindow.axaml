@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:SSC.UI.Controls"
         xmlns:editing="using:SSC.UI.Editing"
         xmlns:platform="using:SSC.UI.Platform"
         x:Class="SSC.UI.Editing.AnnotationEditorWindow"
@@ -53,7 +54,7 @@
       <Setter Property="Background" Value="{DynamicResource SscPanel3Bg}" />
     </Style>
     <Style Selector="Button.tool.active">
-      <Setter Property="Background" Value="{DynamicResource SscPrimaryGradient}" />
+      <Setter Property="Background" Value="{DynamicResource SscAccent}" />
     </Style>
     <Style Selector="Button.tool Path">
       <Setter Property="Stroke" Value="{DynamicResource SscTextMuted}" />
@@ -128,15 +129,17 @@
 
   </Window.Styles>
 
-  <!-- 真实窗口即外壳；macOS 顶栏与红绿灯平齐。 -->
+  <!-- 真实窗口即外壳；macOS 红绿灯与 Windows 系统按钮都嵌进 54px 顶栏。 -->
   <Grid RowDefinitions="54,*,56">
       <!-- 顶栏 -->
-      <Border Grid.Row="0"
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+      <Border Grid.Column="0"
               Classes="captionbar"
               Background="{DynamicResource SscPanelBg}"
               BorderBrush="{DynamicResource SscBorder}"
               BorderThickness="0,0,0,1"
-              Padding="{DynamicResource SscCaptionPadding}">
+              Padding="{DynamicResource SscCaptionPadding}"
+              platform:WindowChrome.IsDragArea="True">
         <Grid ColumnDefinitions="Auto,*,Auto">
           <Button x:Name="RetakeButton" Classes="btn btn-ghost btn-sm" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -170,6 +173,8 @@
           </StackPanel>
         </Grid>
       </Border>
+      <controls:CaptionButtons x:Name="SystemCaptionButtons" Grid.Column="1" />
+      </Grid>
 
       <Grid Grid.Row="1" ColumnDefinitions="52,*">
         <!-- 工具轨 -->
@@ -301,6 +306,9 @@
                     <MenuItem Header="PNG" Click="OnSavePng" />
                     <MenuItem Header="JPG" Click="OnSaveJpg" />
                     <MenuItem Header="WebP" Click="OnSaveWebp" />
+                    <!-- Avalonia 的 MenuFlyout 不渲染 Separator，用 Header="-" 表示分隔线。 -->
+                    <MenuItem Header="-" />
+                    <MenuItem x:Name="SaveAsMenuItem" Click="OnSaveAs" />
                   </MenuFlyout>
                 </Button.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="6">

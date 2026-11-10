@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using Avalonia;
@@ -30,9 +31,9 @@ namespace SSC.UI.ViewModels;
 
 /// <summary>
 /// 设置主窗口（原型 P5）的视图模型。
-/// 内部持有一份 <see cref="AppSettings"/> 草稿，所有编辑先写入草稿，
-/// 只有点击“保存设置”时才会通过 <see cref="SaveSettingsCommand"/> 持久化；
-/// 语言与主题属于可即时预览的选项，因此会立刻生效。
+/// 内部持有一份 <see cref="AppSettings"/> 草稿，所有编辑都会立即写入草稿并调用
+/// <see cref="SettingsService.Save"/> 持久化；校验失败时回滚对应项并在行内展示错误。
+/// 语言/主题等可预览选项仍然先应用到运行时，再随其余设置一起落盘。
 /// </summary>
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
@@ -55,6 +56,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly UploadPipeline? _uploads;
     private readonly IImageEncoder? _imageEncoder;
     private AppSettings _draft;
+    private readonly Dictionary<string, string> _hotkeyBaselines = new(StringComparer.OrdinalIgnoreCase);
+    private bool _suppressHotkeyCommit;
     private string _activeTab = "general";
     private bool _disposed;
     private AutoStartState _autoStartState = AutoStartState.Disabled;
@@ -162,6 +165,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _ => _platform.DisplayName
     };
 
+    public bool IsAutoTheme => _draft.Theme == "auto";
+
     public bool IsDarkTheme => _draft.Theme == "dark";
 
     public bool IsLightTheme => _draft.Theme == "light";
@@ -173,13 +178,39 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.LaunchAtLogin;
         set
         {
-            if (_draft.LaunchAtLogin == value)
+            var previous = _draft.LaunchAtLogin;
+            if (previous == value)
             {
                 return;
             }
 
+            var previousState = _autoStartState;
+            var result = _autoStart.SetEnabled(value);
+            _autoStartState = result.State;
+            NotifyAutoStart();
+
+            if (!result.Success || _autoStartState == AutoStartState.Unavailable)
+            {
+                _draft.LaunchAtLogin = previous;
+                NotifyAutoStart();
+                StatusMessage = string.IsNullOrWhiteSpace(result.Error)
+                    ? L["autoStartFailed"]
+                    : $"{L["autoStartFailed"]}: {result.Error}";
+                return;
+            }
+
             _draft.LaunchAtLogin = value;
-            OnPropertyChanged();
+            NotifyAutoStart();
+            if (TryPersist())
+            {
+                return;
+            }
+
+            // 持久化失败时把系统登录项也回滚，避免"界面关掉但系统仍自启"。
+            _autoStart.SetEnabled(previous);
+            _autoStartState = previousState;
+            _draft.LaunchAtLogin = previous;
+            NotifyAutoStart();
         }
     }
 
@@ -188,13 +219,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.CloseToTray;
         set
         {
-            if (_draft.CloseToTray == value)
+            var previous = _draft.CloseToTray;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.CloseToTray = value;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.CloseToTray = value,
+                () => _draft.CloseToTray = previous,
+                nameof(CloseToTray));
         }
     }
 
@@ -207,14 +241,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.SaveDirectory == normalized)
+            var previous = _draft.SaveDirectory;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.SaveDirectory = normalized;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(FileNamePreview));
+            CommitSetting(
+                () => _draft.SaveDirectory = normalized,
+                () => _draft.SaveDirectory = previous,
+                nameof(SaveDirectory),
+                nameof(FileNamePreview));
         }
     }
 
@@ -225,14 +262,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.FileNamePattern == normalized)
+            var previous = _draft.FileNamePattern;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.FileNamePattern = normalized;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(FileNamePreview));
+            CommitSetting(
+                () => _draft.FileNamePattern = normalized,
+                () => _draft.FileNamePattern = previous,
+                nameof(FileNamePattern),
+                nameof(FileNamePreview));
         }
     }
 
@@ -265,14 +305,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var clamped = (int)Math.Round(Math.Clamp(value, 40, 100));
-            if (_draft.JpegQuality == clamped)
+            var previous = _draft.JpegQuality;
+            if (previous == clamped)
             {
                 return;
             }
 
-            _draft.JpegQuality = clamped;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(JpegQualityText));
+            CommitSetting(
+                () => _draft.JpegQuality = clamped,
+                () => _draft.JpegQuality = previous,
+                nameof(JpegQuality),
+                nameof(JpegQualityText));
         }
     }
 
@@ -283,13 +326,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.AutoCopy;
         set
         {
-            if (_draft.AutoCopy == value)
+            var previous = _draft.AutoCopy;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.AutoCopy = value;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.AutoCopy = value,
+                () => _draft.AutoCopy = previous,
+                nameof(AutoCopy));
         }
     }
 
@@ -302,14 +348,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var clamped = Math.Clamp(value, 1, 30);
-            if (_draft.CaptureDelaySeconds == clamped)
+            var previous = _draft.CaptureDelaySeconds;
+            if (previous == clamped)
             {
                 return;
             }
 
-            _draft.CaptureDelaySeconds = clamped;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(CaptureDelayIndex));
+            CommitSetting(
+                () => _draft.CaptureDelaySeconds = clamped,
+                () => _draft.CaptureDelaySeconds = previous,
+                nameof(CaptureDelaySeconds),
+                nameof(CaptureDelayIndex));
         }
     }
 
@@ -352,15 +401,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var channel = value == 1 ? "preview" : "stable";
-            if (_draft.UpdateChannel == channel)
+            var previous = _draft.UpdateChannel;
+            if (previous == channel)
             {
                 return;
             }
 
-            _draft.UpdateChannel = channel;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsStableChannel));
-            OnPropertyChanged(nameof(IsPreviewChannel));
+            CommitSetting(
+                () => _draft.UpdateChannel = channel,
+                () => _draft.UpdateChannel = previous,
+                nameof(UpdateChannelIndex),
+                nameof(IsStableChannel),
+                nameof(IsPreviewChannel));
         }
     }
 
@@ -437,13 +489,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             }
 
             var days = RetentionOptions[value];
-            if (_draft.HistoryRetentionDays == days)
+            var previous = _draft.HistoryRetentionDays;
+            if (previous == days)
             {
                 return;
             }
 
-            _draft.HistoryRetentionDays = days;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.HistoryRetentionDays = days,
+                () => _draft.HistoryRetentionDays = previous,
+                nameof(RetentionIndex));
         }
     }
 
@@ -473,13 +528,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.OpenEditor;
         set
         {
-            if (_draft.OpenEditor == value)
+            var previous = _draft.OpenEditor;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.OpenEditor = value;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.OpenEditor = value,
+                () => _draft.OpenEditor = previous,
+                nameof(OpenEditor));
         }
     }
 
@@ -488,13 +546,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.ShowQuickAccess;
         set
         {
-            if (_draft.ShowQuickAccess == value)
+            var previous = _draft.ShowQuickAccess;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.ShowQuickAccess = value;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.ShowQuickAccess = value,
+                () => _draft.ShowQuickAccess = previous,
+                nameof(ShowQuickAccess));
         }
     }
 
@@ -509,13 +570,22 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => Math.Max(0, Array.IndexOf(GifFpsOptions, _draft.GifFps));
         set
         {
-            if (value < 0 || value >= GifFpsOptions.Length || _draft.GifFps == GifFpsOptions[value])
+            if (value < 0 || value >= GifFpsOptions.Length)
             {
                 return;
             }
 
-            _draft.GifFps = GifFpsOptions[value];
-            OnPropertyChanged();
+            var fps = GifFpsOptions[value];
+            var previous = _draft.GifFps;
+            if (previous == fps)
+            {
+                return;
+            }
+
+            CommitSetting(
+                () => _draft.GifFps = fps,
+                () => _draft.GifFps = previous,
+                nameof(GifFpsIndex));
         }
     }
 
@@ -524,14 +594,22 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => Math.Max(0, Array.IndexOf(GifDurationOptions, _draft.GifMaxDurationSeconds));
         set
         {
-            if (value < 0 || value >= GifDurationOptions.Length ||
-                _draft.GifMaxDurationSeconds == GifDurationOptions[value])
+            if (value < 0 || value >= GifDurationOptions.Length)
             {
                 return;
             }
 
-            _draft.GifMaxDurationSeconds = GifDurationOptions[value];
-            OnPropertyChanged();
+            var seconds = GifDurationOptions[value];
+            var previous = _draft.GifMaxDurationSeconds;
+            if (previous == seconds)
+            {
+                return;
+            }
+
+            CommitSetting(
+                () => _draft.GifMaxDurationSeconds = seconds,
+                () => _draft.GifMaxDurationSeconds = previous,
+                nameof(GifDurationIndex));
         }
     }
 
@@ -540,14 +618,22 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => Math.Max(0, Array.IndexOf(GifDimensionOptions, _draft.GifMaxDimension));
         set
         {
-            if (value < 0 || value >= GifDimensionOptions.Length ||
-                _draft.GifMaxDimension == GifDimensionOptions[value])
+            if (value < 0 || value >= GifDimensionOptions.Length)
             {
                 return;
             }
 
-            _draft.GifMaxDimension = GifDimensionOptions[value];
-            OnPropertyChanged();
+            var dimension = GifDimensionOptions[value];
+            var previous = _draft.GifMaxDimension;
+            if (previous == dimension)
+            {
+                return;
+            }
+
+            CommitSetting(
+                () => _draft.GifMaxDimension = dimension,
+                () => _draft.GifMaxDimension = previous,
+                nameof(GifDimensionIndex));
         }
     }
 
@@ -558,15 +644,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.RecordingFps;
         set
         {
-            if (_draft.RecordingFps == value)
+            var previous = _draft.RecordingFps;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.RecordingFps = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsFps30));
-            OnPropertyChanged(nameof(IsFps60));
+            CommitSetting(
+                () => _draft.RecordingFps = value,
+                () => _draft.RecordingFps = previous,
+                nameof(RecordingFps),
+                nameof(IsFps30),
+                nameof(IsFps60));
         }
     }
 
@@ -591,13 +680,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 2 => 2160,
                 _ => 1080
             };
-            if (_draft.RecordingMaxHeight == height)
+            var previous = _draft.RecordingMaxHeight;
+            if (previous == height)
             {
                 return;
             }
 
-            _draft.RecordingMaxHeight = height;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.RecordingMaxHeight = height,
+                () => _draft.RecordingMaxHeight = previous,
+                nameof(RecordingMaxHeightIndex));
         }
     }
 
@@ -618,13 +710,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 2 => 20,
                 _ => 12
             };
-            if (_draft.RecordingBitrateMbps == bitrate)
+            var previous = _draft.RecordingBitrateMbps;
+            if (previous == bitrate)
             {
                 return;
             }
 
-            _draft.RecordingBitrateMbps = bitrate;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.RecordingBitrateMbps = bitrate,
+                () => _draft.RecordingBitrateMbps = previous,
+                nameof(RecordingBitrateIndex));
         }
     }
 
@@ -633,13 +728,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.RecordMicrophone;
         set
         {
-            if (_draft.RecordMicrophone == value)
+            var previous = _draft.RecordMicrophone;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.RecordMicrophone = value;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.RecordMicrophone = value,
+                () => _draft.RecordMicrophone = previous,
+                nameof(RecordMicrophone));
         }
     }
 
@@ -655,13 +753,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var engine = value == 1 ? "tesseract" : "native";
-            if (_draft.OcrEngine == engine)
+            var previous = _draft.OcrEngine;
+            if (previous == engine)
             {
                 return;
             }
 
-            _draft.OcrEngine = engine;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.OcrEngine = engine,
+                () => _draft.OcrEngine = previous,
+                nameof(OcrEngineIndex));
         }
     }
 
@@ -672,13 +773,22 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _draft.UploadEnabled;
         set
         {
-            if (_draft.UploadEnabled == value)
+            var previous = _draft.UploadEnabled;
+            if (previous == value)
             {
                 return;
             }
 
-            _draft.UploadEnabled = value;
-            NotifyUploadProviders();
+            CommitSetting(
+                () => _draft.UploadEnabled = value,
+                () => _draft.UploadEnabled = previous,
+                nameof(UploadEnabled),
+                nameof(IsUploadS3),
+                nameof(IsUploadImgur),
+                nameof(IsUploadCustom),
+                nameof(IsUploadS3Active),
+                nameof(IsUploadImgurActive),
+                nameof(IsUploadCustomActive));
         }
     }
 
@@ -748,13 +858,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.Bucket == normalized)
+            var previous = _draft.Upload.Bucket;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.Bucket = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.Bucket = normalized,
+                () => _draft.Upload.Bucket = previous,
+                nameof(UploadBucket));
         }
     }
 
@@ -764,13 +877,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.Region == normalized)
+            var previous = _draft.Upload.Region;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.Region = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.Region = normalized,
+                () => _draft.Upload.Region = previous,
+                nameof(UploadRegion));
         }
     }
 
@@ -780,13 +896,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.AccessKey == normalized)
+            var previous = _draft.Upload.AccessKey;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.AccessKey = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.AccessKey = normalized,
+                () => _draft.Upload.AccessKey = previous,
+                nameof(UploadAccessKey));
         }
     }
 
@@ -796,13 +915,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.SecretKey == normalized)
+            var previous = _draft.Upload.SecretKey;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.SecretKey = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.SecretKey = normalized,
+                () => _draft.Upload.SecretKey = previous,
+                nameof(UploadSecretKey));
         }
     }
 
@@ -812,13 +934,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.ClientId == normalized)
+            var previous = _draft.Upload.ClientId;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.ClientId = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.ClientId = normalized,
+                () => _draft.Upload.ClientId = previous,
+                nameof(UploadClientId));
         }
     }
 
@@ -828,13 +953,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.Endpoint == normalized)
+            var previous = _draft.Upload.Endpoint;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.Endpoint = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.Endpoint = normalized,
+                () => _draft.Upload.Endpoint = previous,
+                nameof(UploadEndpoint));
         }
     }
 
@@ -844,13 +972,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             var normalized = value ?? string.Empty;
-            if (_draft.Upload.Token == normalized)
+            var previous = _draft.Upload.Token;
+            if (previous == normalized)
             {
                 return;
             }
 
-            _draft.Upload.Token = normalized;
-            OnPropertyChanged();
+            CommitSetting(
+                () => _draft.Upload.Token = normalized,
+                () => _draft.Upload.Token = previous,
+                nameof(UploadToken));
         }
     }
 
@@ -910,41 +1041,85 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var previous = _draft.Language;
+        if (previous == language)
+        {
+            return;
+        }
+
         _draft.Language = language;
         _localizer.SetLanguage(language);
+        if (TryPersist())
+        {
+            return;
+        }
+
+        _draft.Language = previous;
+        _localizer.SetLanguage(previous);
     }
 
     [RelayCommand]
     private void SetTheme(string? theme)
     {
-        if (theme is not ("dark" or "light") || _draft.Theme == theme)
+        if (theme is not ("auto" or "dark" or "light"))
+        {
+            return;
+        }
+
+        var previous = _draft.Theme;
+        if (previous == theme)
         {
             return;
         }
 
         _draft.Theme = theme;
         ApplyTheme(theme);
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
+        NotifyTheme();
+        if (TryPersist())
+        {
+            NotifyTheme();
+            return;
+        }
+
+        _draft.Theme = previous;
+        ApplyTheme(previous);
+        NotifyTheme();
     }
 
+    /// <summary>三态循环：跟随系统 → 深色 → 浅色 → 跟随系统。</summary>
     [RelayCommand]
-    private void ToggleTheme() => SetTheme(_draft.Theme == "dark" ? "light" : "dark");
+    private void ToggleTheme() => SetTheme(_draft.Theme switch
+    {
+        "auto" => "dark",
+        "dark" => "light",
+        _ => "auto"
+    });
 
     /// <summary>选择默认截图格式（png / jpg / webp）。</summary>
     [RelayCommand]
     private void SetFormat(string? format)
     {
-        if (format is not ("png" or "jpg" or "webp") || _draft.DefaultFormat == format)
+        if (format is not ("png" or "jpg" or "webp"))
+        {
+            return;
+        }
+
+        var previous = _draft.DefaultFormat;
+        if (previous == format)
         {
             return;
         }
 
         _draft.DefaultFormat = format;
-        OnPropertyChanged(nameof(IsPng));
-        OnPropertyChanged(nameof(IsJpg));
-        OnPropertyChanged(nameof(IsWebp));
-        OnPropertyChanged(nameof(FileNamePreview));
+        NotifyFormat();
+        if (TryPersist())
+        {
+            NotifyFormat();
+            return;
+        }
+
+        _draft.DefaultFormat = previous;
+        NotifyFormat();
     }
 
     /// <summary>选择默认录制帧率。</summary>
@@ -966,8 +1141,25 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var previousProvider = _draft.Upload.Provider;
+        var previousEnabled = _draft.UploadEnabled;
+        if (previousProvider == provider && previousEnabled)
+        {
+            NotifyUploadProviders();
+            return;
+        }
+
         _draft.Upload.Provider = provider;
         _draft.UploadEnabled = true;
+        NotifyUploadProviders();
+        if (TryPersist())
+        {
+            NotifyUploadProviders();
+            return;
+        }
+
+        _draft.Upload.Provider = previousProvider;
+        _draft.UploadEnabled = previousEnabled;
         NotifyUploadProviders();
     }
 
@@ -1132,82 +1324,92 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void RestoreHotkeys()
     {
         var defaults = HotkeyCatalog.CreateDefaults(_platform.Kind);
-        foreach (var row in Hotkeys)
+        var snapshot = CollectGestures();
+
+        _suppressHotkeyCommit = true;
+        try
         {
-            row.ErrorMessage = null;
-            if (defaults.TryGetValue(row.ActionKey, out var gesture))
+            foreach (var row in Hotkeys)
             {
-                row.Gesture = gesture;
+                row.ErrorMessage = null;
+                if (defaults.TryGetValue(row.ActionKey, out var gesture))
+                {
+                    row.Gesture = gesture;
+                }
             }
         }
-
-        StatusMessage = L["statusReady"];
-    }
-
-    /// <summary>
-    /// 校验快捷键、注册到系统、持久化草稿并应用开机自启。
-    /// 任一环节失败都会把原因写回对应行并中止保存，避免"显示已保存但实际不生效"。
-    /// </summary>
-    [RelayCommand]
-    private void SaveSettings()
-    {
-        foreach (var row in Hotkeys)
+        finally
         {
-            row.ErrorMessage = null;
+            _suppressHotkeyCommit = false;
         }
 
-        var gestures = Hotkeys.ToDictionary(
-            static row => row.ActionKey,
-            static row => row.Gesture,
-            StringComparer.OrdinalIgnoreCase);
-        _draft.Hotkeys = new Dictionary<string, string>(gestures, StringComparer.OrdinalIgnoreCase);
-
-        var conflicts = HotkeyConflictDetector.Detect(gestures);
-        if (conflicts.Count > 0)
-        {
-            MarkConflicts(conflicts);
-            StatusMessage = L["statusConflicts"];
-            return;
-        }
-
+        var gestures = CollectGestures();
         var apply = _hotkeys?.Apply(gestures);
         if (apply is { Success: false })
         {
             MarkHotkeyFailures(apply);
+            RestoreGestureSnapshot(snapshot);
             StatusMessage = L["statusConflicts"];
             return;
         }
 
+        if (!TryPersist())
+        {
+            RestoreGestureSnapshot(snapshot);
+            _hotkeys?.Apply(snapshot);
+            return;
+        }
+
+        SyncHotkeyRowsFromDraft();
+        UpdateHotkeyBaselines();
+        StatusMessage = L["statusSaved"];
+    }
+
+    /// <summary>
+    /// 恢复全部设置默认值（由确认对话框调用）：热键先应用到系统（失败也继续），
+    /// 再整体保存；随后同步语言、主题与开机自启，并全量刷新绑定。
+    /// </summary>
+    [RelayCommand]
+    private void ResetAllSettings()
+    {
+        var defaults = _settingsService.CreateDefaults();
+
+        _suppressHotkeyCommit = true;
         try
         {
-            _settingsService.Save(_draft);
-        }
-        catch (SettingsValidationException exception)
-        {
-            MarkConflicts(exception.Conflicts);
-            StatusMessage = L["statusConflicts"];
-            return;
-        }
-
-        var autoStartResult = _autoStart.SetEnabled(_draft.LaunchAtLogin);
-        _autoStartState = autoStartResult.State;
-        OnPropertyChanged(nameof(CanLaunchAtLogin));
-        OnPropertyChanged(nameof(AutoStartStatusText));
-
-        if (!autoStartResult.Success)
-        {
-            if (_autoStartState == AutoStartState.Unavailable)
+            _draft = defaults;
+            foreach (var row in Hotkeys)
             {
-                _draft.LaunchAtLogin = false;
-                OnPropertyChanged(nameof(LaunchAtLogin));
+                row.ErrorMessage = null;
+                if (defaults.Hotkeys.TryGetValue(row.ActionKey, out var gesture))
+                {
+                    row.Gesture = gesture;
+                }
             }
+        }
+        finally
+        {
+            _suppressHotkeyCommit = false;
+        }
 
-            StatusMessage = string.IsNullOrWhiteSpace(autoStartResult.Error)
-                ? L["autoStartFailed"]
-                : $"{L["autoStartFailed"]}: {autoStartResult.Error}";
+        var apply = _hotkeys?.Apply(defaults.Hotkeys);
+        if (apply is { Success: false })
+        {
+            MarkHotkeyFailures(apply);
+        }
+
+        if (!TryPersist())
+        {
             return;
         }
 
+        SyncHotkeyRowsFromDraft();
+        UpdateHotkeyBaselines();
+        _localizer.SetLanguage(_draft.Language);
+        ApplyTheme(_draft.Theme);
+        var autoStartResult = _autoStart.SetEnabled(false);
+        _autoStartState = autoStartResult.State;
+        OnPropertyChanged(string.Empty);
         StatusMessage = L["statusSaved"];
     }
 
@@ -1452,20 +1654,244 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         gestures ??= _draft.Hotkeys;
 
+        foreach (var row in Hotkeys)
+        {
+            row.PropertyChanged -= OnHotkeyRowPropertyChanged;
+        }
+
         Hotkeys.Clear();
+        _hotkeyBaselines.Clear();
         foreach (var action in HotkeyCatalog.Actions)
         {
             var gesture = gestures.TryGetValue(action.Key, out var stored) && !string.IsNullOrWhiteSpace(stored)
                 ? stored
                 : HotkeyCatalog.GetDefaultGesture(action, _platform.Kind);
 
-            Hotkeys.Add(new HotkeyRowViewModel(
+            var row = new HotkeyRowViewModel(
                 action.Key,
                 action.LabelKey,
                 L[action.LabelKey],
                 gesture,
-                L["hotkeyPressPrompt"]));
+                L["hotkeyPressPrompt"]);
+            row.PropertyChanged += OnHotkeyRowPropertyChanged;
+            Hotkeys.Add(row);
+            _hotkeyBaselines[action.Key] = gesture;
         }
+    }
+
+    /// <summary>行编辑只有 <c>Gesture</c> 需要提交；批量恢复期间通过抑制位跳过。</summary>
+    private void OnHotkeyRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(HotkeyRowViewModel.Gesture) || _suppressHotkeyCommit)
+        {
+            return;
+        }
+
+        if (sender is HotkeyRowViewModel row)
+        {
+            CommitHotkeyRow(row);
+        }
+    }
+
+    /// <summary>
+    /// 单行热键的行级提交流程：全量冲突检测 → 回滚该行（冲突时）→
+    /// <see cref="HotkeyManager.Apply"/>（事务式，SameAsCurrent 短路）→ 持久化。
+    /// 任一步失败都把该行还原到编辑前的值，不写盘。
+    /// </summary>
+    private void CommitHotkeyRow(HotkeyRowViewModel row)
+    {
+        var previous = _hotkeyBaselines.TryGetValue(row.ActionKey, out var baseline)
+            ? baseline
+            : string.Empty;
+        var current = row.Gesture ?? string.Empty;
+        if (string.Equals(previous, current, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        foreach (var item in Hotkeys)
+        {
+            item.ErrorMessage = null;
+        }
+
+        var gestures = CollectGestures();
+        var conflicts = HotkeyConflictDetector.Detect(gestures);
+        if (conflicts.Count > 0)
+        {
+            RevertRowGesture(row, previous);
+            MarkConflicts(conflicts);
+            StatusMessage = L["statusConflicts"];
+            return;
+        }
+
+        var apply = _hotkeys?.Apply(gestures);
+        if (apply is { Success: false })
+        {
+            RevertRowGesture(row, previous);
+            MarkHotkeyFailures(apply);
+            StatusMessage = L["statusConflicts"];
+            return;
+        }
+
+        if (!TryPersist())
+        {
+            RevertRowGesture(row, previous);
+            _hotkeys?.Apply(CollectGestures());
+            return;
+        }
+
+        // Normalize 可能把空值补回默认组合键，回读后同步到行上。
+        SyncHotkeyRowsFromDraft();
+        UpdateHotkeyBaselines();
+    }
+
+    private void RevertRowGesture(HotkeyRowViewModel row, string gesture)
+    {
+        _suppressHotkeyCommit = true;
+        try
+        {
+            row.Gesture = gesture;
+        }
+        finally
+        {
+            _suppressHotkeyCommit = false;
+        }
+    }
+
+    private void RestoreGestureSnapshot(IReadOnlyDictionary<string, string> snapshot)
+    {
+        _suppressHotkeyCommit = true;
+        try
+        {
+            foreach (var row in Hotkeys)
+            {
+                if (snapshot.TryGetValue(row.ActionKey, out var gesture))
+                {
+                    row.Gesture = gesture;
+                }
+            }
+        }
+        finally
+        {
+            _suppressHotkeyCommit = false;
+        }
+    }
+
+    /// <summary>把回读草稿里的规范快捷键同步到行上（抑制行级提交）。</summary>
+    private void SyncHotkeyRowsFromDraft()
+    {
+        _suppressHotkeyCommit = true;
+        try
+        {
+            foreach (var row in Hotkeys)
+            {
+                if (_draft.Hotkeys.TryGetValue(row.ActionKey, out var gesture) &&
+                    !string.Equals(row.Gesture, gesture, StringComparison.Ordinal))
+                {
+                    row.Gesture = gesture;
+                }
+            }
+        }
+        finally
+        {
+            _suppressHotkeyCommit = false;
+        }
+    }
+
+    private void UpdateHotkeyBaselines()
+    {
+        foreach (var row in Hotkeys)
+        {
+            _hotkeyBaselines[row.ActionKey] = row.Gesture;
+        }
+    }
+
+    /// <summary>
+    /// 把草稿交给 <see cref="SettingsService.Save"/>（Normalize + 冲突校验 + 写盘 + Changed）。
+    /// 成功后用服务回读的规范值替换草稿，让 UI 反映被强制修正的设置；
+    /// 失败时不写盘并返回 false，由调用方回滚刚修改的字段。
+    /// </summary>
+    private bool TryPersist()
+    {
+        _draft.Hotkeys = CollectGestures();
+        try
+        {
+            _settingsService.Save(_draft);
+        }
+        catch (SettingsValidationException exception)
+        {
+            MarkConflicts(exception.Conflicts);
+            StatusMessage = L["statusConflicts"];
+            return false;
+        }
+
+        _draft = _settingsService.Current;
+        StatusMessage = L["statusSaved"];
+        return true;
+    }
+
+    /// <summary>写入单个设置并立即持久化；保存失败时还原为操作前的值。</summary>
+    private void CommitSetting(
+        Action apply,
+        Action rollback,
+        string propertyName,
+        params string[] dependentProperties)
+    {
+        apply();
+        NotifySetting(propertyName, dependentProperties);
+        if (TryPersist())
+        {
+            // 回读 Normalize 强制后的值，刷新绑定显示真实生效的内容。
+            NotifySetting(propertyName, dependentProperties);
+            return;
+        }
+
+        rollback();
+        NotifySetting(propertyName, dependentProperties);
+    }
+
+    private void NotifySetting(string propertyName, params string[] dependentProperties)
+    {
+        OnPropertyChanged(propertyName);
+        foreach (var dependent in dependentProperties)
+        {
+            OnPropertyChanged(dependent);
+        }
+    }
+
+    private Dictionary<string, string> CollectGestures() =>
+        Hotkeys.ToDictionary(
+            static row => row.ActionKey,
+            static row => row.Gesture,
+            StringComparer.OrdinalIgnoreCase);
+
+    private void NotifyAutoStart()
+    {
+        OnPropertyChanged(nameof(LaunchAtLogin));
+        OnPropertyChanged(nameof(CanLaunchAtLogin));
+        OnPropertyChanged(nameof(AutoStartStatusText));
+        OnPropertyChanged(nameof(HasAutoStartStatus));
+    }
+
+    /// <summary>
+    /// 系统外观变化（auto 下由 <c>Application.ActualThemeVariantChanged</c> 触发）时刷新主题绑定。
+    /// 只通知、不写盘，避免与设置保存互相触发形成反馈环。
+    /// </summary>
+    public void RefreshThemeState() => NotifyTheme();
+
+    private void NotifyTheme()
+    {
+        OnPropertyChanged(nameof(IsAutoTheme));
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+    }
+
+    private void NotifyFormat()
+    {
+        OnPropertyChanged(nameof(IsPng));
+        OnPropertyChanged(nameof(IsJpg));
+        OnPropertyChanged(nameof(IsWebp));
+        OnPropertyChanged(nameof(FileNamePreview));
     }
 
     private void MarkConflicts(IReadOnlyList<HotkeyConflict> conflicts)
@@ -1561,7 +1987,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (Avalonia.Application.Current is { } application)
         {
-            application.RequestedThemeVariant = theme == "light" ? ThemeVariant.Light : ThemeVariant.Dark;
+            application.RequestedThemeVariant = theme switch
+            {
+                "light" => ThemeVariant.Light,
+                "dark" => ThemeVariant.Dark,
+                _ => ThemeVariant.Default
+            };
         }
     }
 }

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using SSC.Application.Hotkeys;
-using SSC.Platform.Abstractions;
+using SSC.UI.Platform;
 
 namespace SSC.UI.Controls;
 
@@ -11,9 +11,6 @@ namespace SSC.UI.Controls;
 /// </summary>
 public sealed class HotkeyRecorderBox : TextBox
 {
-    private static readonly PlatformKind Platform =
-        OperatingSystem.IsMacOS() ? PlatformKind.MacOS : PlatformKind.Windows;
-
     private string? _textBeforeCapture;
     private bool _capturing;
 
@@ -87,7 +84,7 @@ public sealed class HotkeyRecorderBox : TextBox
             return;
         }
 
-        Text = new HotkeyGesture(modifiers, key).ToDisplayString(Platform);
+        Text = new HotkeyGesture(modifiers, key).ToDisplayString(PlatformInfo.Current);
         e.Handled = true;
     }
 

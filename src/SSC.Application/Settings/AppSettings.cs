@@ -6,7 +6,7 @@ public sealed class AppSettings
 
     public string Language { get; set; } = "zh";
 
-    public string Theme { get; set; } = "dark";
+    public string Theme { get; set; } = "auto";
 
     public bool LaunchAtLogin { get; set; }
 

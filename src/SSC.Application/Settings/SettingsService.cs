@@ -50,7 +50,7 @@ public sealed class SettingsService
     public AppSettings CreateDefaults() => new()
     {
         Language = "zh",
-        Theme = "dark",
+        Theme = "auto",
         CloseToTray = true,
         SaveDirectory = _paths.ScreenshotsDirectory,
         Hotkeys = HotkeyCatalog.CreateDefaults(_platform.Kind)
@@ -97,16 +97,35 @@ public sealed class SettingsService
             return defaults;
         }
 
-        return loaded is null ? defaults : Normalize(loaded);
+        if (loaded is null)
+        {
+            return defaults;
+        }
+
+        Migrate(loaded);
+        return Normalize(loaded);
+    }
+
+    /// <summary>
+    /// schema v3：主题新增 "auto" 并成为默认值。v3 之前「深色」是强制的初始值、
+    /// 并非用户显式选择，升级时统一改为跟随系统；<c>"light"</c> 是用户主动选择的，保留。
+    /// 缺失 SchemaVersion（0/1）同样视为旧数据。
+    /// </summary>
+    private static void Migrate(AppSettings settings)
+    {
+        if (settings.SchemaVersion < 3 && settings.Theme == "dark")
+        {
+            settings.Theme = "auto";
+        }
     }
 
     private AppSettings Normalize(AppSettings settings)
     {
         var defaults = CreateDefaults();
 
-        settings.SchemaVersion = 2;
+        settings.SchemaVersion = 3;
         settings.Language = settings.Language is "en" or "zh" ? settings.Language : defaults.Language;
-        settings.Theme = settings.Theme is "light" or "dark" ? settings.Theme : defaults.Theme;
+        settings.Theme = settings.Theme is "light" or "dark" or "auto" ? settings.Theme : defaults.Theme;
         settings.CaptureDelaySeconds = Math.Clamp(settings.CaptureDelaySeconds, 1, 30);
         settings.UpdateChannel = settings.UpdateChannel is "preview" ? "preview" : "stable";
         settings.QuickAccessSeconds = Math.Clamp(settings.QuickAccessSeconds, 2, 15);

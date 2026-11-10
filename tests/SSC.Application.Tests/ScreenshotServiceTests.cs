@@ -77,6 +77,192 @@ public sealed class ScreenshotServiceTests
         Assert.EndsWith(".webp", result.FilePath, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task SaveAsAsync_WritesChosenPathAndAddsHistoryWithoutAutoCopy()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var history = new InMemoryHistoryRepository();
+        var clipboard = new RecordingClipboardService();
+        var encoder = new StubEncoder();
+        var bus = new InMemoryAppEventBus();
+        var published = new List<Guid>();
+        using var subscription = bus.Subscribe<HistoryChanged>(message => published.Add(message.EntryId));
+        var service = new ScreenshotService(
+            encoder,
+            clipboard,
+            history,
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            bus);
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+        var path = Path.Combine(temp.Path, "chosen-shot.png");
+
+        var result = await service.SaveAsAsync(
+            frame,
+            CaptureKind.Screenshot,
+            path,
+            format: null,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(path, result.FilePath);
+        Assert.True(File.Exists(path));
+        Assert.Equal(new byte[] { 1, 2, 3 }, await File.ReadAllBytesAsync(
+            path,
+            TestContext.Current.CancellationToken));
+        Assert.Equal("png", encoder.LastFormat);
+        Assert.Equal(0, clipboard.Calls);
+        Assert.Equal(1, history.Count());
+        Assert.Equal("chosen-shot", result.Entry.Title);
+        Assert.Equal(path, result.Entry.FilePath);
+        Assert.Equal(path, history.List()[0].FilePath);
+        Assert.Equal(new[] { result.Entry.Id }, published);
+    }
+
+    [Fact]
+    public async Task SaveAsAsync_NormalizesExplicitFormat()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var encoder = new StubEncoder();
+        var service = new ScreenshotService(
+            encoder,
+            new RecordingClipboardService(),
+            new InMemoryHistoryRepository(),
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            new InMemoryAppEventBus());
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+
+        var result = await service.SaveAsAsync(
+            frame,
+            CaptureKind.Screenshot,
+            Path.Combine(temp.Path, "explicit.jpg"),
+            "JPG",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("jpg", encoder.LastFormat);
+        Assert.EndsWith(".jpg", result.FilePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SaveAsAsync_InfersFormatFromExtensionWhenNull()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var encoder = new StubEncoder();
+        var service = new ScreenshotService(
+            encoder,
+            new RecordingClipboardService(),
+            new InMemoryHistoryRepository(),
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            new InMemoryAppEventBus());
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+
+        var result = await service.SaveAsAsync(
+            frame,
+            CaptureKind.Screenshot,
+            Path.Combine(temp.Path, "inferred.webp"),
+            format: null,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("webp", encoder.LastFormat);
+        Assert.EndsWith(".webp", result.FilePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SaveAsAsync_PropagatesEncoderFailureWithoutHistory()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var history = new InMemoryHistoryRepository();
+        var clipboard = new RecordingClipboardService();
+        var service = new ScreenshotService(
+            new ThrowingEncoder(),
+            clipboard,
+            history,
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            new InMemoryAppEventBus());
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+        var path = Path.Combine(temp.Path, "failed.png");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SaveAsAsync(
+            frame,
+            CaptureKind.Screenshot,
+            path,
+            format: null,
+            TestContext.Current.CancellationToken));
+
+        Assert.False(File.Exists(path));
+        Assert.Equal(0, history.Count());
+        Assert.Equal(0, clipboard.Calls);
+    }
+
+    [Fact]
+    public async Task SaveAsAsync_PropagatesWriteFailureWithoutHistory()
+    {
+        using var temp = new TempDirectory();
+        var platform = new PlatformDescriptor(PlatformKind.MacOS, "macOS", "test");
+        var settingsService = new SettingsService(
+            new InMemorySettingsRepository(),
+            new TestPaths(temp.Path),
+            platform);
+        var history = new InMemoryHistoryRepository();
+        var clipboard = new RecordingClipboardService();
+        var service = new ScreenshotService(
+            new StubEncoder(),
+            clipboard,
+            history,
+            settingsService,
+            new CaptureFileNamer(new FixedClock(DateTimeOffset.UtcNow)),
+            new FixedClock(DateTimeOffset.UtcNow),
+            new InMemoryAppEventBus());
+        var frame = new CaptureFrame(2, 2, new byte[2 * 2 * 4], DateTimeOffset.UtcNow);
+        var path = Path.Combine(temp.Path, "missing-directory", "failed.png");
+
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(() => service.SaveAsAsync(
+            frame,
+            CaptureKind.Screenshot,
+            path,
+            "png",
+            TestContext.Current.CancellationToken));
+
+        Assert.Equal(0, history.Count());
+        Assert.Equal(0, clipboard.Calls);
+    }
+
+    private sealed class ThrowingEncoder : IImageEncoder
+    {
+        public Task<byte[]> EncodeAsync(
+            CaptureFrame frame,
+            string format,
+            int quality,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("encoder failed");
+    }
+
     private sealed class StubEncoder : IImageEncoder
     {
         public string? LastFormat { get; private set; }
@@ -96,9 +282,12 @@ public sealed class ScreenshotServiceTests
     {
         public CaptureFrame? LastFrame { get; private set; }
 
+        public int Calls { get; private set; }
+
         public Task CopyImageAsync(CaptureFrame frame, CancellationToken cancellationToken = default)
         {
             LastFrame = frame;
+            Calls++;
             return Task.CompletedTask;
         }
     }
